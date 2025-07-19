@@ -10,6 +10,39 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
     setPaymentStatus('processing')
   }
 
+  const handleUPIPayment = (app) => {
+    const amount = getTotalPrice() > 0 ? getTotalPrice() : 0
+    const upiId = 'Q629741098@ybl'
+    const orderId = order.id
+    
+    let deepLink = ''
+    
+    if (app === 'gpay') {
+      // Google Pay deep link
+      deepLink = `googleplay://upi/pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
+    } else if (app === 'phonepe') {
+      // PhonePe deep link
+      deepLink = `phonepe://pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
+    } else if (app === 'paytm') {
+      // Paytm deep link
+      deepLink = `paytmmp://pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
+    } else if (app === 'bhim') {
+      // BHIM deep link
+      deepLink = `bhim://upi/pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
+    }
+    
+    if (deepLink) {
+      // Try to open the app
+      window.location.href = deepLink
+      
+      // Fallback: If app doesn't open, show QR code after a delay
+      setTimeout(() => {
+        setIsQRVisible(true)
+        setPaymentStatus('processing')
+      }, 2000)
+    }
+  }
+
   const handlePaymentSuccess = () => {
     setPaymentStatus('success')
     setTimeout(() => {
@@ -117,15 +150,121 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h3>
             
+            {/* UPI ID Display */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">UPI ID</p>
+                  <p className="text-lg font-bold text-gray-900">Q629741098@ybl</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Amount</p>
+                  <p className="text-lg font-bold text-primary-600">
+                    ₹{getTotalPrice() > 0 ? getTotalPrice() : 'MRP'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <div className="space-y-3">
-              <div className="border border-gray-200 rounded-lg p-4 hover:border-primary-300 cursor-pointer">
+              {/* GPay */}
+              <div 
+                onClick={() => handleUPIPayment('gpay')}
+                className="border border-gray-200 rounded-lg p-4 hover:border-green-300 hover:bg-green-50 cursor-pointer transition-colors"
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <span className="text-green-600 font-bold text-lg">UPI</span>
+                      <span className="text-green-600 font-bold text-sm">GPay</span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">UPI Payment</p>
+                      <p className="font-medium text-gray-900">Google Pay</p>
+                      <p className="text-sm text-gray-600">Pay using Google Pay</p>
+                    </div>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* PhonePe */}
+              <div 
+                onClick={() => handleUPIPayment('phonepe')}
+                className="border border-gray-200 rounded-lg p-4 hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <span className="text-purple-600 font-bold text-sm">PhonePe</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">PhonePe</p>
+                      <p className="text-sm text-gray-600">Pay using PhonePe</p>
+                    </div>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Paytm */}
+              <div 
+                onClick={() => handleUPIPayment('paytm')}
+                className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <span className="text-blue-600 font-bold text-sm">Paytm</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Paytm</p>
+                      <p className="text-sm text-gray-600">Pay using Paytm</p>
+                    </div>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* BHIM */}
+              <div 
+                onClick={() => handleUPIPayment('bhim')}
+                className="border border-gray-200 rounded-lg p-4 hover:border-orange-300 hover:bg-orange-50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <span className="text-orange-600 font-bold text-sm">BHIM</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">BHIM</p>
+                      <p className="text-sm text-gray-600">Pay using BHIM</p>
+                    </div>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* QR Code Option */}
+              <div 
+                onClick={() => setIsQRVisible(true)}
+                className="border border-gray-200 rounded-lg p-4 hover:border-primary-300 hover:bg-primary-50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Scan QR Code</p>
                       <p className="text-sm text-gray-600">Pay using any UPI app</p>
                     </div>
                   </div>

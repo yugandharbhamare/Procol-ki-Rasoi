@@ -1,10 +1,10 @@
 const UPIQRCode = ({ amount, orderId, onPaymentSuccess, onPaymentFailed }) => {
   const handleUPIAppOpen = () => {
     // UPI deep link format for opening UPI apps
-    const upiUrl = `upi://pay?pa=your-upi-id@bank&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
+    const upiUrl = `upi://pay?pa=Q629741098@ybl&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
     
     // Try to open UPI app
-    window.open(upiUrl, '_blank')
+    window.location.href = upiUrl
     
     // Fallback: Show instructions
     setTimeout(() => {
@@ -44,10 +44,15 @@ const UPIQRCode = ({ amount, orderId, onPaymentSuccess, onPaymentFailed }) => {
       </div>
       
       <div className="space-y-3">
-        <p className="text-sm text-gray-600">
-          Amount to pay: <span className="font-semibold text-gray-900">₹{amount}</span>
-        </p>
-        <p className="text-xs text-gray-500">Order ID: {orderId}</p>
+        <div className="bg-gray-50 rounded-lg p-3">
+          <p className="text-sm text-gray-600">
+            Amount to pay: <span className="font-semibold text-gray-900">₹{amount}</span>
+          </p>
+          <p className="text-sm text-gray-600 mt-1">
+            UPI ID: <span className="font-semibold text-gray-900">Q629741098@ybl</span>
+          </p>
+          <p className="text-xs text-gray-500 mt-1">Order ID: {orderId}</p>
+        </div>
         
         <button
           onClick={handleUPIAppOpen}
