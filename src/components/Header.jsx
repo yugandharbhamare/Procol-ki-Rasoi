@@ -11,7 +11,7 @@ const Header = ({ searchQuery, onSearchChange }) => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Procol ki Rasoi</h1>
-              <p className="text-sm text-gray-600">Your office kitchen. Quick bites, warm meals in minutes</p>
+              <p className="text-sm text-gray-600">Your office kitchen</p>
             </div>
           </div>
         </div>

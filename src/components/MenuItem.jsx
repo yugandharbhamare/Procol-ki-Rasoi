@@ -30,7 +30,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
           <div className="mt-4">
             {!isInCart ? (
               <button
-                onClick={() => addToCart(item.id, item.name, item.price)}
+                onClick={() => addToCart(item.id, item.name, item.price, item.image)}
                 className="border-2 border-primary-500 text-primary-600 hover:bg-primary-50 font-medium py-2 px-4 rounded-lg transition-colors duration-200 w-full h-12"
               >
                 Add to Cart

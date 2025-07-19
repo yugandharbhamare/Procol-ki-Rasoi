@@ -3,19 +3,22 @@ import Menu from './components/Menu'
 import CartSummary from './components/CartSummary'
 import Header from './components/Header'
 import PaymentScreen from './components/PaymentScreen'
+import ReceiptScreen from './components/ReceiptScreen'
 
 function App() {
   const [cart, setCart] = useState({})
   const [showPayment, setShowPayment] = useState(false)
+  const [showReceipt, setShowReceipt] = useState(false)
   const [currentOrder, setCurrentOrder] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const addToCart = (itemId, itemName, price) => {
+  const addToCart = (itemId, itemName, price, image) => {
     setCart(prev => ({
       ...prev,
       [itemId]: {
         name: itemName,
         price: price,
+        image: image,
         quantity: (prev[itemId]?.quantity || 0) + 1
       }
     }))
@@ -63,14 +66,18 @@ function App() {
 
   const handlePaymentComplete = () => {
     setShowPayment(false)
-    setCurrentOrder(null)
-    setCart({})
-    alert('Order completed successfully! Thank you for your purchase.')
+    setShowReceipt(true)
   }
 
   const handlePaymentBack = () => {
     setShowPayment(false)
     setCurrentOrder(null)
+  }
+
+  const handleNewOrder = () => {
+    setShowReceipt(false)
+    setCurrentOrder(null)
+    setCart({})
   }
 
   if (showPayment && currentOrder) {
@@ -79,6 +86,15 @@ function App() {
         order={currentOrder}
         onPaymentComplete={handlePaymentComplete}
         onBack={handlePaymentBack}
+      />
+    )
+  }
+
+  if (showReceipt && currentOrder) {
+    return (
+      <ReceiptScreen
+        order={currentOrder}
+        onNewOrder={handleNewOrder}
       />
     )
   }
