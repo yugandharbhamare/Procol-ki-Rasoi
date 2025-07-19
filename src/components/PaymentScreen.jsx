@@ -9,6 +9,8 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
 
 
   const handlePaymentMethodSelect = (app) => {
+    // Don't allow changing payment method if payment is in progress
+    if (paymentStatus === 'processing') return
     setSelectedPaymentMethod(app)
   }
 
@@ -168,6 +170,13 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
         {!isQRVisible && (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h3>
+            {paymentStatus === 'processing' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ Payment in progress. Please complete the payment in your UPI app before selecting another method.
+                </p>
+              </div>
+            )}
             
             {/* UPI ID Display */}
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -189,10 +198,12 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
               {/* GPay */}
               <div 
                 onClick={() => handlePaymentMethodSelect('gpay')}
-                className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                  selectedPaymentMethod === 'gpay' 
-                    ? 'border-green-500 bg-green-50' 
-                    : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                className={`border rounded-lg p-4 transition-colors ${
+                  paymentStatus === 'processing'
+                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
+                    : selectedPaymentMethod === 'gpay' 
+                      ? 'border-green-500 bg-green-50 cursor-pointer' 
+                      : 'border-gray-200 hover:border-green-300 hover:bg-green-50 cursor-pointer'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -224,10 +235,12 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
               {/* PhonePe */}
               <div 
                 onClick={() => handlePaymentMethodSelect('phonepe')}
-                className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                  selectedPaymentMethod === 'phonepe' 
-                    ? 'border-purple-500 bg-purple-50' 
-                    : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                className={`border rounded-lg p-4 transition-colors ${
+                  paymentStatus === 'processing'
+                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
+                    : selectedPaymentMethod === 'phonepe' 
+                      ? 'border-purple-500 bg-purple-50 cursor-pointer' 
+                      : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50 cursor-pointer'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -259,10 +272,12 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
               {/* Paytm */}
               <div 
                 onClick={() => handlePaymentMethodSelect('paytm')}
-                className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                  selectedPaymentMethod === 'paytm' 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                className={`border rounded-lg p-4 transition-colors ${
+                  paymentStatus === 'processing'
+                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
+                    : selectedPaymentMethod === 'paytm' 
+                      ? 'border-blue-500 bg-blue-50 cursor-pointer' 
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -294,10 +309,12 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
               {/* BHIM */}
               <div 
                 onClick={() => handlePaymentMethodSelect('bhim')}
-                className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                  selectedPaymentMethod === 'bhim' 
-                    ? 'border-orange-500 bg-orange-50' 
-                    : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
+                className={`border rounded-lg p-4 transition-colors ${
+                  paymentStatus === 'processing'
+                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
+                    : selectedPaymentMethod === 'bhim' 
+                      ? 'border-orange-500 bg-orange-50 cursor-pointer' 
+                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50 cursor-pointer'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -393,7 +410,12 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
             </button>
             <button
               onClick={onBack}
-              className="w-full btn-secondary py-3"
+              disabled={paymentStatus === 'processing'}
+              className={`w-full py-3 rounded-lg transition-colors ${
+                paymentStatus === 'processing'
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'btn-secondary'
+              }`}
             >
               Back to Cart
             </button>
