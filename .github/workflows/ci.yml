@@ -44,6 +44,10 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     
     steps:
     - name: Checkout code
@@ -61,11 +65,21 @@ jobs:
     - name: Build application
       run: npm run build
       
+    - name: Check GitHub Pages status
+      run: |
+        echo "Checking if GitHub Pages is enabled..."
+        echo "Repository: ${{ github.repository }}"
+        echo "Branch: ${{ github.ref }}"
+        
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./dist
+        force_orphan: true
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+      continue-on-error: true
         
   # Deploy to Vercel (optional)
   deploy-vercel:
