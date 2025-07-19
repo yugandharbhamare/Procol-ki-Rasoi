@@ -5,8 +5,22 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
     <div className="card p-4 rounded-2xl">
       <div className="flex items-start space-x-4">
         <div className="flex-shrink-0">
-          <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">
-            {item.image}
+          <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+            {item.image.startsWith('/') ? (
+              <img 
+                src={item.image} 
+                alt={item.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to emoji if image fails to load
+                  e.target.style.display = 'none'
+                  e.target.nextSibling.style.display = 'flex'
+                }}
+              />
+            ) : null}
+            <div className={`w-full h-full flex items-center justify-center text-2xl ${item.image.startsWith('/') ? 'hidden' : ''}`}>
+              {item.image}
+            </div>
           </div>
         </div>
         

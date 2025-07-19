@@ -7,112 +7,112 @@ const menuItems = [
     name: "Ginger Chai",
     price: 10,
     description: "Hot ginger tea with aromatic spices",
-    image: "☕"
+    image: "/Ginger Tea.png"
   },
   {
     id: 2,
     name: "Masala Chai",
     price: 10,
     description: "Traditional Indian spiced tea",
-    image: "🫖"
+    image: "/Ginger Tea.png"
   },
   {
     id: 3,
     name: "Masala Oats",
     price: 20,
     description: "Healthy oats with Indian spices",
-    image: "🥣"
+    image: "/Masala Oats.png"
   },
   {
     id: 4,
     name: "Plain Maggi",
     price: 20,
     description: "Classic instant noodles",
-    image: "🍜"
+    image: "/Plain Maggi.png"
   },
   {
     id: 5,
     name: "Veg Butter Maggi",
     price: 30,
     description: "Maggi with vegetables and butter",
-    image: "🍜"
+    image: "/Veg butter maggi.png"
   },
   {
     id: 6,
     name: "Cheese Maggi",
     price: 30,
     description: "Maggi topped with melted cheese",
-    image: "🧀"
+    image: "/Cheese Maggi.png"
   },
   {
     id: 7,
     name: "Butter Atta Maggi",
     price: 30,
     description: "Whole wheat Maggi with butter",
-    image: "🍜"
+    image: "/Butter Atta Maggi.png"
   },
   {
     id: 8,
     name: "Veg Cheese Maggi",
     price: 40,
     description: "Maggi with vegetables and cheese",
-    image: "🧀"
+    image: "/Veg cheese maggi.png"
   },
   {
     id: 9,
     name: "Cheese Atta Maggi",
     price: 45,
     description: "Whole wheat Maggi with cheese",
-    image: "🧀"
+    image: "/Cheese Atta Maggi.png"
   },
   {
     id: 10,
     name: "MTR Poha",
     price: 30,
     description: "Flattened rice breakfast dish",
-    image: "🍚"
+    image: "/MTR Poha.png"
   },
   {
     id: 11,
     name: "MTR Upma",
     price: 30,
     description: "Semolina breakfast porridge",
-    image: "🥣"
+    image: "/MTR Upma.png"
   },
   {
     id: 12,
     name: "Veg Cheese Sandwich",
     price: 40,
     description: "Vegetable and cheese sandwich",
-    image: "🥪"
+    image: "/Veg Cheese Sandwich.png"
   },
   {
     id: 13,
     name: "Aloo Sandwich",
     price: 30,
     description: "Potato sandwich with spices",
-    image: "🥪"
+    image: "/Aloo sandwich.png"
   },
   {
     id: 14,
     name: "Aloo Cheese Sandwich",
     price: 45,
     description: "Potato and cheese sandwich",
-    image: "🥪"
+    image: "/Aloo cheese sandwich.png"
   },
   {
     id: 15,
     name: "Besan Chila",
     price: 30,
     description: "Gram flour savory pancake",
-    image: "🥞"
+    image: "/Besan Chila.png"
   },
   {
     id: 16,
     name: "Bhel Puri",
     price: 30,
     description: "Tangy street food snack",
-    image: "🥗"
+    image: "/Bhel Puri.png"
   },
 
   {
@@ -120,21 +120,21 @@ const menuItems = [
     name: "Onion",
     price: 10,
     description: "Fresh onions",
-    image: "🧅"
+    image: "/Onion.png"
   },
   {
     id: 18,
     name: "Cucumber",
     price: 10,
     description: "Fresh cucumbers",
-    image: "🥒"
+    image: "/Cucumber.png"
   },
   {
     id: 19,
     name: "Mix Salad",
     price: 20,
-    description: "Fresh Cucumbers, onions & Tomatoes",
-    image: "🥗"
+    description: "Fresh cut Cucumbers & Onion",
+    image: "/Mix Salad.png"
   },
   {
     id: 20,
