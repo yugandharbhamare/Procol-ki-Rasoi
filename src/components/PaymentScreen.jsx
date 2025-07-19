@@ -74,14 +74,16 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
               <div key={itemId} className="flex justify-between items-center">
                 <div className="flex-1">
                   <p className="font-medium text-gray-900">{item.name}</p>
-                  <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                    {typeof item.price === 'number' && (
+                      <p className="text-sm text-gray-500">• ₹{item.price} each</p>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-gray-900">
                     {typeof item.price === 'number' ? `₹${item.price * item.quantity}` : 'MRP'}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {typeof item.price === 'number' ? `₹${item.price} each` : 'As marked'}
                   </p>
                 </div>
               </div>

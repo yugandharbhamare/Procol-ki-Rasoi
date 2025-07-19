@@ -92,6 +92,8 @@ function App() {
           updateQuantity={updateQuantity}
         />
       </div>
+      {/* Extra padding to prevent footer overlap */}
+      <div className="pb-32"></div>
       {getTotalItems() > 0 && (
         <CartSummary 
           cart={cart}

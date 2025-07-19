@@ -10,7 +10,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
           </div>
         </div>
         
-        <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900 truncate">
@@ -19,7 +19,9 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
               <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                 {item.description}
               </p>
-              <p className="text-lg font-bold text-primary-600 mt-2">
+            </div>
+            <div className="ml-4 text-right">
+              <p className="text-lg font-bold text-primary-600">
                 {typeof item.price === 'number' ? `₹${item.price}` : item.price}
               </p>
             </div>

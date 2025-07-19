@@ -9,7 +9,7 @@ const Header = () => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Procol ki Rasoi</h1>
-              <p className="text-sm text-gray-600">Delicious food at your doorstep</p>
+              <p className="text-sm text-gray-600">Your office kitchen. Quick bites, warm meals in minutes</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
