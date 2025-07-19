@@ -151,10 +151,10 @@ const menuItems = [
   },
   {
     id: 22,
-    name: "Mix",
+    name: "Mix Salad",
     price: 20,
-    description: "Mixed fresh vegetables",
-    image: "🥬"
+    description: "Fresh Cucumbers, onions & Tomatoes",
+    image: "🥗"
   },
   {
     id: 23,
