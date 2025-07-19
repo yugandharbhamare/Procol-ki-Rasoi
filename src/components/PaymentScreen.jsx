@@ -175,7 +175,11 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <span className="text-green-600 font-bold text-sm">GPay</span>
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" fill="#34A853"/>
+                        <path d="M12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6ZM12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12C16 14.2091 14.2091 16 12 16Z" fill="white"/>
+                        <path d="M12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10Z" fill="white"/>
+                      </svg>
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">Google Pay</p>
@@ -196,7 +200,12 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <span className="text-purple-600 font-bold text-sm">PhonePe</span>
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="#5F259F"/>
+                        <path d="M7 8H17V10H7V8Z" fill="white"/>
+                        <path d="M7 12H17V14H7V12Z" fill="white"/>
+                        <path d="M7 16H13V18H7V16Z" fill="white"/>
+                      </svg>
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">PhonePe</p>
@@ -217,7 +226,13 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-600 font-bold text-sm">Paytm</span>
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="#00BAF2"/>
+                        <path d="M8 7H16V9H8V7Z" fill="white"/>
+                        <path d="M8 11H16V13H8V11Z" fill="white"/>
+                        <path d="M8 15H14V17H8V15Z" fill="white"/>
+                        <circle cx="18" cy="6" r="2" fill="#FF6B35"/>
+                      </svg>
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">Paytm</p>
@@ -238,7 +253,13 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <span className="text-orange-600 font-bold text-sm">BHIM</span>
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="#FF6B35"/>
+                        <path d="M8 8H16V10H8V8Z" fill="white"/>
+                        <path d="M8 12H16V14H8V12Z" fill="white"/>
+                        <path d="M8 16H14V18H8V16Z" fill="white"/>
+                        <path d="M18 8L20 10L18 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">BHIM</p>
@@ -259,8 +280,13 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z" />
+                      <svg className="w-6 h-6 text-primary-600" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 3H7V7H3V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M17 3H21V7H17V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M3 17H7V21H3V17Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M17 17H21V21H17V17Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M7 7H17V17H7V7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M10 10H14V14H10V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </div>
                     <div>
