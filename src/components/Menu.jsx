@@ -114,57 +114,37 @@ const menuItems = [
     description: "Tangy street food snack",
     image: "🥗"
   },
+
   {
     id: 17,
-    name: "Biscuits",
-    price: "MRP",
-    description: "Assorted biscuits and cookies",
-    image: "🍪"
-  },
-  {
-    id: 18,
-    name: "Namkeen",
-    price: "MRP",
-    description: "Traditional Indian snacks",
-    image: "🥨"
-  },
-  {
-    id: 19,
-    name: "Protein Bars",
-    price: "MRP",
-    description: "Healthy protein bars",
-    image: "🍫"
-  },
-  {
-    id: 20,
     name: "Onion",
     price: 10,
     description: "Fresh onions",
     image: "🧅"
   },
   {
-    id: 21,
+    id: 18,
     name: "Cucumber",
     price: 10,
     description: "Fresh cucumbers",
     image: "🥒"
   },
   {
-    id: 22,
+    id: 19,
     name: "Mix Salad",
     price: 20,
     description: "Fresh Cucumbers, onions & Tomatoes",
     image: "🥗"
   },
   {
-    id: 23,
+    id: 20,
     name: "Gud",
     price: 5,
     description: "Jaggery for natural sweetness",
     image: "🍯"
   },
   {
-    id: 24,
+    id: 21,
     name: "Saunf",
     price: 5,
     description: "Fennel seeds for digestion",
