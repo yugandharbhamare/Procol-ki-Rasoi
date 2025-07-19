@@ -2,7 +2,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
   const isInCart = cartItem && cartItem.quantity > 0
 
   return (
-    <div className="card p-4">
+    <div className="card p-4 rounded-2xl">
       <div className="flex items-start space-x-4">
         <div className="flex-shrink-0">
           <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-2xl">
@@ -21,7 +21,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
               </p>
             </div>
             <div className="ml-4 text-right">
-              <p className="text-lg font-bold text-primary-600">
+              <p className="text-lg font-bold text-gray-900">
                 {typeof item.price === 'number' ? `₹${item.price}` : item.price}
               </p>
             </div>
@@ -31,12 +31,12 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
             {!isInCart ? (
               <button
                 onClick={() => addToCart(item.id, item.name, item.price)}
-                className="btn-primary w-full"
+                className="border-2 border-primary-500 text-primary-600 hover:bg-primary-50 font-medium py-2 px-4 rounded-lg transition-colors duration-200 w-full h-12"
               >
                 Add to Cart
               </button>
             ) : (
-              <div className="flex items-center justify-between bg-gray-50 rounded-lg p-2">
+              <div className="flex items-center justify-between bg-gray-50 rounded-lg p-2 h-12">
                 <button
                   onClick={() => updateQuantity(item.id, cartItem.quantity - 1)}
                   className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-600 hover:text-gray-900 border border-gray-200"

@@ -28,7 +28,7 @@ const CartSummary = ({ cart, totalItems, totalPrice, placeOrder }) => {
           
           <button
             onClick={placeOrder}
-            className="btn-primary px-8 py-3 text-lg font-semibold"
+            className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-8 py-3 text-lg rounded-lg transition-colors duration-200"
           >
             Place Order
           </button>

@@ -85,7 +85,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Header />
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 max-w-md">
         <Menu 
           addToCart={addToCart} 
           cart={cart}

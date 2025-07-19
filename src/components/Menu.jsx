@@ -1,4 +1,6 @@
 import MenuItem from './MenuItem'
+import SearchBar from './SearchBar'
+import { useState, useMemo } from 'react'
 
 const menuItems = [
   {
@@ -172,6 +174,39 @@ const menuItems = [
 ]
 
 const Menu = ({ addToCart, cart, updateQuantity }) => {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const filteredItems = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return menuItems
+    }
+    
+    const query = searchQuery.toLowerCase().trim()
+    return menuItems
+      .filter(item => 
+        item.name.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query) ||
+        item.category?.toLowerCase().includes(query)
+      )
+      .sort((a, b) => {
+        // Prioritize exact name matches
+        const aNameMatch = a.name.toLowerCase().startsWith(query)
+        const bNameMatch = b.name.toLowerCase().startsWith(query)
+        
+        if (aNameMatch && !bNameMatch) return -1
+        if (!aNameMatch && bNameMatch) return 1
+        
+        // Then prioritize name matches over description matches
+        const aNameContains = a.name.toLowerCase().includes(query)
+        const bNameContains = b.name.toLowerCase().includes(query)
+        
+        if (aNameContains && !bNameContains) return -1
+        if (!aNameContains && bNameContains) return 1
+        
+        return 0
+      })
+  }, [searchQuery])
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -179,16 +214,33 @@ const Menu = ({ addToCart, cart, updateQuantity }) => {
         <p className="text-gray-600">Choose from our delicious selection</p>
       </div>
       
+      <SearchBar 
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+      
       <div className="grid gap-4">
-        {menuItems.map(item => (
-          <MenuItem
-            key={item.id}
-            item={item}
-            addToCart={addToCart}
-            cartItem={cart[item.id]}
-            updateQuantity={updateQuantity}
-          />
-        ))}
+        {filteredItems.length > 0 ? (
+          filteredItems.map(item => (
+            <MenuItem
+              key={item.id}
+              item={item}
+              addToCart={addToCart}
+              cartItem={cart[item.id]}
+              updateQuantity={updateQuantity}
+            />
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
+            <p className="text-gray-600">Try searching with different keywords</p>
+          </div>
+        )}
       </div>
     </div>
   )
