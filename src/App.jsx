@@ -2,9 +2,12 @@ import { useState } from 'react'
 import Menu from './components/Menu'
 import CartSummary from './components/CartSummary'
 import Header from './components/Header'
+import PaymentScreen from './components/PaymentScreen'
 
 function App() {
   const [cart, setCart] = useState({})
+  const [showPayment, setShowPayment] = useState(false)
+  const [currentOrder, setCurrentOrder] = useState(null)
 
   const addToCart = (itemId, itemName, price) => {
     setCart(prev => ({
@@ -47,19 +50,36 @@ function App() {
   }
 
   const placeOrder = () => {
-    const totalPrice = getTotalPrice()
-    const hasMRPItems = Object.values(cart).some(item => typeof item.price !== 'number')
-    
-    let message = 'Order placed successfully!'
-    if (totalPrice > 0) {
-      message += ` Total: ₹${totalPrice.toFixed(2)}`
+    const order = {
+      id: `ORD${Date.now()}`,
+      items: cart,
+      total: getTotalPrice(),
+      timestamp: new Date().toISOString()
     }
-    if (hasMRPItems) {
-      message += ' (MRP items will be charged as marked)'
-    }
-    
-    alert(message)
+    setCurrentOrder(order)
+    setShowPayment(true)
+  }
+
+  const handlePaymentComplete = () => {
+    setShowPayment(false)
+    setCurrentOrder(null)
     setCart({})
+    alert('Order completed successfully! Thank you for your purchase.')
+  }
+
+  const handlePaymentBack = () => {
+    setShowPayment(false)
+    setCurrentOrder(null)
+  }
+
+  if (showPayment && currentOrder) {
+    return (
+      <PaymentScreen
+        order={currentOrder}
+        onPaymentComplete={handlePaymentComplete}
+        onBack={handlePaymentBack}
+      />
+    )
   }
 
   return (
