@@ -1,0 +1,12 @@
+{
+  "files": [
+    {
+      "path": "./dist/assets/*.js",
+      "maxSize": "500 kB"
+    },
+    {
+      "path": "./dist/assets/*.css",
+      "maxSize": "100 kB"
+    }
+  ]
+} 
