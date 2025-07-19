@@ -8,7 +8,7 @@ const UPIQRCode = ({ amount, orderId, onPaymentSuccess, onPaymentFailed }) => {
     
     // Fallback: Show instructions
     setTimeout(() => {
-      alert('If UPI app didn\'t open automatically, please scan the QR code with any UPI app (Google Pay, PhonePe, Paytm, etc.)')
+      alert("If UPI app didn't open automatically, please scan the QR code with any UPI app (Google Pay, PhonePe, Paytm, etc.)")
     }, 1000)
   }
 
@@ -82,7 +82,7 @@ const UPIQRCode = ({ amount, orderId, onPaymentSuccess, onPaymentFailed }) => {
             1. Scan the QR code with any UPI app<br/>
             2. Verify the amount and merchant details<br/>
             3. Complete the payment<br/>
-            4. Click "Payment Successful" when done
+            4. Click &quot;Payment Successful&quot; when done
           </p>
         </div>
       </div>
