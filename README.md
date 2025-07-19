@@ -1,0 +1,127 @@
+# Procol ki Rasoi - Food Ordering App
+
+A mobile-first food ordering application built with React and Tailwind CSS. Features a beautiful menu interface with cart functionality and a floating cart summary.
+
+## Features
+
+- 🍽️ **Mobile-first design** - Optimized for mobile devices
+- 🛒 **Interactive cart** - Add items with quantity stepper
+- 💰 **Real-time pricing** - Live total calculation
+- 📱 **Floating cart summary** - Always visible at bottom
+- 🎨 **Modern UI** - Clean, responsive design with Tailwind CSS
+- 🍕 **Categorized menu** - Items organized by category
+
+## Tech Stack
+
+- **React 18** - Modern React with hooks
+- **Tailwind CSS** - Utility-first CSS framework
+- **Vite** - Fast build tool and dev server
+- **PostCSS** - CSS processing
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (version 16 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository or navigate to the project directory
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Running the Application
+
+1. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+2. Open your browser and navigate to `http://localhost:3000`
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+## Usage
+
+1. **Browse the Menu**: Scroll through different food categories
+2. **Add Items**: Click "Add to Cart" on any item
+3. **Adjust Quantities**: Use the +/- buttons to change quantities
+4. **View Cart**: See your items in the floating cart summary at the bottom
+5. **Place Order**: Click "Place Order" to complete your purchase
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── Header.jsx          # App header with branding
+│   ├── Menu.jsx            # Main menu component
+│   ├── MenuItem.jsx        # Individual menu item
+│   └── CartSummary.jsx     # Floating cart summary
+├── App.jsx                 # Main app component
+├── main.jsx               # React entry point
+└── index.css              # Global styles and Tailwind imports
+```
+
+## Customization
+
+### Adding New Menu Items
+
+Edit the `menuItems` array in `src/components/Menu.jsx`:
+
+```javascript
+{
+  id: 9,
+  name: "Your Dish Name",
+  price: 150,
+  description: "Description of your dish",
+  category: "Category Name",
+  image: "🍽️"
+}
+```
+
+### Styling
+
+The app uses Tailwind CSS with custom primary colors. Modify `tailwind.config.js` to change the color scheme.
+
+## 🚀 Deployment & CI/CD
+
+This project includes comprehensive GitHub Actions workflows for automated testing, building, and deployment.
+
+### Workflows Included:
+- **CI/CD Pipeline**: Automated testing and deployment to production
+- **Development Workflow**: Preview deployments for pull requests
+- **Security Checks**: Dependency scanning and code quality checks
+- **Release Management**: Automated versioning and changelog generation
+
+### Quick Deploy:
+1. Fork this repository
+2. Set up required secrets in GitHub repository settings
+3. Push to `main` branch for automatic deployment
+
+For detailed workflow documentation, see [docs/GITHUB_WORKFLOWS.md](docs/GITHUB_WORKFLOWS.md).
+
+## 📋 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request using the provided template
+
+## 📝 Issue Reporting
+
+Use the provided issue templates for:
+- 🐛 Bug reports
+- ✨ Feature requests
+
+## License
+
+This project is open source and available under the MIT License. 

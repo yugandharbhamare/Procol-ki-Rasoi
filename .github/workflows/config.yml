@@ -1,0 +1,42 @@
+# GitHub Actions Configuration
+# This file contains reusable workflow configurations and settings
+
+# Environment configurations
+environments:
+  development:
+    name: Development
+    url: https://dev-procol-ki-rasoi.vercel.app
+    
+  staging:
+    name: Staging
+    url: https://staging-procol-ki-rasoi.vercel.app
+    
+  production:
+    name: Production
+    url: https://procol-ki-rasoi.vercel.app
+
+# Branch protection rules
+branch-protection:
+  main:
+    required_status_checks:
+      strict: true
+      contexts:
+        - "Build and Test"
+        - "Security & Quality Checks"
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: true
+    enforce_admins: false
+    allow_force_pushes: false
+    allow_deletions: false
+    
+  develop:
+    required_status_checks:
+      strict: false
+      contexts:
+        - "Build and Test"
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+    enforce_admins: false
+    allow_force_pushes: true
+    allow_deletions: false 
