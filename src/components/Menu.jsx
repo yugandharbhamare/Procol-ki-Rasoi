@@ -1,6 +1,5 @@
 import MenuItem from './MenuItem'
-import SearchBar from './SearchBar'
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 
 const menuItems = [
   {
@@ -173,8 +172,7 @@ const menuItems = [
   }
 ]
 
-const Menu = ({ addToCart, cart, updateQuantity }) => {
-  const [searchQuery, setSearchQuery] = useState('')
+const Menu = ({ addToCart, cart, updateQuantity, searchQuery }) => {
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -209,15 +207,6 @@ const Menu = ({ addToCart, cart, updateQuantity }) => {
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Our Menu</h2>
-        <p className="text-gray-600">Choose from our delicious selection</p>
-      </div>
-      
-      <SearchBar 
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
       
       <div className="grid gap-4">
         {filteredItems.length > 0 ? (

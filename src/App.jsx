@@ -8,6 +8,7 @@ function App() {
   const [cart, setCart] = useState({})
   const [showPayment, setShowPayment] = useState(false)
   const [currentOrder, setCurrentOrder] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const addToCart = (itemId, itemName, price) => {
     setCart(prev => ({
@@ -84,12 +85,16 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <Header />
+      <Header 
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
       <div className="container mx-auto px-4 py-6 max-w-md">
         <Menu 
           addToCart={addToCart} 
           cart={cart}
           updateQuantity={updateQuantity}
+          searchQuery={searchQuery}
         />
       </div>
       {/* Extra padding to prevent footer overlap */}
