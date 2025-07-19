@@ -22,8 +22,21 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
     let deepLink = ''
     
     if (selectedPaymentMethod === 'gpay') {
-      // Google Pay deep link
-      deepLink = `googleplay://upi/pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
+      // Google Pay specific deep link
+      const gpayUrl = `gpay://upi/pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
+      
+      // Try to open Google Pay directly
+      window.location.href = gpayUrl
+      
+      // Set processing status and fallback (QR code only on desktop)
+      setPaymentStatus('processing')
+      // Only show QR code on desktop devices
+      if (window.innerWidth >= 768) {
+        setTimeout(() => {
+          setIsQRVisible(true)
+        }, 2000)
+      }
+      return
     } else if (selectedPaymentMethod === 'phonepe') {
       // PhonePe deep link
       deepLink = `phonepe://pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
@@ -40,10 +53,12 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
       // Try to open the app
       window.location.href = deepLink
       
-      // Fallback: If app doesn't open, show QR code after a delay
-      setTimeout(() => {
-        setIsQRVisible(true)
-      }, 2000)
+      // Fallback: If app doesn't open, show QR code after a delay (desktop only)
+      if (window.innerWidth >= 768) {
+        setTimeout(() => {
+          setIsQRVisible(true)
+        }, 2000)
+      }
     }
   }
 
@@ -316,9 +331,9 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
           </div>
         )}
 
-        {/* UPI QR Code */}
+        {/* UPI QR Code - Hidden on mobile */}
         {isQRVisible && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="hidden md:block bg-white rounded-lg shadow-sm p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Scan QR Code to Pay</h3>
             
             <UPIQRCode
