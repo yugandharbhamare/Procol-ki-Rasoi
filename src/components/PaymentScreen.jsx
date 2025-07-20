@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import UPIQRCode from './UPIQRCode'
+import { initializePayment, checkPaymentStatus } from '../services/paymentService'
 
 const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
   const [isQRVisible, setIsQRVisible] = useState(false)
@@ -95,6 +96,24 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
   const handlePaymentFailed = () => {
     setPaymentStatus('failed')
   }
+
+  // Initialize payment when component mounts
+  useEffect(() => {
+    const initPayment = async () => {
+      try {
+        const result = await initializePayment(order)
+        if (result.success) {
+          console.log('Payment initialized:', result)
+        } else {
+          console.error('Payment initialization failed:', result.error)
+        }
+      } catch (error) {
+        console.error('Error initializing payment:', error)
+      }
+    }
+    
+    initPayment()
+  }, [order])
 
   const getTotalItems = () => {
     return Object.values(order.items).reduce((total, item) => total + item.quantity, 0)

@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
+import { checkPaymentStatus, simulatePaymentConfirmation } from '../services/paymentService'
 
 const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess, onPaymentFailed }) => {
   const canvasRef = useRef(null)
-  const [showPaymentButton, setShowPaymentButton] = useState(false)
+  const [paymentStatus, setPaymentStatus] = useState('pending') // pending, processing, success, failed
+  const [statusMessage, setStatusMessage] = useState('')
+  const statusCheckInterval = useRef(null)
 
   useEffect(() => {
     const generateQRCode = async () => {
@@ -27,13 +30,43 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
 
     generateQRCode()
     
-    // Show payment completion button after 5 seconds
-    const timer = setTimeout(() => {
-      setShowPaymentButton(true)
-    }, 5000)
+    // Start monitoring payment status
+    startPaymentMonitoring()
     
-    return () => clearTimeout(timer)
+    return () => {
+      if (statusCheckInterval.current) {
+        clearInterval(statusCheckInterval.current)
+      }
+    }
   }, [amount, orderId, upiId])
+
+  const startPaymentMonitoring = () => {
+    // Check payment status every 3 seconds
+    statusCheckInterval.current = setInterval(async () => {
+      try {
+        const result = await checkPaymentStatus(orderId)
+        
+        if (result.success) {
+          if (result.status === 'success') {
+            setPaymentStatus('success')
+            setStatusMessage('Payment successful! Processing your order...')
+            onPaymentSuccess()
+            clearInterval(statusCheckInterval.current)
+          } else if (result.status === 'failed') {
+            setPaymentStatus('failed')
+            setStatusMessage('Payment failed. Please try again.')
+            onPaymentFailed()
+            clearInterval(statusCheckInterval.current)
+          } else if (result.status === 'pending') {
+            setPaymentStatus('pending')
+            setStatusMessage('Waiting for payment confirmation...')
+          }
+        }
+      } catch (error) {
+        console.error('Payment status check error:', error)
+      }
+    }, 3000)
+  }
 
   const handleUPIAppOpen = () => {
     // UPI deep link format for opening UPI apps
@@ -76,13 +109,49 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
             Scan QR code with any UPI app to complete payment
           </p>
           
-          {showPaymentButton && (
+          {/* Payment Status Display */}
+          {paymentStatus !== 'pending' && (
+            <div className={`mt-4 p-3 rounded-lg ${
+              paymentStatus === 'success' 
+                ? 'bg-green-50 text-green-800' 
+                : paymentStatus === 'failed'
+                ? 'bg-red-50 text-red-800'
+                : 'bg-blue-50 text-blue-800'
+            }`}>
+              <div className="flex items-center justify-center space-x-2">
+                {paymentStatus === 'success' && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {paymentStatus === 'failed' && (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+                {paymentStatus === 'processing' && (
+                  <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                <span className="text-sm font-medium">{statusMessage}</span>
+              </div>
+            </div>
+          )}
+          
+          {/* Demo Payment Button (for testing) */}
+          {process.env.NODE_ENV === 'development' && (
             <div className="mt-4">
               <button
-                onClick={onPaymentSuccess}
-                className="px-6 py-3 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
+                onClick={async () => {
+                  setPaymentStatus('processing')
+                  setStatusMessage('Simulating payment confirmation...')
+                  await simulatePaymentConfirmation(orderId)
+                }}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
               >
-                Payment Completed
+                Simulate Payment (Demo)
               </button>
             </div>
           )}

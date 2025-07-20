@@ -9,6 +9,7 @@ import PaymentScreen from './components/PaymentScreen'
 import ReceiptScreen from './components/ReceiptScreen'
 import LoginScreen from './components/LoginScreen'
 import OrderHistory from './components/OrderHistory'
+import AdminPanel from './components/AdminPanel'
 import { OrderProvider } from './contexts/OrderContext'
 
 // Main Menu Page Component
@@ -80,9 +81,9 @@ function MenuPage() {
     setShowPayment(true)
   }
 
-  const handlePaymentComplete = () => {
-    // Save the completed order to order history
-    addCompletedOrder(currentOrder)
+  const handlePaymentComplete = async () => {
+    // The order is already saved to Google Sheets and order history by the payment service
+    // when payment is confirmed via webhook
     setShowPayment(false)
     setShowReceipt(true)
   }
@@ -141,6 +142,7 @@ function MenuPage() {
           placeOrder={placeOrder}
         />
       )}
+      <AdminPanel />
     </div>
   )
 }
