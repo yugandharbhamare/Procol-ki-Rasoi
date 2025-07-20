@@ -32,6 +32,8 @@ const formatOrderForSheets = (order) => {
 // Function to add order to Google Sheets
 export const addOrderToGoogleSheets = async (order) => {
   try {
+    console.log('Adding order to Google Sheets:', order)
+    
     // For now, we'll log the formatted data
     // In a real implementation, you'd make an API call to your backend
     // which would then use the Google Sheets API
@@ -47,6 +49,8 @@ export const addOrderToGoogleSheets = async (order) => {
       timestamp: new Date().toISOString()
     })
     localStorage.setItem('ordersToSync', JSON.stringify(ordersToSync))
+    
+    console.log('Order stored in localStorage for Google Sheets sync. Total pending orders:', ordersToSync.length)
     
     return {
       success: true,

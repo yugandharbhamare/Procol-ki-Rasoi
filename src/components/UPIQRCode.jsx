@@ -145,9 +145,29 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
             <div className="mt-4">
               <button
                 onClick={async () => {
-                  setPaymentStatus('processing')
-                  setStatusMessage('Simulating payment confirmation...')
-                  await simulatePaymentConfirmation(orderId)
+                  try {
+                    setPaymentStatus('processing')
+                    setStatusMessage('Simulating payment confirmation...')
+                    
+                    console.log('Simulating payment for order:', orderId)
+                    const result = await simulatePaymentConfirmation(orderId)
+                    console.log('Simulation result:', result)
+                    
+                    if (result.success) {
+                      setPaymentStatus('success')
+                      setStatusMessage('Payment successful! Processing your order...')
+                      onPaymentSuccess()
+                    } else {
+                      setPaymentStatus('failed')
+                      setStatusMessage('Payment simulation failed: ' + (result.error || 'Unknown error'))
+                      onPaymentFailed()
+                    }
+                  } catch (error) {
+                    console.error('Payment simulation error:', error)
+                    setPaymentStatus('failed')
+                    setStatusMessage('Payment simulation error: ' + error.message)
+                    onPaymentFailed()
+                  }
                 }}
                 className="px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
               >

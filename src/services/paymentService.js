@@ -17,23 +17,33 @@ const paymentStatuses = new Map()
 // Webhook endpoint for payment confirmation
 export const handlePaymentWebhook = async (webhookData) => {
   try {
+    console.log('Processing webhook with data:', webhookData)
+    
     // Verify webhook signature (implement based on your gateway)
     // const isValidSignature = verifyWebhookSignature(webhookData, PAYMENT_CONFIG.webhookSecret)
     // if (!isValidSignature) throw new Error('Invalid webhook signature')
     
     const { orderId, status, transactionId, amount, paymentMethod } = webhookData
     
+    console.log('Webhook details - OrderId:', orderId, 'Status:', status, 'Amount:', amount)
+    
     if (status === 'success') {
       // Payment successful - trigger receipt generation
-      await handlePaymentSuccess(orderId, {
+      console.log('Payment successful, calling handlePaymentSuccess...')
+      const result = await handlePaymentSuccess(orderId, {
         transactionId,
         amount,
         paymentMethod,
         timestamp: new Date().toISOString()
       })
+      console.log('handlePaymentSuccess result:', result)
+      return result
     } else if (status === 'failed') {
       // Payment failed
-      await handlePaymentFailure(orderId, webhookData)
+      console.log('Payment failed, calling handlePaymentFailure...')
+      const result = await handlePaymentFailure(orderId, webhookData)
+      console.log('handlePaymentFailure result:', result)
+      return result
     }
     
     return { success: true }
@@ -46,6 +56,8 @@ export const handlePaymentWebhook = async (webhookData) => {
 // Initialize payment
 export const initializePayment = async (order) => {
   try {
+    console.log('Initializing payment for order:', order)
+    
     const paymentData = {
       orderId: order.id,
       amount: calculateTotal(order.items),
@@ -59,12 +71,16 @@ export const initializePayment = async (order) => {
       }))
     }
     
+    console.log('Payment data created:', paymentData)
+    
     // Store payment data for tracking
     paymentStatuses.set(order.id, {
       status: 'pending',
       data: paymentData,
       timestamp: new Date().toISOString()
     })
+    
+    console.log('Payment data stored. Total payments tracked:', paymentStatuses.size)
     
     // In production, this would make an API call to your payment gateway
     // const response = await fetch(`${PAYMENT_CONFIG.gatewayUrl}/initiate-payment`, {
@@ -117,16 +133,23 @@ export const checkPaymentStatus = async (orderId) => {
 // Handle successful payment
 const handlePaymentSuccess = async (orderId, paymentDetails) => {
   try {
+    console.log('Handling payment success for order:', orderId, 'with details:', paymentDetails)
+    
     // Update payment status
     const paymentInfo = paymentStatuses.get(orderId)
     if (paymentInfo) {
       paymentInfo.status = 'success'
       paymentInfo.paymentDetails = paymentDetails
       paymentStatuses.set(orderId, paymentInfo)
+      console.log('Payment status updated to success')
+    } else {
+      console.error('Payment info not found for order:', orderId)
+      return { success: false, error: 'Payment info not found' }
     }
     
     // Get the order data
     const orderData = paymentInfo?.data
+    console.log('Order data from payment info:', orderData)
     
     if (orderData) {
       // Create completed order with payment details
@@ -158,14 +181,25 @@ const handlePaymentSuccess = async (orderId, paymentDetails) => {
         }
       }
       
+      console.log('Completed order created:', completedOrder)
+      
       // Store in Google Sheets
-      await storeOrderInGoogleSheets(completedOrder)
+      console.log('Storing order in Google Sheets...')
+      const sheetsResult = await storeOrderInGoogleSheets(completedOrder)
+      console.log('Google Sheets result:', sheetsResult)
       
       // Add to order context (this will also save to localStorage)
-      await addToOrderContext(completedOrder)
+      console.log('Adding order to context...')
+      const contextResult = await addToOrderContext(completedOrder)
+      console.log('Context result:', contextResult)
       
       // Trigger receipt generation
-      await generateReceipt(completedOrder)
+      console.log('Generating receipt...')
+      const receiptResult = await generateReceipt(completedOrder)
+      console.log('Receipt result:', receiptResult)
+    } else {
+      console.error('Order data not found in payment info')
+      return { success: false, error: 'Order data not found' }
     }
     
     return { success: true }
@@ -272,15 +306,24 @@ const generateReceipt = async (order) => {
 // Simulate payment confirmation (for demo purposes)
 export const simulatePaymentConfirmation = async (orderId) => {
   try {
-    // Simulate webhook data
+    // Get the payment info to get the actual amount
+    const paymentInfo = paymentStatuses.get(orderId)
+    if (!paymentInfo) {
+      console.error('Payment info not found for order:', orderId)
+      return { success: false, error: 'Payment info not found' }
+    }
+    
+    // Simulate webhook data with actual order amount
     const webhookData = {
       orderId,
       status: 'success',
       transactionId: `txn_${Date.now()}`,
-      amount: 100, // This would be the actual amount
+      amount: paymentInfo.data.amount, // Use actual order amount
       paymentMethod: 'UPI',
       timestamp: new Date().toISOString()
     }
+    
+    console.log('Simulating payment confirmation with data:', webhookData)
     
     // Process the webhook
     return await handlePaymentWebhook(webhookData)

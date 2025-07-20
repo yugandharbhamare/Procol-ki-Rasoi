@@ -101,14 +101,15 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
   useEffect(() => {
     const initPayment = async () => {
       try {
+        console.log('PaymentScreen: Initializing payment for order:', order)
         const result = await initializePayment(order)
         if (result.success) {
-          console.log('Payment initialized:', result)
+          console.log('PaymentScreen: Payment initialized successfully:', result)
         } else {
-          console.error('Payment initialization failed:', result.error)
+          console.error('PaymentScreen: Payment initialization failed:', result.error)
         }
       } catch (error) {
-        console.error('Error initializing payment:', error)
+        console.error('PaymentScreen: Error initializing payment:', error)
       }
     }
     
