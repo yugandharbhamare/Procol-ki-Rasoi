@@ -91,10 +91,22 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
                 <span className="text-gray-600">Date</span>
                 <span className="font-semibold text-gray-900">{formatDate(currentTime)}</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Time</span>
                 <span className="font-semibold text-gray-900">{formatTime(currentTime)}</span>
               </div>
+              {order.user && (
+                <>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-600">Customer</span>
+                    <span className="font-semibold text-gray-900">{order.user.displayName}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Email</span>
+                    <span className="font-semibold text-gray-900">{order.user.email}</span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Order Items */}
