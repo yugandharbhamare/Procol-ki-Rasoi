@@ -114,9 +114,10 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="container mx-auto px-4 max-w-md">
-        {/* Header */}
+        {/* Combined Header, Order Summary and Payment */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+          {/* Navigation Header */}
+          <div className="flex items-center justify-between mb-6">
             <button
               onClick={onBack}
               className="text-gray-600 hover:text-gray-900"
@@ -128,8 +129,9 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
             <h1 className="text-xl font-bold text-gray-900">Payment</h1>
             <div className="w-6"></div>
           </div>
-          
-          <div className="text-center">
+
+          {/* Order Header Section */}
+          <div className="text-center mb-6">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -138,11 +140,16 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Complete Your Order</h2>
             <p className="text-gray-600">Order #{order.id}</p>
           </div>
-        </div>
 
-        {/* Order Summary */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
+          {/* End-to-end divider */}
+          <div className="border-t border-gray-200 -mx-6 mb-6"></div>
+          {/* Order Summary Section */}
+          <div className="flex items-center space-x-3 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Order Summary</h3>
+            <span className="bg-primary-100 text-primary-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              {getTotalItems()} {getTotalItems() === 1 ? 'item' : 'items'}
+            </span>
+          </div>
           
           <div className="space-y-3 mb-4">
             {Object.entries(order.items).map(([itemId, item]) => (
@@ -165,13 +172,7 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
             ))}
           </div>
           
-          <div className="border-t border-gray-200 pt-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-600">Items ({getTotalItems()})</span>
-              <span className="text-gray-900 font-medium">
-                {getTotalPrice() > 0 ? `₹${getTotalPrice()}` : 'MRP Items'}
-              </span>
-            </div>
+          <div className="border-t border-gray-200 pt-4 mb-4">
             {hasMRPItems && (
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">MRP Items</span>
@@ -185,204 +186,209 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
               </span>
             </div>
           </div>
-        </div>
 
-        {/* Payment Options - Mobile Only */}
-        {!isQRVisible && isMobile && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h3>
-            {paymentStatus === 'processing' && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-yellow-800">
-                  ⚠️ Payment in progress. Please complete the payment in your UPI app before selecting another method.
-                </p>
-              </div>
-            )}
-            
-            {/* UPI ID Display */}
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">UPI ID</p>
-                  <p className="text-lg font-bold text-gray-900">Q629741098@ybl</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Amount</p>
-                  <p className="text-lg font-bold text-primary-600">
-                    ₹{getTotalPrice() > 0 ? getTotalPrice() : 'MRP'}
+          {/* End-to-end divider */}
+          <div className="border-t border-gray-200 -mx-6 my-6"></div>
+
+          {/* Payment Section */}
+          {!isQRVisible && isMobile && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h3>
+              {paymentStatus === 'processing' && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-yellow-800">
+                    ⚠️ Payment in progress. Please complete the payment in your UPI app before selecting another method.
                   </p>
                 </div>
+              )}
+              
+              {/* UPI ID Display */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">UPI ID</p>
+                    <p className="text-lg font-bold text-gray-900">Q629741098@ybl</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Amount</p>
+                    <p className="text-lg font-bold text-primary-600">
+                      ₹{getTotalPrice() > 0 ? getTotalPrice() : 'MRP'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                {/* GPay */}
+                <div 
+                  onClick={() => handlePaymentMethodSelect('gpay')}
+                  className={`border rounded-lg p-4 transition-colors ${
+                    paymentStatus === 'processing'
+                      ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
+                      : selectedPaymentMethod === 'gpay' 
+                        ? 'border-green-500 bg-green-50 cursor-pointer' 
+                        : 'border-gray-200 hover:border-green-300 hover:bg-green-50 cursor-pointer'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <img 
+                          src="/icons8-google-pay.svg" 
+                          alt="Google Pay" 
+                          className="w-8 h-8"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Google Pay</p>
+                        <p className="text-sm text-gray-600">Pay using Google Pay</p>
+                      </div>
+                    </div>
+                    {selectedPaymentMethod === 'gpay' ? (
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+
+                {/* PhonePe */}
+                <div 
+                  onClick={() => handlePaymentMethodSelect('phonepe')}
+                  className={`border rounded-lg p-4 transition-colors ${
+                    paymentStatus === 'processing'
+                      ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
+                      : selectedPaymentMethod === 'phonepe' 
+                        ? 'border-purple-500 bg-purple-50 cursor-pointer' 
+                        : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50 cursor-pointer'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <img 
+                          src="/icons8-phone-pe.svg" 
+                          alt="PhonePe" 
+                          className="w-8 h-8"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">PhonePe</p>
+                        <p className="text-sm text-gray-600">Pay using PhonePe</p>
+                      </div>
+                    </div>
+                    {selectedPaymentMethod === 'phonepe' ? (
+                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+
+                {/* Paytm */}
+                <div 
+                  onClick={() => handlePaymentMethodSelect('paytm')}
+                  className={`border rounded-lg p-4 transition-colors ${
+                    paymentStatus === 'processing'
+                      ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
+                      : selectedPaymentMethod === 'paytm' 
+                        ? 'border-blue-500 bg-blue-50 cursor-pointer' 
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <img 
+                          src="/icons8-paytm.svg" 
+                          alt="Paytm" 
+                          className="w-8 h-8"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Paytm</p>
+                        <p className="text-sm text-gray-600">Pay using Paytm</p>
+                      </div>
+                    </div>
+                    {selectedPaymentMethod === 'paytm' ? (
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+
+                {/* BHIM */}
+                <div 
+                  onClick={() => handlePaymentMethodSelect('bhim')}
+                  className={`border rounded-lg p-4 transition-colors ${
+                    paymentStatus === 'processing'
+                      ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
+                      : selectedPaymentMethod === 'bhim' 
+                        ? 'border-orange-500 bg-orange-50 cursor-pointer' 
+                        : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50 cursor-pointer'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                        <img 
+                          src="/icons8-bhim.svg" 
+                          alt="BHIM" 
+                          className="w-8 h-8"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">BHIM</p>
+                        <p className="text-sm text-gray-600">Pay using BHIM</p>
+                      </div>
+                    </div>
+                    {selectedPaymentMethod === 'bhim' ? (
+                      <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <div className="space-y-3">
-              {/* GPay */}
-              <div 
-                onClick={() => handlePaymentMethodSelect('gpay')}
-                className={`border rounded-lg p-4 transition-colors ${
-                  paymentStatus === 'processing'
-                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
-                    : selectedPaymentMethod === 'gpay' 
-                      ? 'border-green-500 bg-green-50 cursor-pointer' 
-                      : 'border-gray-200 hover:border-green-300 hover:bg-green-50 cursor-pointer'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                      <img 
-                        src="/icons8-google-pay.svg" 
-                        alt="Google Pay" 
-                        className="w-8 h-8"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Google Pay</p>
-                      <p className="text-sm text-gray-600">Pay using Google Pay</p>
-                    </div>
-                  </div>
-                  {selectedPaymentMethod === 'gpay' ? (
-                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  )}
-                </div>
-              </div>
+          )}
 
-              {/* PhonePe */}
-              <div 
-                onClick={() => handlePaymentMethodSelect('phonepe')}
-                className={`border rounded-lg p-4 transition-colors ${
-                  paymentStatus === 'processing'
-                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
-                    : selectedPaymentMethod === 'phonepe' 
-                      ? 'border-purple-500 bg-purple-50 cursor-pointer' 
-                      : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50 cursor-pointer'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                      <img 
-                        src="/icons8-phone-pe.svg" 
-                        alt="PhonePe" 
-                        className="w-8 h-8"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">PhonePe</p>
-                      <p className="text-sm text-gray-600">Pay using PhonePe</p>
-                    </div>
-                  </div>
-                  {selectedPaymentMethod === 'phonepe' ? (
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-
-              {/* Paytm */}
-              <div 
-                onClick={() => handlePaymentMethodSelect('paytm')}
-                className={`border rounded-lg p-4 transition-colors ${
-                  paymentStatus === 'processing'
-                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
-                    : selectedPaymentMethod === 'paytm' 
-                      ? 'border-blue-500 bg-blue-50 cursor-pointer' 
-                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                      <img 
-                        src="/icons8-paytm.svg" 
-                        alt="Paytm" 
-                        className="w-8 h-8"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">Paytm</p>
-                      <p className="text-sm text-gray-600">Pay using Paytm</p>
-                    </div>
-                  </div>
-                  {selectedPaymentMethod === 'paytm' ? (
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-
-              {/* BHIM */}
-              <div 
-                onClick={() => handlePaymentMethodSelect('bhim')}
-                className={`border rounded-lg p-4 transition-colors ${
-                  paymentStatus === 'processing'
-                    ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-60'
-                    : selectedPaymentMethod === 'bhim' 
-                      ? 'border-orange-500 bg-orange-50 cursor-pointer' 
-                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50 cursor-pointer'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                      <img 
-                        src="/icons8-bhim.svg" 
-                        alt="BHIM" 
-                        className="w-8 h-8"
-                      />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">BHIM</p>
-                      <p className="text-sm text-gray-600">Pay using BHIM</p>
-                    </div>
-                  </div>
-                  {selectedPaymentMethod === 'bhim' ? (
-                    <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-
-
+          {/* QR Code Section for Desktop */}
+          {isQRVisible && !isMobile && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Scan QR Code to Pay</h3>
+              
+              <UPIQRCode
+                amount={getTotalPrice() > 0 ? getTotalPrice() : 0}
+                orderId={order.id}
+                upiId="Q629741098@ybl"
+                onPaymentSuccess={handlePaymentSuccess}
+                onPaymentFailed={handlePaymentFailed}
+              />
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* UPI QR Code - Desktop Only */}
-        {isQRVisible && !isMobile && (
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Scan QR Code to Pay</h3>
-            
-            <UPIQRCode
-              amount={getTotalPrice() > 0 ? getTotalPrice() : 0}
-              orderId={order.id}
-              upiId="Q629741098@ybl"
-              onPaymentSuccess={handlePaymentSuccess}
-              onPaymentFailed={handlePaymentFailed}
-            />
-          </div>
-        )}
+
+
+
 
         {/* Payment Status */}
         {paymentStatus === 'processing' && (

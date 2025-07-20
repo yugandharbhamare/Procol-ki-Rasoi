@@ -7,112 +7,112 @@ const menuItems = [
     name: "Ginger Chai",
     price: 10,
     description: "Hot ginger tea with aromatic spices",
-    image: "/Ginger Tea.png"
+    image: "/optimized/Ginger Tea.png"
   },
   {
     id: 2,
     name: "Masala Chai",
     price: 10,
     description: "Traditional Indian spiced tea",
-    image: "/Ginger Tea.png"
+    image: "/optimized/Ginger Tea.png"
   },
   {
     id: 3,
     name: "Masala Oats",
     price: 20,
     description: "Healthy oats with Indian spices",
-    image: "/Masala Oats.png"
+    image: "/optimized/Masala Oats.png"
   },
   {
     id: 4,
     name: "Plain Maggi",
     price: 20,
     description: "Classic instant noodles",
-    image: "/Plain Maggi.png"
+    image: "/optimized/Plain Maggi.png"
   },
   {
     id: 5,
     name: "Veg Butter Maggi",
     price: 30,
     description: "Maggi with vegetables and butter",
-    image: "/Veg butter maggi.png"
+    image: "/optimized/Veg butter maggi.png"
   },
   {
     id: 6,
     name: "Cheese Maggi",
     price: 30,
     description: "Maggi topped with melted cheese",
-    image: "/Cheese Maggi.png"
+    image: "/optimized/Cheese Maggi.png"
   },
   {
     id: 7,
     name: "Butter Atta Maggi",
     price: 30,
     description: "Whole wheat Maggi with butter",
-    image: "/Butter Atta Maggi.png"
+    image: "/optimized/Butter Atta Maggi.png"
   },
   {
     id: 8,
     name: "Veg Cheese Maggi",
     price: 40,
     description: "Maggi with vegetables and cheese",
-    image: "/Veg cheese maggi.png"
+    image: "/optimized/Veg cheese maggi.png"
   },
   {
     id: 9,
     name: "Cheese Atta Maggi",
     price: 45,
     description: "Whole wheat Maggi with cheese",
-    image: "/Cheese Atta Maggi.png"
+    image: "/optimized/Cheese Atta Maggi.png"
   },
   {
     id: 10,
     name: "MTR Poha",
     price: 30,
     description: "Flattened rice breakfast dish",
-    image: "/MTR Poha.png"
+    image: "/optimized/MTR Poha.png"
   },
   {
     id: 11,
     name: "MTR Upma",
     price: 30,
     description: "Semolina breakfast porridge",
-    image: "/MTR Upma.png"
+    image: "/optimized/MTR Upma.png"
   },
   {
     id: 12,
     name: "Veg Cheese Sandwich",
     price: 40,
     description: "Vegetable and cheese sandwich",
-    image: "/Veg Cheese Sandwich.png"
+    image: "/optimized/Veg Cheese Sandwich.png"
   },
   {
     id: 13,
     name: "Aloo Sandwich",
     price: 30,
     description: "Potato sandwich with spices",
-    image: "/Aloo sandwich.png"
+    image: "/optimized/Aloo sandwich.png"
   },
   {
     id: 14,
     name: "Aloo Cheese Sandwich",
     price: 45,
     description: "Potato and cheese sandwich",
-    image: "/Aloo cheese sandwich.png"
+    image: "/optimized/Aloo cheese sandwich.png"
   },
   {
     id: 15,
     name: "Besan Chila",
     price: 30,
     description: "Gram flour savory pancake",
-    image: "/Besan Chila.png"
+    image: "/optimized/Besan Chila.png"
   },
   {
     id: 16,
     name: "Bhel Puri",
     price: 30,
     description: "Tangy street food snack",
-    image: "/Bhel Puri.png"
+    image: "/optimized/Bhel Puri.png"
   },
 
   {
@@ -120,35 +120,35 @@ const menuItems = [
     name: "Onion",
     price: 10,
     description: "Fresh onions",
-    image: "/Onion.png"
+    image: "/optimized/Onion.png"
   },
   {
     id: 18,
     name: "Cucumber",
     price: 10,
     description: "Fresh cucumbers",
-    image: "/Cucumber.png"
+    image: "/optimized/Cucumber.png"
   },
   {
     id: 19,
     name: "Mix Salad",
     price: 20,
     description: "Fresh cut Cucumbers & Onion",
-    image: "/Mix Salad.png"
+    image: "/optimized/Mix Salad.png"
   },
   {
     id: 20,
     name: "Gud",
     price: 5,
     description: "Jaggery for natural sweetness",
-    image: "/Gud.png"
+    image: "/optimized/Gud.png"
   },
   {
     id: 21,
     name: "Saunf",
     price: 5,
     description: "Fennel seeds for digestion",
-    image: "/Sauf.png"
+    image: "/optimized/Sauf.png"
   }
 ]
 

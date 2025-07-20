@@ -11,6 +11,8 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
                 src={item.image} 
                 alt={item.name}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   // Fallback to emoji if image fails to load
                   e.target.style.display = 'none'

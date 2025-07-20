@@ -11,7 +11,9 @@
     "test": "echo 'Tests not configured'",
     "type-check": "echo 'TypeScript not configured'",
     "format": "echo 'Prettier not configured'",
-    "security-check": "npm audit --audit-level=high || echo 'Security check completed'"
+    "security-check": "npm audit --audit-level=high || echo 'Security check completed'",
+    "optimize-images": "./optimize_images.sh",
+    "update-paths": "node update_image_paths.js"
   },
   "dependencies": {
     "qrcode": "^1.5.4",
