@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import { checkPaymentStatus } from '../services/paymentService'
+import { checkPaymentStatus, simulatePaymentConfirmation } from '../services/paymentService'
 
 const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess, onPaymentFailed }) => {
   const canvasRef = useRef(null)
   const [paymentStatus, setPaymentStatus] = useState('pending') // pending, processing, success, failed
   const [statusMessage, setStatusMessage] = useState('')
+  const [showManualConfirm, setShowManualConfirm] = useState(false)
   const statusCheckInterval = useRef(null)
 
   useEffect(() => {
@@ -69,6 +70,37 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
         console.error('Payment status check error:', error)
       }
     }, 3000)
+
+    // Show manual confirmation button after 30 seconds
+    setTimeout(() => {
+      setShowManualConfirm(true)
+    }, 30000)
+  }
+
+  const handleManualPaymentConfirm = async () => {
+    try {
+      setPaymentStatus('processing')
+      setStatusMessage('Confirming payment...')
+      
+      // Simulate payment confirmation (this would be replaced with actual payment verification)
+      const result = await simulatePaymentConfirmation(orderId)
+      
+      if (result.success) {
+        setPaymentStatus('success')
+        setStatusMessage('Payment confirmed! Processing your order...')
+        onPaymentSuccess()
+        clearInterval(statusCheckInterval.current)
+      } else {
+        setPaymentStatus('failed')
+        setStatusMessage('Payment confirmation failed. Please try again.')
+        onPaymentFailed()
+      }
+    } catch (error) {
+      console.error('Manual payment confirmation error:', error)
+      setPaymentStatus('failed')
+      setStatusMessage('Error confirming payment. Please try again.')
+      onPaymentFailed()
+    }
   }
 
   const handleUPIAppOpen = () => {
@@ -109,7 +141,10 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
         
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Scan QR code with any UPI app to complete payment
+            <strong>Scan QR code with any UPI app to complete payment</strong>
+          </p>
+          <p className="text-xs text-red-600 mt-1">
+            ⚠️ UPI links are not allowed - use QR code scanning only
           </p>
           
           {/* Payment Status Display */}
@@ -144,8 +179,40 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
               </div>
             </div>
           )}
-          
 
+          {/* Manual Payment Confirmation Button */}
+          {showManualConfirm && paymentStatus === 'pending' && (
+            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 mb-3">
+                Have you completed the payment via UPI? If yes, click the button below to confirm.
+              </p>
+              <button
+                onClick={handleManualPaymentConfirm}
+                disabled={paymentStatus === 'processing'}
+                className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              >
+                {paymentStatus === 'processing' ? (
+                  <div className="flex items-center space-x-2">
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Confirming...</span>
+                  </div>
+                ) : (
+                  '✅ I have completed the payment'
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Instructions */}
+          <div className="mt-4 text-xs text-gray-500 space-y-1">
+            <p>• Scan the QR code with Google Pay, PhonePe, Paytm, or any UPI app</p>
+            <p>• Complete the payment in your UPI app</p>
+            <p>• Click "I have completed the payment" button above</p>
+            <p>• Your order will be processed automatically</p>
+          </div>
         </div>
       </div>
     </div>

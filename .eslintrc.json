@@ -22,9 +22,15 @@
   ],
   "rules": {
     "react/react-in-jsx-scope": "off",
-    "react/prop-types": "off",
+    "react/prop-types": "warn",
     "no-unused-vars": "warn",
-    "no-console": "warn"
+    "no-console": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "react/no-unescaped-entities": "warn",
+    "react/jsx-key": "error",
+    "no-undef": "error",
+    "prefer-const": "warn",
+    "no-var": "error"
   },
   "settings": {
     "react": {
