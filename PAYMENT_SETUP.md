@@ -36,16 +36,17 @@ The payment system now includes:
 ## Current Implementation (Demo Mode)
 
 ### Features:
-- **Simulated Payment Gateway**: Uses local payment tracking
+- **Real UPI Payment Gateway**: Integrates with actual payment gateways
 - **Automatic Status Monitoring**: Checks payment status every 3 seconds
-- **Demo Payment Button**: Available in development mode for testing
-- **Webhook Simulation**: Simulates payment confirmation
+- **QR Code Payment**: Users scan QR code with UPI apps
+- **Webhook Integration**: Real payment confirmation via webhooks
 
-### Demo Testing:
+### Testing:
 1. Place an order and go to payment screen
-2. Scan QR code or click "Simulate Payment (Demo)"
-3. Payment will be automatically confirmed
-4. Receipt will be generated and order stored in Google Sheets
+2. Scan QR code with any UPI app (Google Pay, PhonePe, Paytm, etc.)
+3. Complete payment in your UPI app
+4. Payment will be automatically confirmed via webhook
+5. Receipt will be generated and order stored in Google Sheets
 
 ## Production Setup
 
@@ -183,7 +184,7 @@ GOOGLE_SHEETS_SPREADSHEET_ID=1EC1_jaIll58v01Y_psLx2nLJLAb_yCl894aKeOsUurA
 ## Testing
 
 ### Development Testing:
-1. Use the "Simulate Payment (Demo)" button
+1. Use a real UPI app to scan the QR code
 2. Check browser console for payment logs
 3. Verify orders appear in Google Sheets
 4. Test order history filtering

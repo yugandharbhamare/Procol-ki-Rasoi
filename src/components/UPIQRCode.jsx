@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
-import { checkPaymentStatus, simulatePaymentConfirmation } from '../services/paymentService'
+import { checkPaymentStatus } from '../services/paymentService'
 
 const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess, onPaymentFailed }) => {
   const canvasRef = useRef(null)
@@ -41,6 +41,9 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
   }, [amount, orderId, upiId])
 
   const startPaymentMonitoring = () => {
+    // Set initial status message
+    setStatusMessage('Scan QR code with any UPI app to pay ₹' + amount)
+    
     // Check payment status every 3 seconds
     statusCheckInterval.current = setInterval(async () => {
       try {
@@ -59,7 +62,7 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
             clearInterval(statusCheckInterval.current)
           } else if (result.status === 'pending') {
             setPaymentStatus('pending')
-            setStatusMessage('Waiting for payment confirmation...')
+            setStatusMessage('Scan QR code and complete payment in your UPI app...')
           }
         }
       } catch (error) {
@@ -110,13 +113,15 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
           </p>
           
           {/* Payment Status Display */}
-          {paymentStatus !== 'pending' && (
+          {statusMessage && (
             <div className={`mt-4 p-3 rounded-lg ${
               paymentStatus === 'success' 
                 ? 'bg-green-50 text-green-800' 
                 : paymentStatus === 'failed'
                 ? 'bg-red-50 text-red-800'
-                : 'bg-blue-50 text-blue-800'
+                : paymentStatus === 'processing'
+                ? 'bg-blue-50 text-blue-800'
+                : 'bg-gray-50 text-gray-800'
             }`}>
               <div className="flex items-center justify-center space-x-2">
                 {paymentStatus === 'success' && (
@@ -140,41 +145,7 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
             </div>
           )}
           
-          {/* Demo Payment Button (for testing) */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-4">
-              <button
-                onClick={async () => {
-                  try {
-                    setPaymentStatus('processing')
-                    setStatusMessage('Simulating payment confirmation...')
-                    
-                    console.log('Simulating payment for order:', orderId)
-                    const result = await simulatePaymentConfirmation(orderId)
-                    console.log('Simulation result:', result)
-                    
-                    if (result.success) {
-                      setPaymentStatus('success')
-                      setStatusMessage('Payment successful! Processing your order...')
-                      onPaymentSuccess()
-                    } else {
-                      setPaymentStatus('failed')
-                      setStatusMessage('Payment simulation failed: ' + (result.error || 'Unknown error'))
-                      onPaymentFailed()
-                    }
-                  } catch (error) {
-                    console.error('Payment simulation error:', error)
-                    setPaymentStatus('failed')
-                    setStatusMessage('Payment simulation error: ' + error.message)
-                    onPaymentFailed()
-                  }
-                }}
-                className="px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
-              >
-                Simulate Payment (Demo)
-              </button>
-            </div>
-          )}
+
         </div>
       </div>
     </div>
