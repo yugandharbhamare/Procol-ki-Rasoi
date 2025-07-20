@@ -1,10 +1,30 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import UPIQRCode from './UPIQRCode'
 
 const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
   const [isQRVisible, setIsQRVisible] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState('pending') // pending, processing, success, failed
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect if user is on mobile device
+  useEffect(() => {
+    const checkDevice = () => {
+      const isMobileDevice = window.innerWidth < 768 || 
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      setIsMobile(isMobileDevice)
+      
+      // Auto-show QR code for desktop users
+      if (!isMobileDevice) {
+        setIsQRVisible(true)
+      }
+    }
+    
+    checkDevice()
+    window.addEventListener('resize', checkDevice)
+    
+    return () => window.removeEventListener('resize', checkDevice)
+  }, [])
 
 
 
@@ -66,9 +86,10 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
 
   const handlePaymentSuccess = () => {
     setPaymentStatus('success')
+    // Automatically redirect to receipt page after payment success
     setTimeout(() => {
       onPaymentComplete()
-    }, 2000)
+    }, 1500)
   }
 
   const handlePaymentFailed = () => {
@@ -166,8 +187,8 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
           </div>
         </div>
 
-        {/* Payment Options */}
-        {!isQRVisible && (
+        {/* Payment Options - Mobile Only */}
+        {!isQRVisible && isMobile && (
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h3>
             {paymentStatus === 'processing' && (
@@ -348,14 +369,15 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
           </div>
         )}
 
-        {/* UPI QR Code - Hidden on mobile */}
-        {isQRVisible && (
-          <div className="hidden md:block bg-white rounded-lg shadow-sm p-6 mb-6">
+        {/* UPI QR Code - Desktop Only */}
+        {isQRVisible && !isMobile && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Scan QR Code to Pay</h3>
             
             <UPIQRCode
               amount={getTotalPrice() > 0 ? getTotalPrice() : 0}
               orderId={order.id}
+              upiId="Q629741098@ybl"
               onPaymentSuccess={handlePaymentSuccess}
               onPaymentFailed={handlePaymentFailed}
             />
@@ -395,7 +417,7 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
         )}
 
         {/* Action Buttons */}
-        {!isQRVisible && paymentStatus === 'pending' && (
+        {!isQRVisible && paymentStatus === 'pending' && isMobile && (
           <div className="space-y-3">
             <button
               onClick={handlePayNow}
@@ -422,13 +444,30 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
           </div>
         )}
 
-        {isQRVisible && paymentStatus === 'pending' && (
+        {isQRVisible && paymentStatus === 'pending' && isMobile && (
           <button
             onClick={() => setIsQRVisible(false)}
             className="w-full btn-secondary py-3"
           >
             Back to Payment Options
           </button>
+        )}
+
+        {/* Desktop QR Code Action Buttons */}
+        {isQRVisible && paymentStatus === 'pending' && !isMobile && (
+          <div className="space-y-3">
+            <button
+              onClick={onBack}
+              disabled={paymentStatus === 'processing'}
+              className={`w-full py-3 rounded-lg transition-colors ${
+                paymentStatus === 'processing'
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'btn-secondary'
+              }`}
+            >
+              Back to Cart
+            </button>
+          </div>
         )}
       </div>
     </div>

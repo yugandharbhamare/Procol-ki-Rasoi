@@ -49,13 +49,15 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-center">
-            <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">🍽️</span>
-            </div>
-            <div className="ml-3">
-              <h1 className="text-xl font-bold text-gray-900">Procol ki Rasoi</h1>
-              <p className="text-sm text-gray-600">Receipt</p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg">🍽️</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Procol ki Rasoi</h1>
+                <p className="text-sm text-gray-600">Receipt</p>
+              </div>
             </div>
           </div>
         </div>
@@ -77,6 +79,8 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
 
           {/* Receipt Content */}
           <div className="p-6">
+
+
             {/* Order Info */}
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
@@ -95,16 +99,39 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
 
             {/* Order Items */}
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Details</h3>
+              <div className="flex items-center space-x-3 mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Order Details</h3>
+                <span className="bg-primary-100 text-primary-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  {getTotalItems()} {getTotalItems() === 1 ? 'item' : 'items'}
+                </span>
+              </div>
               <div className="space-y-3">
                 {Object.entries(order.items).map(([itemId, item]) => (
                   <div key={itemId} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
-                        <span className="text-2xl">{item.image || '🍽️'}</span>
+                        {item.image && item.image.startsWith('/') ? (
+                          <img 
+                            src={item.image} 
+                            alt={item.name}
+                            className="w-8 h-8 rounded object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none'
+                              e.target.nextSibling.style.display = 'block'
+                            }}
+                          />
+                        ) : null}
+                        <span className="text-2xl" style={{ display: item.image && item.image.startsWith('/') ? 'none' : 'block' }}>
+                          {item.image || '🍽️'}
+                        </span>
                         <div>
                           <p className="font-medium text-gray-900">{item.name}</p>
-                          <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                            {typeof item.price === 'number' && (
+                              <p className="text-xs text-gray-500">• ₹{item.price} each</p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -112,38 +139,44 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
                       <p className="font-semibold text-gray-900">
                         {typeof item.price === 'number' ? `₹${item.price * item.quantity}` : 'MRP'}
                       </p>
-                      {typeof item.price === 'number' && (
-                        <p className="text-xs text-gray-500">₹{item.price} each</p>
-                      )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
+            {/* Divider between items and total */}
+            <div className="mb-6">
+              <div className="h-px bg-gray-200"></div>
+            </div>
+
             {/* Order Summary */}
-            <div className="bg-gray-50 rounded-xl p-4 mb-6">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Items ({getTotalItems()})</span>
-                  <span className="font-semibold text-gray-900">
-                    {getTotalPrice() > 0 ? `₹${getTotalPrice()}` : 'MRP Items'}
-                  </span>
+            <div className="mb-6">
+              {hasMRPItems && (
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-gray-600">MRP Items</span>
+                  <span className="font-semibold text-gray-900">As marked</span>
                 </div>
-                {hasMRPItems && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">MRP Items</span>
-                    <span className="font-semibold text-gray-900">As marked</span>
-                  </div>
-                )}
-                <div className="border-t border-gray-200 pt-2 mt-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-gray-900">Total Amount</span>
-                    <span className="text-xl font-bold text-primary-600">
-                      {getTotalPrice() > 0 ? `₹${getTotalPrice()}` : 'MRP Items Only'}
-                    </span>
-                  </div>
+              )}
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-bold text-gray-900">Total Amount</span>
+                <span className="text-xl font-bold text-primary-600">
+                  {getTotalPrice() > 0 ? `₹${getTotalPrice()}` : 'MRP Items Only'}
+                </span>
+              </div>
+            </div>
+
+            {/* Zig-zag Separator */}
+            <div className="mb-6">
+              <div className="flex items-center justify-center">
+                <div className="flex-1 h-px bg-gray-200"></div>
+                <div className="mx-4 flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-gray-300 transform rotate-45"></div>
+                  <div className="w-2 h-2 bg-gray-300 transform -rotate-45"></div>
+                  <div className="w-2 h-2 bg-gray-300 transform rotate-45"></div>
+                  <div className="w-2 h-2 bg-gray-300 transform -rotate-45"></div>
                 </div>
+                <div className="flex-1 h-px bg-gray-200"></div>
               </div>
             </div>
 
@@ -173,8 +206,21 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Thank You!</h3>
               <p className="text-gray-600">Your order will be ready soon. We appreciate your business!</p>
             </div>
+
+            {/* Card Footer - Scrolling Ticker */}
+            <div className="overflow-hidden -mx-6 -mb-6">
+              <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white py-2">
+                <div className="animate-marquee whitespace-nowrap">
+                  <span className="inline-block px-4">
+                    Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+
 
         {/* New Order Button */}
         <div className="mt-6">
@@ -186,16 +232,7 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
           </button>
         </div>
 
-        {/* Scrolling Ticker */}
-        <div className="mt-8 bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white py-3">
-            <div className="animate-marquee whitespace-nowrap">
-              <span className="inline-block px-4">
-                Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛
-              </span>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   )

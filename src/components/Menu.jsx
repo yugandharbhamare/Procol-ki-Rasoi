@@ -141,14 +141,14 @@ const menuItems = [
     name: "Gud",
     price: 5,
     description: "Jaggery for natural sweetness",
-    image: "🍯"
+    image: "/Gud.png"
   },
   {
     id: 21,
     name: "Saunf",
     price: 5,
     description: "Fennel seeds for digestion",
-    image: "🌿"
+    image: "/Sauf.png"
   }
 ]
 
