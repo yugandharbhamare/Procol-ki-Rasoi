@@ -166,14 +166,14 @@ const menuItems = [
     category: "Main Course"
   },
 
-  // Street Food
+  // Snacks & Namkeen
   {
     id: 16,
     name: "Bhel Puri",
     price: 30,
     description: "Tangy street food snack",
     image: "/optimized/Bhel Puri.png",
-    category: "Street Food"
+    category: "Snacks & Namkeen"
   },
   {
     id: 30,
@@ -181,10 +181,8 @@ const menuItems = [
     price: 10,
     description: "Quick and tangy bhel mixture",
     image: "/optimized/Fatafat Bhel.png",
-    category: "Street Food"
+    category: "Snacks & Namkeen"
   },
-
-  // Snacks & Namkeen
   {
     id: 27,
     name: "Aloo Bhujiya",
@@ -377,7 +375,6 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery }) => {
     'Maggi Varieties',
     'Sandwiches',
     'Main Course',
-    'Street Food',
     'Snacks & Namkeen',
     'Biscuits & Cookies',
     'Fresh Items',
@@ -385,41 +382,46 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery }) => {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-16">
       {Object.keys(groupedItems).length > 0 ? (
         categoryOrder
           .filter(category => groupedItems[category])
-          .map(category => (
-            <div key={category} className="space-y-4">
-              <div className="border-b border-gray-200 pb-2">
-                <h2 className="text-xl font-semibold text-gray-900">{category}</h2>
-                <p className="text-sm text-gray-600 mt-1">
-                  {groupedItems[category].length} item{groupedItems[category].length !== 1 ? 's' : ''}
-                </p>
+          .map((category, index) => (
+            <div key={category} className="category-group">
+                            {/* Category Header with enhanced styling */}
+              <div className="relative mb-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-700 tracking-wide uppercase">{category}</h2>
+                  <span className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1.5 rounded-md">
+                    {groupedItems[category].length} item{groupedItems[category].length !== 1 ? 's' : ''}
+                  </span>
+                </div>
               </div>
               
+              {/* Items Grid with proximity-based spacing */}
               <div className="grid gap-4">
-                {groupedItems[category].map(item => (
-                  <MenuItem
-                    key={item.id}
-                    item={item}
-                    addToCart={addToCart}
-                    cartItem={cart[item.id]}
-                    updateQuantity={updateQuantity}
-                  />
+                {groupedItems[category].map((item, itemIndex) => (
+                  <div key={item.id} className="transform transition-all duration-200 hover:scale-[1.01] hover:shadow-lg">
+                    <MenuItem
+                      item={item}
+                      addToCart={addToCart}
+                      cartItem={cart[item.id]}
+                      updateQuantity={updateQuantity}
+                    />
+                  </div>
                 ))}
               </div>
             </div>
           ))
       ) : (
-        <div className="text-center py-8">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="text-center py-16">
+          <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <svg className="w-10 h-10 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
-          <p className="text-gray-600">Try searching with different keywords</p>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">No items found</h3>
+          <p className="text-gray-600 max-w-md mx-auto">Try searching with different keywords or browse through our categories</p>
         </div>
       )}
     </div>

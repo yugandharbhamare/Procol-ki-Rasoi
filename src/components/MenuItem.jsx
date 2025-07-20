@@ -2,10 +2,11 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
   const isInCart = cartItem && cartItem.quantity > 0
 
   return (
-    <div className="card p-4 rounded-2xl">
-      <div className="flex items-start space-x-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300">
+      <div className="flex items-start space-x-5">
+        {/* Enhanced Image Container */}
         <div className="flex-shrink-0">
-          <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+          <div className="w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-sm border border-gray-200">
             {item.image.startsWith('/') ? (
               <img 
                 src={item.image} 
@@ -20,59 +21,61 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
                 }}
               />
             ) : null}
-            <div className={`w-full h-full flex items-center justify-center text-2xl ${item.image.startsWith('/') ? 'hidden' : ''}`}>
+            <div className={`w-full h-full flex items-center justify-center text-3xl ${item.image.startsWith('/') ? 'hidden' : ''}`}>
               {item.image}
             </div>
           </div>
         </div>
         
-                <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 truncate">
+        {/* Content Area */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1 pr-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">
                 {item.name}
               </h3>
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+              <p className="text-sm text-gray-600 leading-relaxed">
                 {item.description}
               </p>
             </div>
-            <div className="ml-4 text-right">
-              <p className="text-lg font-bold text-gray-900">
+            <div className="text-right">
+              <p className="text-xl font-bold text-gray-900">
                 {typeof item.price === 'number' ? `₹${item.price}` : item.price}
               </p>
             </div>
           </div>
           
-          <div className="mt-4">
+          {/* Action Buttons */}
+          <div className="mt-5">
             {!isInCart ? (
               <button
                 onClick={() => addToCart(item.id, item.name, item.price, item.image)}
-                className="border-2 border-primary-500 text-primary-600 hover:bg-primary-50 font-medium py-2 px-4 rounded-lg transition-colors duration-200 w-full h-12"
+                className="w-full border-2 border-orange-500 text-orange-600 font-semibold h-12 rounded-xl hover:bg-orange-50 hover:border-orange-600 hover:text-orange-700 transform hover:scale-[1.02] transition-all duration-200"
               >
                 Add to Cart
               </button>
             ) : (
-              <div className="flex items-center justify-between bg-gray-50 rounded-lg p-2 h-12">
+              <div className="flex items-center justify-between bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl h-12 px-3 border border-orange-200">
                 <button
                   onClick={() => updateQuantity(item.id, cartItem.quantity - 1)}
-                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-600 hover:text-gray-900 border border-gray-200"
+                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-orange-600 hover:text-orange-700 hover:bg-orange-50 border border-orange-200 shadow-sm transition-all duration-200"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                   </svg>
                 </button>
                 
-                <span className="text-lg font-semibold text-gray-900 px-4">
+                <span className="text-lg font-bold text-gray-900 px-4">
                   {cartItem.quantity}
                 </span>
                 
                 <button
                   onClick={() => updateQuantity(item.id, cartItem.quantity + 1)}
-                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-600 hover:text-gray-900 border border-gray-200"
+                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-orange-600 hover:text-orange-700 hover:bg-orange-50 border border-orange-200 shadow-sm transition-all duration-200"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
+                    </svg>
                 </button>
               </div>
             )}
