@@ -4,13 +4,13 @@ import { getAnalytics } from 'firebase/analytics';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCwb2uIYEcu2OKiskBNV4esfLwJWjQoKNg",
-  authDomain: "procol-ki-rasoi.firebaseapp.com",
-  projectId: "procol-ki-rasoi",
-  storageBucket: "procol-ki-rasoi.firebasestorage.app",
-  messagingSenderId: "431487577660",
-  appId: "1:431487577660:web:6ecbb7ff316e0b7b089d39",
-  measurementId: "G-137G0QQSFF"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase

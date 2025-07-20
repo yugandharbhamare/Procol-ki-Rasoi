@@ -4,18 +4,23 @@ A mobile-first food ordering application built with React and Tailwind CSS. Feat
 
 ## Features
 
+- 🔐 **Google Authentication** - Secure sign-in with Google
 - 🍽️ **Mobile-first design** - Optimized for mobile devices
 - 🛒 **Interactive cart** - Add items with quantity stepper
 - 💰 **Real-time pricing** - Live total calculation
 - 📱 **Floating cart summary** - Always visible at bottom
 - 🎨 **Modern UI** - Clean, responsive design with Tailwind CSS
 - 🍕 **Categorized menu** - Items organized by category
+- 👤 **User profiles** - Personalized experience with profile pictures
+- 📋 **Order tracking** - Complete order history with user details
+- 💳 **Payment integration** - UPI payment with QR codes
 
 ## Tech Stack
 
 - **React 18** - Modern React with hooks
 - **Tailwind CSS** - Utility-first CSS framework
 - **Vite** - Fast build tool and dev server
+- **Firebase** - Authentication and backend services
 - **PostCSS** - CSS processing
 
 ## Getting Started
@@ -24,6 +29,7 @@ A mobile-first food ordering application built with React and Tailwind CSS. Feat
 
 - Node.js (version 16 or higher)
 - npm or yarn
+- Firebase project (for authentication)
 
 ### Installation
 
@@ -32,6 +38,32 @@ A mobile-first food ordering application built with React and Tailwind CSS. Feat
    ```bash
    npm install
    ```
+
+### Firebase Setup
+
+1. **Create a Firebase Project**:
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project or use an existing one
+   - Enable Google Authentication in Authentication → Sign-in method
+
+2. **Configure Environment Variables**:
+   - Copy `env.example` to `.env`
+   - Fill in your Firebase configuration values:
+   ```bash
+   cp env.example .env
+   ```
+
+3. **Get Firebase Config**:
+   - In Firebase Console → Project Settings → Your Apps
+   - Add a web app and copy the configuration
+   - Update your `.env` file with the real values
+
+4. **Authorized Domains**:
+   - Go to Authentication → Settings → Authorized domains
+   - Add `localhost` for development
+   - Add your production domain when deploying
+
+For detailed Firebase setup instructions, see [FIREBASE_SETUP.md](FIREBASE_SETUP.md).
 
 ### Running the Application
 
@@ -121,6 +153,20 @@ For detailed workflow documentation, see [docs/GITHUB_WORKFLOWS.md](docs/GITHUB_
 Use the provided issue templates for:
 - 🐛 Bug reports
 - ✨ Feature requests
+
+## 🔒 Security
+
+### Environment Variables
+- **Never commit your `.env` file** - It contains sensitive Firebase credentials
+- The `.env` file is already in `.gitignore` to prevent accidental commits
+- Each developer/fork needs their own Firebase project and credentials
+- Use `env.example` as a template for your own configuration
+
+### Firebase Security
+- Each fork should create their own Firebase project
+- Firebase credentials are tied to specific domains and projects
+- Your credentials won't work for other developers' forks
+- Follow Firebase security best practices for production deployment
 
 ## License
 

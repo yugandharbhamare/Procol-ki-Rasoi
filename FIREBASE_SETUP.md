@@ -113,3 +113,104 @@ The app captures the following information from Google:
 - Verify your configuration in `src/firebase/config.js`
 - Ensure all domains are authorized in Firebase Console
 - Check browser console for detailed error messages 
+
+For testing the site on mobile, you'll need to add the following domains to Firebase's authorized domains list:
+
+##  **Firebase Console Setup:**
+
+### **✅ Go to Firebase Console:**
+1. Visit [Firebase Console](https://console.firebase.google.com/)
+2. Select your "procol-ki-rasoi" project
+3. Go to **Authentication** → **Settings**
+4. Scroll down to **"Authorized domains"**
+
+### **✅ Add These Domains:**
+
+#### **1. For Development (Local Network):**
+```
+localhost
+192.168.1.3
+```
+
+#### **2. For Mobile Testing (Your Local IP):**
+```
+192.168.1.3:3000
+```
+
+#### **3. If Using Different Port:**
+```
+192.168.1.3:5173
+```
+
+##  **How to Find Your Local IP:**
+
+### **✅ On Mac/Linux:**
+```bash
+ifconfig | grep "inet " | grep -v 127.0.0.1
+```
+
+### **✅ On Windows:**
+```cmd
+ipconfig | findstr "IPv4"
+```
+
+### **✅ Quick Method:**
+```bash
+hostname -I
+```
+
+## 🚀 **Testing Steps:**
+
+### **✅ 1. Start Your Dev Server:**
+```bash
+npm run dev
+```
+
+### **✅ 2. Note the Network URL:**
+Look for something like:
+```
+Local:   http://localhost:3000/
+Network: http://192.168.1.3:3000/
+```
+
+### **✅ 3. Add to Firebase:**
+- Add `192.168.1.3` (without port)
+- Add `localhost`
+
+### **✅ 4. Test on Mobile:**
+- Connect mobile to same WiFi network
+- Open browser and go to `http://192.168.1.3:3000`
+- Try Google Sign-In
+
+## ⚠️ **Important Notes:**
+
+### **✅ Domain Format:**
+- **Don't include ports** in Firebase authorized domains
+- Just add: `192.168.1.3` (not `192.168.1.3:3000`)
+- Add `localhost` for desktop testing
+
+### **✅ Network Requirements:**
+- Mobile and computer must be on same WiFi network
+- Firewall should allow connections on port 3000
+- Some corporate networks may block this
+
+### **✅ Alternative Testing:**
+If local network doesn't work, you can:
+1. **Use ngrok** to create a public tunnel
+2. **Deploy to Vercel/Netlify** for testing
+3. **Use Firebase Hosting** for development
+
+## 🔍 **Troubleshooting:**
+
+### **✅ If Sign-In Fails:**
+1. Check browser console for errors
+2. Verify domain is in authorized list
+3. Ensure mobile and computer are on same network
+4. Try refreshing the page
+
+### **✅ Common Issues:**
+- **"Unauthorized domain"**: Add the IP to Firebase
+- **"Popup blocked"**: Allow popups for the domain
+- **"Network error"**: Check WiFi connection
+
+Would you like me to help you find your specific local IP address or set up any alternative testing methods? 
