@@ -2,11 +2,11 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
   const isInCart = cartItem && cartItem.quantity > 0
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
       <div className="flex items-start space-x-5">
         {/* Enhanced Image Container */}
         <div className="flex-shrink-0">
-          <div className="w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-sm border border-gray-200">
+          <div className="w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg flex items-center justify-center overflow-hidden shadow-sm border border-gray-200">
             {item.image.startsWith('/') ? (
               <img 
                 src={item.image} 
@@ -50,7 +50,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
             {!isInCart ? (
               <button
                 onClick={() => addToCart(item.id, item.name, item.price, item.image)}
-                className="w-full border-2 border-orange-500 text-orange-600 font-semibold h-12 rounded-xl hover:bg-orange-50 hover:border-orange-600 hover:text-orange-700 transform hover:scale-[1.02] transition-all duration-200"
+                className="w-full border-2 border-orange-500 text-orange-600 font-semibold h-12 rounded-xl"
               >
                 Add to Cart
               </button>
@@ -58,7 +58,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
               <div className="flex items-center justify-between bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl h-12 px-3 border border-orange-200">
                 <button
                   onClick={() => updateQuantity(item.id, cartItem.quantity - 1)}
-                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-orange-600 hover:text-orange-700 hover:bg-orange-50 border border-orange-200 shadow-sm transition-all duration-200"
+                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-orange-600 border border-orange-200 shadow-sm"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -71,7 +71,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
                 
                 <button
                   onClick={() => updateQuantity(item.id, cartItem.quantity + 1)}
-                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-orange-600 hover:text-orange-700 hover:bg-orange-50 border border-orange-200 shadow-sm transition-all duration-200"
+                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-orange-600 border border-orange-200 shadow-sm"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

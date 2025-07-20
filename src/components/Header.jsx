@@ -1,11 +1,13 @@
 import SearchBar from './SearchBar'
 import { useAuth } from '../contexts/AuthContext'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const Header = ({ searchQuery, onSearchChange }) => {
   const { user, signOutUser } = useAuth()
   const [imageError, setImageError] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const navigate = useNavigate()
 
   // Debug: Log user data to see what we're getting
   console.log('User data in Header:', user)
@@ -73,11 +75,30 @@ const Header = ({ searchQuery, onSearchChange }) => {
                   )}
                 </button>
                 
-                {/* Desktop: Sign Out Dropdown */}
-                <div className="hidden md:block absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+                {/* Desktop: User Dropdown */}
+                <div className="hidden md:block absolute right-0 top-12 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+                  {/* Order History Option */}
+                  <button
+                    onClick={() => {
+                      navigate('/order-history')
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-t-lg transition-colors border-b border-gray-100"
+                  >
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <span className="font-medium text-gray-900">Order History</span>
+                      <p className="text-xs text-gray-500">View your past orders</p>
+                    </div>
+                  </button>
+                  
+                  {/* Sign Out Option */}
                   <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-b-lg transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -111,21 +132,8 @@ const Header = ({ searchQuery, onSearchChange }) => {
             drawerOpen ? 'translate-x-0' : 'translate-x-full'
           }`}>
             <div className="flex flex-col h-full">
-              {/* Drawer Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Profile</h2>
-                <button
-                  onClick={() => setDrawerOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* User Info */}
-              <div className="p-6 border-b border-gray-200">
+              {/* Drawer Header with User Info */}
+              <div className="px-4 py-4 border-b border-gray-200">
                 <div className="flex items-center space-x-4">
                   {user.photoURL && !imageError ? (
                     <img
@@ -141,33 +149,42 @@ const Header = ({ searchQuery, onSearchChange }) => {
                       </span>
                     </div>
                   )}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{user.displayName}</h3>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {user.firstName && user.lastName 
+                        ? `${user.firstName} ${user.lastName}` 
+                        : user.displayName || 'User'
+                      }
+                    </h3>
                     <p className="text-sm text-gray-500">{user.email}</p>
                   </div>
                 </div>
               </div>
 
               {/* Drawer Content */}
-              <div className="flex-1 p-6">
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Account Details</h4>
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex justify-between">
-                        <span>Name:</span>
-                        <span className="font-medium">{user.displayName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Email:</span>
-                        <span className="font-medium">{user.email}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>User ID:</span>
-                        <span className="font-mono text-xs">{user.uid.substring(0, 8)}...</span>
-                      </div>
+              <div className="flex-1 px-4 py-3">
+                <div className="space-y-3">
+                  {/* Order History Option */}
+                  <button
+                    onClick={() => {
+                      navigate('/order-history')
+                      setDrawerOpen(false)
+                    }}
+                    className="w-full flex items-center space-x-3 px-3 py-2 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
                     </div>
-                  </div>
+                    <div className="flex-1">
+                      <span className="font-semibold text-gray-900">Order History</span>
+                      <p className="text-sm text-gray-500 mt-1">View your past orders</p>
+                    </div>
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 

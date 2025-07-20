@@ -1,14 +1,20 @@
 import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
+import { useOrders } from './contexts/OrderContext'
 import Menu from './components/Menu'
 import CartSummary from './components/CartSummary'
 import Header from './components/Header'
 import PaymentScreen from './components/PaymentScreen'
 import ReceiptScreen from './components/ReceiptScreen'
 import LoginScreen from './components/LoginScreen'
+import OrderHistory from './components/OrderHistory'
+import { OrderProvider } from './contexts/OrderContext'
 
-function App() {
-  const { user, loading } = useAuth()
+// Main Menu Page Component
+function MenuPage() {
+  const { user } = useAuth()
+  const { addCompletedOrder } = useOrders()
   const [cart, setCart] = useState({})
   const [showPayment, setShowPayment] = useState(false)
   const [showReceipt, setShowReceipt] = useState(false)
@@ -75,6 +81,8 @@ function App() {
   }
 
   const handlePaymentComplete = () => {
+    // Save the completed order to order history
+    addCompletedOrder(currentOrder)
     setShowPayment(false)
     setShowReceipt(true)
   }
@@ -88,23 +96,6 @@ function App() {
     setShowReceipt(false)
     setCurrentOrder(null)
     setCart({})
-  }
-
-  // Show loading screen while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Show login screen if user is not authenticated
-  if (!user) {
-    return <LoginScreen />
   }
 
   if (showPayment && currentOrder) {
@@ -151,6 +142,39 @@ function App() {
         />
       )}
     </div>
+  )
+}
+
+function App() {
+  const { user, loading } = useAuth()
+
+  // Show loading screen while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show login screen if user is not authenticated
+  if (!user) {
+    return <LoginScreen />
+  }
+
+  return (
+    <OrderProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<MenuPage />} />
+          <Route path="/order-history" element={<OrderHistory />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </OrderProvider>
   )
 }
 

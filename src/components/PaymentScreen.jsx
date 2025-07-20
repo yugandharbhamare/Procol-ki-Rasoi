@@ -237,7 +237,16 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                           src="/icons8-google-pay.svg" 
                           alt="Google Pay" 
                           className="w-8 h-8"
+                          loading="eager"
+                          decoding="sync"
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                            e.target.nextSibling.style.display = 'flex'
+                          }}
                         />
+                        <div className="w-8 h-8 bg-green-500 rounded flex items-center justify-center text-white font-bold text-xs" style={{display: 'none'}}>
+                          GP
+                        </div>
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">Google Pay</p>
@@ -274,7 +283,16 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                           src="/icons8-phone-pe.svg" 
                           alt="PhonePe" 
                           className="w-8 h-8"
+                          loading="eager"
+                          decoding="sync"
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                            e.target.nextSibling.style.display = 'flex'
+                          }}
                         />
+                        <div className="w-8 h-8 bg-purple-500 rounded flex items-center justify-center text-white font-bold text-xs" style={{display: 'none'}}>
+                          PP
+                        </div>
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">PhonePe</p>
@@ -311,7 +329,16 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                           src="/icons8-paytm.svg" 
                           alt="Paytm" 
                           className="w-8 h-8"
+                          loading="eager"
+                          decoding="sync"
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                            e.target.nextSibling.style.display = 'flex'
+                          }}
                         />
+                        <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-xs" style={{display: 'none'}}>
+                          PT
+                        </div>
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">Paytm</p>
@@ -348,7 +375,16 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                           src="/icons8-bhim.svg" 
                           alt="BHIM" 
                           className="w-8 h-8"
+                          loading="eager"
+                          decoding="sync"
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                            e.target.nextSibling.style.display = 'flex'
+                          }}
                         />
+                        <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center text-white font-bold text-xs" style={{display: 'none'}}>
+                          BH
+                        </div>
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">BHIM</p>
