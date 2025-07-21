@@ -10,7 +10,7 @@ import ReceiptScreen from './components/ReceiptScreen'
 import LoginScreen from './components/LoginScreen'
 import OrderHistory from './components/OrderHistory'
 import AdminPanel from './components/AdminPanel'
-import WhatsAppTest from './components/WhatsAppTest'
+
 import { OrderProvider } from './contexts/OrderContext'
 
 // Main Menu Page Component
@@ -174,7 +174,7 @@ function App() {
         <Routes>
           <Route path="/" element={<MenuPage />} />
           <Route path="/order-history" element={<OrderHistory />} />
-          <Route path="/whatsapp-test" element={<WhatsAppTest />} />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

@@ -26,7 +26,6 @@ The system now includes a manual payment confirmation button for real UPI paymen
 
 4. **Order Completion**
    - Your order will be saved to Google Sheets
-   - WhatsApp notifications will be sent
    - Receipt will be generated
    - Order will appear in your order history
 

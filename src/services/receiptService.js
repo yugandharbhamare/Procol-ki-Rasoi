@@ -12,7 +12,7 @@ export const generateReceiptImage = async (order) => {
     // Convert HTML to image using html2canvas or similar
     const imageBlob = await htmlToImage(receiptHTML);
     
-    // Convert blob to base64 for WhatsApp sharing
+    // Convert blob to base64
     const base64Image = await blobToBase64(imageBlob);
     
     Logger.debug('Receipt image generated successfully');
@@ -297,44 +297,8 @@ const blobToBase64 = (blob) => {
   });
 };
 
-// Generate and send receipt via WhatsApp
-export const generateAndSendReceipt = async (order) => {
-  try {
-    Logger.debug('Generating and sending receipt for order:', order.id);
-    
-    // Generate receipt image
-    const imageResult = await generateReceiptImage(order);
-    
-    if (!imageResult.success) {
-      throw new Error(imageResult.error);
-    }
-    
-    // Import WhatsApp service
-    const { sendReceiptImage } = await import('./whatsappService');
-    
-    // Send receipt image via WhatsApp
-    const whatsappResult = await sendReceiptImage(order, imageResult.imageUrl);
-    
-    if (whatsappResult.success) {
-      Logger.debug('Receipt sent via WhatsApp successfully');
-    } else {
-      Logger.warn('Failed to send receipt via WhatsApp:', whatsappResult.error);
-    }
-    
-    return {
-      success: true,
-      imageGenerated: imageResult.success,
-      whatsappSent: whatsappResult.success,
-      imageUrl: imageResult.imageUrl
-    };
-    
-  } catch (error) {
-    Logger.error('Error generating and sending receipt:', error);
-    return { success: false, error: error.message };
-  }
-};
+
 
 export default {
-  generateReceiptImage,
-  generateAndSendReceipt
+  generateReceiptImage
 }; 

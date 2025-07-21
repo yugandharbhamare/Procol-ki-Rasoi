@@ -286,37 +286,26 @@ const addToOrderContext = async (order) => {
   }
 }
 
-// Generate receipt and send WhatsApp notification
+// Generate receipt
 const generateReceipt = async (order) => {
   try {
-    Logger.debug('Generating receipt and sending WhatsApp notification for order:', order.id)
+    Logger.debug('Generating receipt for order:', order.id)
     
     // Import receipt service
-    const { generateAndSendReceipt } = await import('./receiptService')
+    const { generateReceiptImage } = await import('./receiptService')
     
-    // Generate receipt image and send via WhatsApp
-    const receiptResult = await generateAndSendReceipt(order)
+    // Generate receipt image
+    const receiptResult = await generateReceiptImage(order)
     
     if (receiptResult.success) {
-      Logger.debug('Receipt generated and WhatsApp notification sent successfully')
+      Logger.debug('Receipt generated successfully')
     } else {
-      Logger.warn('Failed to generate receipt or send WhatsApp notification:', receiptResult.error)
-    }
-    
-    // Also send order confirmation message
-    const { sendOrderConfirmation } = await import('./whatsappService')
-    const confirmationResult = await sendOrderConfirmation(order)
-    
-    if (confirmationResult.success) {
-      Logger.debug('Order confirmation sent via WhatsApp successfully')
-    } else {
-      Logger.warn('Failed to send order confirmation via WhatsApp:', confirmationResult.error)
+      Logger.warn('Failed to generate receipt:', receiptResult.error)
     }
     
     return { 
       success: true,
-      receiptGenerated: receiptResult.success,
-      confirmationSent: confirmationResult.success
+      receiptGenerated: receiptResult.success
     }
   } catch (error) {
     Logger.error('Receipt generation error:', error)
