@@ -72,6 +72,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
                 <button
                   onClick={() => updateQuantity(item.id, cartItem.quantity + 1)}
                   className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-orange-600 border border-orange-200 shadow-sm"
+                  disabled={cartItem.quantity >= 10}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

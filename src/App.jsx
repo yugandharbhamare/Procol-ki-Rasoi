@@ -24,15 +24,19 @@ function MenuPage() {
   const [searchQuery, setSearchQuery] = useState('')
 
   const addToCart = (itemId, itemName, price, image) => {
-    setCart(prev => ({
-      ...prev,
-      [itemId]: {
-        name: itemName,
-        price: price,
-        image: image,
-        quantity: (prev[itemId]?.quantity || 0) + 1
-      }
-    }))
+    setCart(prev => {
+      const currentQty = prev[itemId]?.quantity || 0;
+      if (currentQty >= 10) return prev; // Restrict to max 10
+      return {
+        ...prev,
+        [itemId]: {
+          name: itemName,
+          price: price,
+          image: image,
+          quantity: currentQty + 1
+        }
+      };
+    });
   }
 
   const updateQuantity = (itemId, newQuantity) => {
@@ -40,7 +44,7 @@ function MenuPage() {
       const newCart = { ...cart }
       delete newCart[itemId]
       setCart(newCart)
-    } else {
+    } else if (newQuantity <= 10) { // Restrict to max 10
       setCart(prev => ({
         ...prev,
         [itemId]: {
