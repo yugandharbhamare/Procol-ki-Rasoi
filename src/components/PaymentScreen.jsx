@@ -86,9 +86,12 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
   }
 
   const handlePaymentSuccess = () => {
+    console.log('PaymentScreen: Payment success triggered, setting status to success');
     setPaymentStatus('success')
+    
     // Automatically redirect to receipt page after payment success
     setTimeout(() => {
+      console.log('PaymentScreen: Calling onPaymentComplete callback');
       onPaymentComplete()
     }, 1500)
   }

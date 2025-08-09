@@ -10,6 +10,7 @@ import ReceiptScreen from './components/ReceiptScreen'
 import LoginScreen from './components/LoginScreen'
 import OrderHistory from './components/OrderHistory'
 import AdminPanel from './components/AdminPanel'
+import StaffApp from './StaffApp'
 
 import { OrderProvider } from './contexts/OrderContext'
 
@@ -87,8 +88,24 @@ function MenuPage() {
   }
 
   const handlePaymentComplete = async () => {
-    // The order is already saved to Google Sheets and order history by the payment service
-    // when payment is confirmed via webhook
+    // Add the completed order to the context (which will also save to Firestore)
+    if (currentOrder) {
+      // Add payment details to the order
+      const completedOrder = {
+        ...currentOrder,
+        paymentDetails: {
+          transactionId: `TXN_${Date.now()}`,
+          paymentMethod: 'UPI',
+          amount: getTotalPrice(),
+          status: 'success',
+          timestamp: new Date().toISOString()
+        }
+      };
+      
+      console.log('App: Payment completed, adding order to context:', completedOrder);
+      await addCompletedOrder(completedOrder);
+    }
+    
     setShowPayment(false)
     setShowReceipt(true)
   }
@@ -178,7 +195,7 @@ function App() {
         <Routes>
           <Route path="/" element={<MenuPage />} />
           <Route path="/order-history" element={<OrderHistory />} />
-
+          <Route path="/staff/*" element={<StaffApp />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

@@ -79,24 +79,29 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
 
   const handleManualPaymentConfirm = async () => {
     try {
+      console.log('UPIQRCode: Manual payment confirmation started for order:', orderId);
       setPaymentStatus('processing')
       setStatusMessage('Confirming payment...')
       
       // Simulate payment confirmation (this would be replaced with actual payment verification)
+      console.log('UPIQRCode: Calling simulatePaymentConfirmation...');
       const result = await simulatePaymentConfirmation(orderId)
+      console.log('UPIQRCode: simulatePaymentConfirmation result:', result);
       
       if (result.success) {
+        console.log('UPIQRCode: Payment confirmed successfully, calling onPaymentSuccess');
         setPaymentStatus('success')
         setStatusMessage('Payment confirmed! Processing your order...')
         onPaymentSuccess()
         clearInterval(statusCheckInterval.current)
       } else {
+        console.error('UPIQRCode: Payment confirmation failed:', result.error);
         setPaymentStatus('failed')
         setStatusMessage('Payment confirmation failed. Please try again.')
         onPaymentFailed()
       }
     } catch (error) {
-      console.error('Manual payment confirmation error:', error)
+      console.error('UPIQRCode: Manual payment confirmation error:', error)
       setPaymentStatus('failed')
       setStatusMessage('Error confirming payment. Please try again.')
       onPaymentFailed()
