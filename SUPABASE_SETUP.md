@@ -10,11 +10,8 @@
 ### 2. Environment Variables
 Create `.env.local`:
 ```env
-VITE_SUPABASE_URL=https://zukwmrnpjhfpyxubalrh.supabase.co 
-
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1a3dtcm5wamhmcHl4dWJhbHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzMTU0MjgsImV4cCI6MjA3MDg5MTQyOH0.E7MnTkT6qt-671MBaWr6n77WKg8eOZsDcRzHyl4EiK8
-
-
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
 ### 3. Install Dependencies
