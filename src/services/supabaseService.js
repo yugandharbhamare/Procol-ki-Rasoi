@@ -18,7 +18,7 @@ export const createUser = async (userData) => {
   try {
     const { data, error } = await supabase
       .from('users')
-      .upsert([userData], { onConflict: 'id' })
+      .upsert([userData], { onConflict: 'emailid' })
       .select()
       .single()
 
@@ -48,6 +48,28 @@ export const getUser = async (userId) => {
     return { success: true, user: data }
   } catch (error) {
     console.error('Error getting user:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const getUserByEmail = async (email) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('emailid', email)
+      .single()
+
+    if (error) {
+      // If user not found, return success: false but don't throw
+      if (error.code === 'PGRST116') {
+        return { success: false, user: null, error: 'User not found' }
+      }
+      throw error
+    }
+    return { success: true, user: data }
+  } catch (error) {
+    console.error('Error getting user by email:', error)
     return { success: false, error: error.message }
   }
 }

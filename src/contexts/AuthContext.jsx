@@ -5,7 +5,7 @@ import {
   onAuthStateChanged 
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/config';
-import { createUser, getUser } from '../services/supabaseService';
+import { createUser, getUser, getUserByEmail } from '../services/supabaseService';
 
 const AuthContext = createContext();
 
@@ -43,19 +43,19 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('Syncing Firebase user to Supabase:', firebaseUser.uid);
       
-      // Check if user already exists in Supabase
-      const existingUser = await getUser(firebaseUser.uid);
+      // Check if user already exists in Supabase by email
+      const existingUser = await getUserByEmail(firebaseUser.email);
       
       if (existingUser.success && existingUser.user) {
         console.log('User already exists in Supabase:', existingUser.user);
         return existingUser.user;
       }
       
-      // Create new user in Supabase
+      // Create new user in Supabase (let Supabase generate UUID)
       const userData = {
-        id: firebaseUser.uid,
         name: firebaseUser.displayName || 'Unknown User',
-        emailid: firebaseUser.email || ''
+        emailid: firebaseUser.email || '',
+        firebase_uid: firebaseUser.uid // Store Firebase UID for reference
       };
       
       console.log('Creating new user in Supabase:', userData);
