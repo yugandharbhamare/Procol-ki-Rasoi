@@ -72,6 +72,53 @@ const DebugOrderFlow = () => {
     }
   }
 
+  const testSupabaseOrderCreation = async () => {
+    try {
+      console.log('🔍 Testing Supabase order creation...')
+      
+      // Import supabaseService
+      const { createOrder } = await import('../services/supabaseService')
+      
+      // Create test order data for Supabase
+      const orderData = {
+        user_id: null, // Will be null for test
+        user_name: user?.displayName || 'Test User',
+        user_email: user?.email || 'test@example.com',
+        user_photo_url: user?.photoURL || null,
+        order_amount: 25,
+        status: 'pending',
+        items: [
+          {
+            name: 'Amul Chaas',
+            quantity: 1,
+            price: 15
+          },
+          {
+            name: 'Ginger Chai',
+            quantity: 1,
+            price: 10
+          }
+        ]
+      }
+      
+      console.log('🔍 Supabase order data:', orderData)
+      
+      const result = await createOrder(orderData)
+      
+      if (result.success) {
+        console.log('✅ Supabase order created successfully:', result.order)
+        alert('✅ Supabase order created successfully! Check staff dashboard.')
+      } else {
+        console.error('❌ Supabase order creation failed:', result.error)
+        alert('❌ Supabase order creation failed: ' + result.error)
+      }
+      
+    } catch (error) {
+      console.error('🔍 Error in Supabase order creation:', error)
+      alert('❌ Error in Supabase order creation: ' + error.message)
+    }
+  }
+
   const clearOrders = () => {
     localStorage.removeItem('completedOrders')
     window.location.reload()
@@ -100,7 +147,14 @@ const DebugOrderFlow = () => {
           onClick={testOrderCreation}
           className="w-full bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600"
         >
-          Test Order Creation
+          Test Local Order
+        </button>
+        
+        <button
+          onClick={testSupabaseOrderCreation}
+          className="w-full bg-green-500 text-white text-xs px-2 py-1 rounded hover:bg-green-600"
+        >
+          Test Supabase Order
         </button>
         
         <button
