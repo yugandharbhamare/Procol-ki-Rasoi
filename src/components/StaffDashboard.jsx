@@ -43,26 +43,7 @@ export default function StaffDashboard() {
     setPlayNotification(false);
   };
 
-  // Debug function to test Supabase connection
-  const testSupabaseConnection = async () => {
-    try {
-      console.log('StaffDashboard: Testing Supabase connection...');
-      const { getAllOrders } = await import('../services/supabaseService');
-      
-      const result = await getAllOrders();
-      console.log('StaffDashboard: Supabase connection test result:', result);
-      
-      if (result.success) {
-        alert(`✅ Supabase connection successful! Found ${result.orders?.length || 0} orders.`);
-      } else {
-        alert('❌ Supabase connection failed: ' + result.error);
-      }
-      
-    } catch (error) {
-      console.error('StaffDashboard: Supabase connection test error:', error);
-      alert('❌ Supabase connection failed: ' + error.message);
-    }
-  };
+
 
   const renderOrders = (orders, status) => {
     if (loading) {
@@ -150,23 +131,7 @@ export default function StaffDashboard() {
       )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Debug Section */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <h3 className="text-lg font-medium text-yellow-800 mb-2">Debug Information</h3>
-          <div className="text-sm text-yellow-700 space-y-1 mb-3">
-            <p>• Pending Orders: {orderCounts.pending} {pendingOrders.length > 0 && `(${pendingOrders.map(o => o.id).join(', ')})`}</p>
-            <p>• Accepted Orders: {orderCounts.accepted} {acceptedOrders.length > 0 && `(${acceptedOrders.map(o => o.id).join(', ')})`}</p>
-            <p>• Ready Orders: {orderCounts.ready} {readyOrders.length > 0 && `(${readyOrders.map(o => o.id).join(', ')})`}</p>
-            <p>• Loading: {loading ? 'Yes' : 'No'}</p>
-            <p>• Error: {error || 'None'}</p>
-          </div>
-          <button
-            onClick={testSupabaseConnection}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-          >
-            🔗 Test Supabase Connection
-          </button>
-        </div>
+
 
         {/* Tabs */}
         <div className="border-b border-gray-200 mb-8">
