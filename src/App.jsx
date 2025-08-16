@@ -11,6 +11,7 @@ import LoginScreen from './components/LoginScreen'
 import OrderHistory from './components/OrderHistory'
 import AdminPanel from './components/AdminPanel'
 import StaffApp from './StaffApp'
+import DebugOrderFlow from './components/DebugOrderFlow'
 
 import { OrderProvider } from './contexts/OrderContext'
 
@@ -165,6 +166,7 @@ function MenuPage() {
         />
       )}
       <AdminPanel />
+      <DebugOrderFlow />
     </div>
   )
 }
