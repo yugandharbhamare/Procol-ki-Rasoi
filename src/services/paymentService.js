@@ -294,6 +294,23 @@ const addToOrderContext = async (order) => {
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
       console.log('PaymentService: Current user:', currentUser);
       
+      // Get user from Supabase by email to get the correct UUID
+      let supabaseUserId = null;
+      if (currentUser.email) {
+        try {
+          const { getUserByEmail } = await import('./supabaseService')
+          const userResult = await getUserByEmail(currentUser.email)
+          if (userResult.success && userResult.user) {
+            supabaseUserId = userResult.user.id
+            console.log('PaymentService: Found Supabase user ID:', supabaseUserId);
+          } else {
+            console.warn('PaymentService: User not found in Supabase, will create order without user_id');
+          }
+        } catch (error) {
+          console.error('PaymentService: Error getting user from Supabase:', error);
+        }
+      }
+      
       // Convert order items from object to array format for Supabase
       const orderItems = Object.values(order.items || {}).map(item => ({
         name: item.name,
@@ -304,7 +321,7 @@ const addToOrderContext = async (order) => {
       console.log('PaymentService: Converted order items:', orderItems);
       
       const orderData = {
-        user_id: currentUser.uid || null,
+        user_id: supabaseUserId, // Use Supabase UUID instead of Firebase UID
         order_amount: order.total || 0,
         status: 'pending', // Start as pending for staff approval
         items: orderItems // Include items for order creation
