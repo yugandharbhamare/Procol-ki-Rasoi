@@ -271,55 +271,60 @@ export default function OrderCard({ order, status }) {
         </div>
       </div>
 
-      {/* Compact Order Items with Images */}
-      <div className="px-4 py-3">
-        <div className="space-y-2">
-          {Array.isArray(order.items) && order.items.length > 0 ? (
-            order.items.map((item, index) => (
-              <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
-                {/* Item Image */}
-                <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                  {item.image ? (
-                    <img 
-                      src={item.image} 
-                      alt={item.name || item.item_name} 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  <div className="w-full h-full flex items-center justify-center bg-gray-200" style={{ display: item.image ? 'none' : 'flex' }}>
-                    <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                    </svg>
+                {/* Order Items - Matching User Side Style */}
+          <div className="px-4 py-3">
+            <div className="space-y-3">
+              {Array.isArray(order.items) && order.items.length > 0 ? (
+                order.items.map((item, index) => (
+                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        {/* Item Image */}
+                        {item.image && item.image.startsWith('/') ? (
+                          <img 
+                            src={item.image} 
+                            alt={item.name || item.item_name}
+                            className="w-8 h-8 rounded object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none'
+                              e.target.nextSibling.style.display = 'block'
+                            }}
+                          />
+                        ) : null}
+                        <span 
+                          className="text-2xl" 
+                          style={{ display: item.image && item.image.startsWith('/') ? 'none' : 'block' }}
+                        >
+                          {item.image || '🍽️'}
+                        </span>
+                        
+                        {/* Item Details */}
+                        <div>
+                          <p className="font-medium text-gray-900 text-sm">{item.name || item.item_name}</p>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
+                            <p className="text-xs text-gray-500">• ₹{item.price} each</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Item Total Price */}
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900 text-sm">₹{item.price * item.quantity}</p>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  <svg className="w-6 h-6 mx-auto mb-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                  <p className="text-xs">No items available</p>
                 </div>
-                
-                {/* Item Details */}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 text-sm truncate">{item.name || item.item_name}</p>
-                  <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-                </div>
-                
-                {/* Item Price */}
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900 text-sm">₹{item.price * item.quantity}</p>
-                  <p className="text-xs text-gray-500">₹{item.price} each</p>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-4 text-gray-500">
-              <svg className="w-6 h-6 mx-auto mb-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
-              <p className="text-xs">No items available</p>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
       {/* Compact Action Button */}
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
