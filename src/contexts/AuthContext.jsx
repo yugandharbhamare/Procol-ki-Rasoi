@@ -101,6 +101,9 @@ export const AuthProvider = ({ children }) => {
         
         setUser(userData);
         
+        // Store user in localStorage for other components to access
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        
         // Sync user to Supabase on auth state change
         try {
           await syncUserToSupabase(user);
@@ -110,6 +113,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         // User is signed out
         setUser(null);
+        localStorage.removeItem('currentUser');
       }
       setLoading(false);
     });

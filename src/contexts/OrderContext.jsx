@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { addOrderToGoogleSheets, syncOrdersFromGoogleSheets } from '../services/googleSheetsService'
-import { createOrder, ORDER_STATUS } from '../services/firestoreService'
+import { createOrder } from '../services/supabaseService'
 
 const OrderContext = createContext()
 
@@ -43,23 +43,35 @@ export const OrderProvider = ({ children }) => {
       console.log('OrderContext: Payment confirmed, adding order to state and Firestore');
       setCompletedOrders(prev => [order, ...prev])
       
-      // Add order to Firestore
+      // Add order to Supabase
       try {
-        console.log('OrderContext: Creating order in Firestore...');
-        const firestoreResult = await createOrder({
-          ...order,
-          status: ORDER_STATUS.PENDING, // Start as pending for staff approval
-          paymentConfirmed: true,
-          paymentDetails: order.paymentDetails
-        })
+        console.log('OrderContext: Creating order in Supabase...');
         
-        if (firestoreResult.success) {
-          console.log('OrderContext: Order successfully created in Firestore:', firestoreResult.orderId)
+        // Get current user from localStorage or context
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+        console.log('OrderContext: Current user:', currentUser);
+        
+        const orderData = {
+          user_id: currentUser.uid || null,
+          order_amount: order.total || 0,
+          status: 'pending', // Start as pending for staff approval
+          payment_details: {
+            transaction_id: order.paymentDetails?.transactionId || `TXN_${Date.now()}`,
+            payment_method: order.paymentDetails?.paymentMethod || 'UPI',
+            amount: order.total || 0,
+            status: 'success'
+          }
+        };
+        
+        const supabaseResult = await createOrder(orderData)
+        
+        if (supabaseResult.success) {
+          console.log('OrderContext: Order successfully created in Supabase:', supabaseResult.order.id)
         } else {
-          console.error('OrderContext: Failed to create order in Firestore:', firestoreResult.error)
+          console.error('OrderContext: Failed to create order in Supabase:', supabaseResult.error)
         }
       } catch (error) {
-        console.error('OrderContext: Error creating order in Firestore:', error)
+        console.error('OrderContext: Error creating order in Supabase:', error)
       }
       
       // Add order to Google Sheets (existing functionality)

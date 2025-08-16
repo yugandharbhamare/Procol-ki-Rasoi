@@ -284,35 +284,42 @@ const addToOrderContext = async (order) => {
     localStorage.setItem('completedOrders', JSON.stringify(updatedOrders))
     console.log('PaymentService: Order saved to localStorage');
     
-    // Also create order in Firestore for staff portal
+    // Also create order in Supabase for staff portal
     try {
-      console.log('PaymentService: Attempting to create order in Firestore...');
-      const { createOrder, ORDER_STATUS } = await import('./firestoreService')
-      console.log('PaymentService: Firestore service imported successfully');
-      console.log('PaymentService: ORDER_STATUS:', ORDER_STATUS);
+      console.log('PaymentService: Attempting to create order in Supabase...');
+      const { createOrder } = await import('./supabaseService')
+      console.log('PaymentService: Supabase service imported successfully');
+      
+      // Get current user from localStorage or context
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+      console.log('PaymentService: Current user:', currentUser);
+      
+      // Get the original order data from payment info
+      const originalOrderData = paymentInfo?.data;
+      console.log('PaymentService: Original order data:', originalOrderData);
       
       const orderData = {
-        ...order,
-        status: ORDER_STATUS.PENDING, // Start as pending for staff approval
-        paymentConfirmed: true,
-        paymentDetails: order.paymentDetails
+        user_id: currentUser.uid || null,
+        order_amount: paymentDetails.amount,
+        status: 'pending', // Start as pending for staff approval
+        items: originalOrderData?.items || [] // Include items for order creation
       };
-      console.log('PaymentService: Order data prepared for Firestore:', orderData);
+      console.log('PaymentService: Order data prepared for Supabase:', orderData);
       
-      const firestoreResult = await createOrder(orderData)
-      console.log('PaymentService: Firestore createOrder result:', firestoreResult);
+      const supabaseResult = await createOrder(orderData)
+      console.log('PaymentService: Supabase createOrder result:', supabaseResult);
       
-      if (firestoreResult.success) {
-        console.log('PaymentService: Order successfully created in Firestore for staff portal:', firestoreResult.orderId)
+      if (supabaseResult.success) {
+        console.log('PaymentService: Order successfully created in Supabase for staff portal:', supabaseResult.order.id)
       } else {
-        console.error('PaymentService: Failed to create order in Firestore for staff portal:', firestoreResult.error)
+        console.error('PaymentService: Failed to create order in Supabase for staff portal:', supabaseResult.error)
       }
-    } catch (firestoreError) {
-      console.error('PaymentService: Error creating order in Firestore for staff portal:', firestoreError)
-      console.error('PaymentService: Firestore error details:', {
-        message: firestoreError.message,
-        stack: firestoreError.stack,
-        name: firestoreError.name
+    } catch (supabaseError) {
+      console.error('PaymentService: Error creating order in Supabase for staff portal:', supabaseError)
+      console.error('PaymentService: Supabase error details:', {
+        message: supabaseError.message,
+        stack: supabaseError.stack,
+        name: supabaseError.name
       });
     }
     
