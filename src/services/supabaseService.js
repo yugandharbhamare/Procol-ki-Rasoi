@@ -18,7 +18,7 @@ export const createUser = async (userData) => {
   try {
     const { data, error } = await supabase
       .from('users')
-      .insert([userData])
+      .upsert([userData], { onConflict: 'id' })
       .select()
       .single()
 
@@ -38,7 +38,13 @@ export const getUser = async (userId) => {
       .eq('id', userId)
       .single()
 
-    if (error) throw error
+    if (error) {
+      // If user not found, return success: false but don't throw
+      if (error.code === 'PGRST116') {
+        return { success: false, user: null, error: 'User not found' }
+      }
+      throw error
+    }
     return { success: true, user: data }
   } catch (error) {
     console.error('Error getting user:', error)
