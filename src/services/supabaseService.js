@@ -102,6 +102,8 @@ export const createOrder = async (orderData) => {
       .from('orders')
       .insert([{
         user_id: orderData.user_id,
+        user_name: orderData.user_name,
+        user_email: orderData.user_email,
         order_amount: orderData.order_amount,
         status: 'pending'
       }])
@@ -135,13 +137,10 @@ export const createOrder = async (orderData) => {
 
 export const getUserOrders = async (userId) => {
   try {
-    // Get orders for the specific user
+    // Get orders for the specific user (now using direct columns)
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
-      .select(`
-        *,
-        users (name, emailid)
-      `)
+      .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
@@ -172,10 +171,10 @@ export const getUserOrders = async (userId) => {
       order_amount: order.order_amount,
       created_at: order.created_at,
       updated_at: order.updated_at,
-      user: order.users ? {
-        name: order.users.name,
-        email: order.users.emailid
-      } : null,
+      user: {
+        name: order.user_name || 'Unknown User',
+        email: order.user_email || ''
+      },
       items: itemsByOrderId[order.id] || [],
       timestamp: order.created_at
     }))
@@ -189,13 +188,10 @@ export const getUserOrders = async (userId) => {
 
 export const getAllOrders = async () => {
   try {
-    // Get orders with user information
+    // Get orders with user information (now using direct columns)
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
-      .select(`
-        *,
-        users (name, emailid)
-      `)
+      .select('*')
       .order('created_at', { ascending: false })
 
     if (ordersError) throw ordersError
@@ -225,10 +221,10 @@ export const getAllOrders = async () => {
       order_amount: order.order_amount,
       created_at: order.created_at,
       updated_at: order.updated_at,
-      user: order.users ? {
-        name: order.users.name,
-        email: order.users.emailid
-      } : null,
+      user: {
+        name: order.user_name || 'Unknown User',
+        email: order.user_email || ''
+      },
       items: itemsByOrderId[order.id] || [],
       timestamp: order.created_at
     }))
