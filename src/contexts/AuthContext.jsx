@@ -55,7 +55,8 @@ export const AuthProvider = ({ children }) => {
       const userData = {
         name: firebaseUser.displayName || 'Unknown User',
         emailid: firebaseUser.email || '',
-        firebase_uid: firebaseUser.uid // Store Firebase UID for reference
+        firebase_uid: firebaseUser.uid, // Store Firebase UID for reference
+        photo_url: firebaseUser.photoURL || null // Store Google profile photo URL
       };
       
       console.log('Creating new user in Supabase:', userData);

@@ -90,6 +90,42 @@ export default function OrderCard({ order, status }) {
     }
   };
 
+  // Helper function to get user initials
+  const getInitials = (name) => {
+    if (!name || name === 'Unknown') return '?'
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  // Helper function to get consistent color for initials
+  const getInitialsColor = (name) => {
+    const colors = [
+      '#3B82F6', // blue
+      '#EF4444', // red
+      '#10B981', // green
+      '#F59E0B', // amber
+      '#8B5CF6', // violet
+      '#EC4899', // pink
+      '#06B6D4', // cyan
+      '#84CC16', // lime
+      '#F97316', // orange
+      '#6366F1'  // indigo
+    ]
+    
+    if (!name || name === 'Unknown') return colors[0]
+    
+    // Generate consistent color based on name
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return colors[Math.abs(hash) % colors.length]
+  }
+
   const renderActionButton = () => {
     if (loading) {
       return (
@@ -156,9 +192,31 @@ export default function OrderCard({ order, status }) {
       <div className="bg-gradient-to-r from-orange-50 to-orange-100 px-4 py-3 border-b border-orange-200">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-            </svg>
+            {/* User Profile Photo or Initials */}
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-orange-100 border-2 border-orange-200 flex items-center justify-center">
+              {order.user?.photoURL ? (
+                <img 
+                  src={order.user.photoURL} 
+                  alt={order.user?.name || 'User'} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div 
+                className={`w-full h-full flex items-center justify-center text-sm font-semibold ${
+                  order.user?.photoURL ? 'hidden' : 'flex'
+                }`}
+                style={{ 
+                  backgroundColor: getInitialsColor(order.user?.name || 'Unknown'),
+                  color: 'white'
+                }}
+              >
+                {getInitials(order.user?.name || 'Unknown')}
+              </div>
+            </div>
             <h3 className="text-lg font-bold text-gray-900">{order.user?.name || 'Unknown User'}</h3>
             <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(status)}`}>
               {getStatusText(status)}

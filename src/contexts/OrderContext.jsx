@@ -94,6 +94,7 @@ export const OrderProvider = ({ children }) => {
           user_id: supabaseUserId, // Use Supabase UUID instead of Firebase UID
           user_name: currentUser.name || 'Unknown User', // Add user name
           user_email: currentUser.email || '', // Add user email
+          user_photo_url: currentUser.photoURL || null, // Add user photo URL
           order_amount: order.total || 0,
           status: 'pending', // Start as pending for staff approval
           items: orderItems // Include items for order creation

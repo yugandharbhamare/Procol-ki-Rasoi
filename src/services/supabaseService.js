@@ -104,6 +104,7 @@ export const createOrder = async (orderData) => {
         user_id: orderData.user_id,
         user_name: orderData.user_name,
         user_email: orderData.user_email,
+        user_photo_url: orderData.user_photo_url,
         order_amount: orderData.order_amount,
         status: 'pending'
       }])
@@ -173,7 +174,8 @@ export const getUserOrders = async (userId) => {
       updated_at: order.updated_at,
       user: {
         name: order.user_name || 'Unknown User',
-        email: order.user_email || ''
+        email: order.user_email || '',
+        photoURL: order.user_photo_url || null
       },
       items: itemsByOrderId[order.id] || [],
       timestamp: order.created_at
@@ -223,7 +225,8 @@ export const getAllOrders = async () => {
       updated_at: order.updated_at,
       user: {
         name: order.user_name || 'Unknown User',
-        email: order.user_email || ''
+        email: order.user_email || '',
+        photoURL: order.user_photo_url || null
       },
       items: itemsByOrderId[order.id] || [],
       timestamp: order.created_at
