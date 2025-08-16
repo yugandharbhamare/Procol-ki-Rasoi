@@ -51,17 +51,23 @@ export const OrderProvider = ({ children }) => {
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
         console.log('OrderContext: Current user:', currentUser);
         
+        // Convert order items from object to array format for Supabase
+        const orderItems = Object.values(order.items || {}).map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        }));
+        
+        console.log('OrderContext: Converted order items:', orderItems);
+        
         const orderData = {
           user_id: currentUser.uid || null,
           order_amount: order.total || 0,
           status: 'pending', // Start as pending for staff approval
-          payment_details: {
-            transaction_id: order.paymentDetails?.transactionId || `TXN_${Date.now()}`,
-            payment_method: order.paymentDetails?.paymentMethod || 'UPI',
-            amount: order.total || 0,
-            status: 'success'
-          }
+          items: orderItems // Include items for order creation
         };
+        
+        console.log('OrderContext: Order data prepared for Supabase:', orderData);
         
         const supabaseResult = await createOrder(orderData)
         

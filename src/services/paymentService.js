@@ -294,15 +294,20 @@ const addToOrderContext = async (order) => {
       const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
       console.log('PaymentService: Current user:', currentUser);
       
-      // Get the original order data from payment info
-      const originalOrderData = paymentInfo?.data;
-      console.log('PaymentService: Original order data:', originalOrderData);
+      // Convert order items from object to array format for Supabase
+      const orderItems = Object.values(order.items || {}).map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      }));
+      
+      console.log('PaymentService: Converted order items:', orderItems);
       
       const orderData = {
         user_id: currentUser.uid || null,
-        order_amount: paymentDetails.amount,
+        order_amount: order.total || 0,
         status: 'pending', // Start as pending for staff approval
-        items: originalOrderData?.items || [] // Include items for order creation
+        items: orderItems // Include items for order creation
       };
       console.log('PaymentService: Order data prepared for Supabase:', orderData);
       
