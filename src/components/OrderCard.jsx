@@ -14,6 +14,36 @@ export default function OrderCard({ order, status }) {
     });
   };
 
+  const formatDateTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Check if it's today, yesterday, or another date
+    if (date.toDateString() === today.toDateString()) {
+      return `Today, ${date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      })}`;
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return `Yesterday, ${date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      })}`;
+    } else {
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+  };
+
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
       month: 'short',
@@ -190,10 +220,10 @@ export default function OrderCard({ order, status }) {
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
       {/* Compact Header - Customer Name First */}
       <div className="bg-gradient-to-r from-orange-50 to-orange-100 px-4 py-3 border-b border-orange-200">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
+        <div className="flex justify-between items-start">
+          <div className="flex items-start gap-3">
             {/* User Profile Photo or Initials */}
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-orange-100 border-2 border-orange-200 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-orange-100 border-2 border-orange-200 flex items-center justify-center flex-shrink-0">
               {order.user?.photoURL ? (
                 <img 
                   src={order.user.photoURL} 
@@ -217,28 +247,27 @@ export default function OrderCard({ order, status }) {
                 {getInitials(order.user?.name || 'Unknown')}
               </div>
             </div>
-            <h3 className="text-lg font-bold text-gray-900">{order.user?.name || 'Unknown User'}</h3>
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(status)}`}>
-              {getStatusText(status)}
-            </span>
+            
+            {/* Customer Info with Subtext */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-lg font-bold text-gray-900 truncate">{order.user?.name || 'Unknown User'}</h3>
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(status)}`}>
+                  {getStatusText(status)}
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 space-x-2">
+                <span>#{order.id?.slice(-8) || 'Unknown'}</span>
+                <span>•</span>
+                <span className="truncate">{order.user?.email || 'No email'}</span>
+              </div>
+            </div>
           </div>
-          <div className="text-right">
+          
+          <div className="text-right flex-shrink-0">
             <p className="text-xl font-bold text-gray-900">₹{order.order_amount || order.total || 0}</p>
-            <p className="text-xs text-gray-500">{formatTime(order.created_at || order.timestamp)}</p>
+            <p className="text-xs text-gray-500">{formatDateTime(order.created_at || order.timestamp)}</p>
           </div>
-        </div>
-      </div>
-
-      {/* Compact Order Info */}
-      <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-            </svg>
-            <span className="font-medium text-gray-900">#{order.id?.slice(-8) || 'Unknown'}</span>
-          </div>
-          <span className="text-gray-500 text-xs">{order.user?.email || 'No email'}</span>
         </div>
       </div>
 
