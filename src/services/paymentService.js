@@ -284,66 +284,8 @@ const addToOrderContext = async (order) => {
     localStorage.setItem('completedOrders', JSON.stringify(updatedOrders))
     console.log('PaymentService: Order saved to localStorage');
     
-    // Also create order in Supabase for staff portal
-    try {
-      console.log('PaymentService: Attempting to create order in Supabase...');
-      const { createOrder } = await import('./supabaseService')
-      console.log('PaymentService: Supabase service imported successfully');
-      
-      // Get current user from localStorage or context
-      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
-      console.log('PaymentService: Current user:', currentUser);
-      
-      // Get user from Supabase by email to get the correct UUID
-      let supabaseUserId = null;
-      if (currentUser.email) {
-        try {
-          const { getUserByEmail } = await import('./supabaseService')
-          const userResult = await getUserByEmail(currentUser.email)
-          if (userResult.success && userResult.user) {
-            supabaseUserId = userResult.user.id
-            console.log('PaymentService: Found Supabase user ID:', supabaseUserId);
-          } else {
-            console.warn('PaymentService: User not found in Supabase, will create order without user_id');
-          }
-        } catch (error) {
-          console.error('PaymentService: Error getting user from Supabase:', error);
-        }
-      }
-      
-      // Convert order items from object to array format for Supabase
-      const orderItems = Object.values(order.items || {}).map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price
-      }));
-      
-      console.log('PaymentService: Converted order items:', orderItems);
-      
-      const orderData = {
-        user_id: supabaseUserId, // Use Supabase UUID instead of Firebase UID
-        order_amount: order.total || 0,
-        status: 'pending', // Start as pending for staff approval
-        items: orderItems // Include items for order creation
-      };
-      console.log('PaymentService: Order data prepared for Supabase:', orderData);
-      
-      const supabaseResult = await createOrder(orderData)
-      console.log('PaymentService: Supabase createOrder result:', supabaseResult);
-      
-      if (supabaseResult.success) {
-        console.log('PaymentService: Order successfully created in Supabase for staff portal:', supabaseResult.order.id)
-      } else {
-        console.error('PaymentService: Failed to create order in Supabase for staff portal:', supabaseResult.error)
-      }
-    } catch (supabaseError) {
-      console.error('PaymentService: Error creating order in Supabase for staff portal:', supabaseError)
-      console.error('PaymentService: Supabase error details:', {
-        message: supabaseError.message,
-        stack: supabaseError.stack,
-        name: supabaseError.name
-      });
-    }
+    // Note: OrderContext will handle creating the order in Supabase
+    // This prevents duplicate order creation
     
     console.log('PaymentService: Order added to context successfully:', order.id)
     return { success: true }

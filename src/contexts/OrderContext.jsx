@@ -16,6 +16,7 @@ export { useOrders };
 
 export const OrderProvider = ({ children }) => {
   const [completedOrders, setCompletedOrders] = useState([])
+  const [supabaseOrderIds, setSupabaseOrderIds] = useState(new Set()) // Track orders created in Supabase
 
   // Load orders from localStorage on mount
   useEffect(() => {
@@ -38,12 +39,24 @@ export const OrderProvider = ({ children }) => {
   const addCompletedOrder = async (order) => {
     console.log('OrderContext: Adding completed order', order);
     
+    // Check if order already exists to prevent duplicates
+    const existingOrder = completedOrders.find(existing => existing.id === order.id);
+    if (existingOrder) {
+      console.log('OrderContext: Order already exists, skipping duplicate:', order.id);
+      return;
+    }
+    
     // Only add orders that have been successfully paid
     if (order.paymentDetails && order.paymentDetails.status === 'success') {
-      console.log('OrderContext: Payment confirmed, adding order to state and Firestore');
+      console.log('OrderContext: Payment confirmed, adding order to state and Supabase');
       setCompletedOrders(prev => [order, ...prev])
       
-      // Add order to Supabase
+      // Add order to Supabase (only if not already created)
+      if (supabaseOrderIds.has(order.id)) {
+        console.log('OrderContext: Order already created in Supabase, skipping:', order.id);
+        return;
+      }
+      
       try {
         console.log('OrderContext: Creating order in Supabase...');
         
@@ -90,6 +103,8 @@ export const OrderProvider = ({ children }) => {
         
         if (supabaseResult.success) {
           console.log('OrderContext: Order successfully created in Supabase:', supabaseResult.order.id)
+          // Track this order as created in Supabase
+          setSupabaseOrderIds(prev => new Set([...prev, order.id]))
         } else {
           console.error('OrderContext: Failed to create order in Supabase:', supabaseResult.error)
         }
