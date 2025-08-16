@@ -143,11 +143,11 @@ export default function OrderCard({ order, status }) {
             </span>
           </div>
           <p className="text-sm text-gray-500 mt-1">
-            {formatDate(order.timestamp)} at {formatTime(order.timestamp)}
+            {formatDate(order.created_at || order.timestamp)} at {formatTime(order.created_at || order.timestamp)}
           </p>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-bold text-gray-900">₹{order.total}</p>
+          <p className="text-2xl font-bold text-gray-900">₹{order.order_amount || order.total || 0}</p>
         </div>
       </div>
 
@@ -157,11 +157,11 @@ export default function OrderCard({ order, status }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
           <div>
             <span className="text-gray-500">Name:</span>
-            <span className="ml-2 font-medium">{order.user?.displayName || `${order.user?.firstName} ${order.user?.lastName}`}</span>
+            <span className="ml-2 font-medium">{order.user?.name || 'Unknown User'}</span>
           </div>
           <div>
             <span className="text-gray-500">Email:</span>
-            <span className="ml-2 font-medium">{order.user?.email}</span>
+            <span className="ml-2 font-medium">{order.user?.email || 'No email provided'}</span>
           </div>
         </div>
       </div>
@@ -170,24 +170,21 @@ export default function OrderCard({ order, status }) {
       <div className="mb-6">
         <h4 className="font-medium text-gray-900 mb-3">Order Items</h4>
         <div className="space-y-2">
-          {Object.entries(order.items || {}).map(([itemId, item]) => (
-            <div key={itemId} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-              <div className="flex items-center space-x-3">
-                {item.image && (
-                  <img 
-                    src={item.image} 
-                    alt={item.name} 
-                    className="w-10 h-10 rounded-lg object-cover"
-                  />
-                )}
-                <div>
-                  <p className="font-medium text-gray-900">{item.name}</p>
-                  <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+          {Array.isArray(order.items) ? (
+            order.items.map((item, index) => (
+              <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                <div className="flex items-center space-x-3">
+                  <div>
+                    <p className="font-medium text-gray-900">{item.name || item.item_name}</p>
+                    <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                  </div>
                 </div>
+                <p className="font-semibold text-gray-900">₹{item.price * item.quantity}</p>
               </div>
-              <p className="font-semibold text-gray-900">₹{item.price * item.quantity}</p>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="text-gray-500 text-sm">No items available</div>
+          )}
         </div>
       </div>
 
