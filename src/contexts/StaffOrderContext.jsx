@@ -1,7 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy, limit, where } from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { updateOrderStatus, ORDER_STATUS } from '../services/firestoreService';
+import { 
+  getAllOrders, 
+  updateOrderStatus, 
+  subscribeToOrders,
+  ORDER_STATUS 
+} from '../services/supabaseService';
 
 const StaffOrderContext = createContext();
 
@@ -22,129 +25,101 @@ export const StaffOrderProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Real-time listener for orders
+  // Load initial orders
   useEffect(() => {
-    console.log('StaffOrderProvider: Initializing real-time listeners');
-    console.log('StaffOrderProvider: Firestore db object:', db);
-    console.log('StaffOrderProvider: Firestore db type:', typeof db);
-    console.log('StaffOrderProvider: Firestore db null check:', db === null);
+    console.log('StaffOrderProvider: Loading initial orders from Supabase');
     
-    if (!db) {
-      console.error('StaffOrderProvider: Firestore db is null - Firebase not configured properly');
-      setLoading(false);
-      setError('Firestore not configured - please check Firebase configuration');
-      return;
-    }
-
-    try {
-      // Listen for pending orders (new orders that need payment confirmation)
-      const pendingQuery = query(
-        collection(db, 'orders'),
-        where('status', '==', ORDER_STATUS.PENDING),
-        orderBy('createdAt', 'desc'),
-        limit(50)
-      );
-
-      console.log('StaffOrderProvider: Setting up pending orders listener with query:', pendingQuery);
-      const pendingUnsubscribe = onSnapshot(pendingQuery, (snapshot) => {
-        console.log('StaffOrderProvider: Pending orders update received', snapshot.size, 'orders');
-        const orders = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          console.log('StaffOrderProvider: Processing pending order:', doc.id, data.status, data);
-          orders.push({ 
-            id: doc.id, 
-            ...data,
-            timestamp: data.createdAt?.toDate?.() || data.timestamp || new Date()
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const result = await getAllOrders();
+        console.log('StaffOrderProvider: Initial orders loaded:', result);
+        
+        if (result.success) {
+          const orders = result.orders || [];
+          
+          // Filter orders by status
+          const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
+          const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
+          const ready = orders.filter(order => order.status === ORDER_STATUS.READY);
+          
+          console.log('StaffOrderProvider: Filtered orders:', {
+            pending: pending.length,
+            accepted: accepted.length,
+            ready: ready.length
           });
-        });
-        console.log('StaffOrderProvider: Setting pending orders:', orders.map(o => ({ id: o.id, status: o.status })));
-        setPendingOrders(orders);
-      }, (error) => {
-        console.error('StaffOrderProvider: Pending orders listener error', error);
+          
+          setPendingOrders(pending);
+          setAcceptedOrders(accepted);
+          setReadyOrders(ready);
+        } else {
+          console.error('StaffOrderProvider: Failed to load orders:', result.error);
+          setError(result.error);
+        }
+      } catch (error) {
+        console.error('StaffOrderProvider: Error loading orders:', error);
         setError(error.message);
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      // Listen for accepted orders (payment confirmed, being prepared)
-      const acceptedQuery = query(
-        collection(db, 'orders'),
-        where('status', '==', ORDER_STATUS.ACCEPTED),
-        orderBy('createdAt', 'desc'),
-        limit(50)
-      );
+    loadOrders();
+  }, []);
 
-      console.log('StaffOrderProvider: Setting up accepted orders listener');
-      const acceptedUnsubscribe = onSnapshot(acceptedQuery, (snapshot) => {
-        console.log('StaffOrderProvider: Accepted orders update received', snapshot.size, 'orders');
-        const orders = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          console.log('StaffOrderProvider: Processing accepted order:', doc.id, data.status, data);
-          orders.push({ 
-            id: doc.id, 
-            ...data,
-            timestamp: data.createdAt?.toDate?.() || data.timestamp || new Date()
-          });
-        });
-        console.log('StaffOrderProvider: Setting accepted orders:', orders.map(o => ({ id: o.id, status: o.status })));
-        setAcceptedOrders(orders);
-      }, (error) => {
-        console.error('StaffOrderProvider: Accepted orders listener error', error);
-        setError(error.message);
-      });
+  // Real-time subscription for order updates
+  useEffect(() => {
+    console.log('StaffOrderProvider: Setting up real-time subscription');
+    
+    const subscription = subscribeToOrders((payload) => {
+      console.log('StaffOrderProvider: Real-time order update received:', payload);
+      
+      const { eventType, new: newRecord, old: oldRecord } = payload;
+      
+      if (eventType === 'INSERT') {
+        // New order added
+        if (newRecord.status === ORDER_STATUS.PENDING) {
+          setPendingOrders(prev => [newRecord, ...prev]);
+        }
+      } else if (eventType === 'UPDATE') {
+        // Order status changed
+        const orderId = newRecord.id;
+        
+        // Remove from all lists first
+        setPendingOrders(prev => prev.filter(order => order.id !== orderId));
+        setAcceptedOrders(prev => prev.filter(order => order.id !== orderId));
+        setReadyOrders(prev => prev.filter(order => order.id !== orderId));
+        
+        // Add to appropriate list based on new status
+        if (newRecord.status === ORDER_STATUS.PENDING) {
+          setPendingOrders(prev => [newRecord, ...prev]);
+        } else if (newRecord.status === ORDER_STATUS.ACCEPTED) {
+          setAcceptedOrders(prev => [newRecord, ...prev]);
+        } else if (newRecord.status === ORDER_STATUS.READY) {
+          setReadyOrders(prev => [newRecord, ...prev]);
+        }
+      } else if (eventType === 'DELETE') {
+        // Order deleted
+        const orderId = oldRecord.id;
+        setPendingOrders(prev => prev.filter(order => order.id !== orderId));
+        setAcceptedOrders(prev => prev.filter(order => order.id !== orderId));
+        setReadyOrders(prev => prev.filter(order => order.id !== orderId));
+      }
+    });
 
-      // Listen for ready orders (prepared, ready for pickup)
-      const readyQuery = query(
-        collection(db, 'orders'),
-        where('status', '==', ORDER_STATUS.READY),
-        orderBy('createdAt', 'desc'),
-        limit(50)
-      );
-
-      console.log('StaffOrderProvider: Setting up ready orders listener');
-      const readyUnsubscribe = onSnapshot(readyQuery, (snapshot) => {
-        console.log('StaffOrderProvider: Ready orders update received', snapshot.size, 'orders');
-        const orders = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          console.log('StaffOrderProvider: Processing ready order:', doc.id, data);
-          orders.push({ 
-            id: doc.id, 
-            ...data,
-            timestamp: data.createdAt?.toDate?.() || data.timestamp || new Date()
-          });
-        });
-        console.log('StaffOrderProvider: Setting ready orders:', orders);
-        setReadyOrders(orders);
-      }, (error) => {
-        console.error('StaffOrderProvider: Ready orders listener error', error);
-        setError(error.message);
-      });
-
-      setLoading(false);
-      setError(null);
-      console.log('StaffOrderProvider: All listeners set up successfully');
-
-      return () => {
-        console.log('StaffOrderProvider: Cleaning up listeners');
-        pendingUnsubscribe();
-        acceptedUnsubscribe();
-        readyUnsubscribe();
-      };
-    } catch (error) {
-      console.error('StaffOrderProvider: Error setting up listeners', error);
-      setError(error.message);
-      setLoading(false);
-    }
+    return () => {
+      console.log('StaffOrderProvider: Cleaning up real-time subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Accept order (confirm payment and start preparation)
   const acceptOrder = async (orderId) => {
     console.log(`StaffOrderContext: acceptOrder called for order ${orderId}`);
     try {
-      const result = await updateOrderStatus(orderId, ORDER_STATUS.ACCEPTED, {
-        acceptedBy: 'staff'
-      });
+      const result = await updateOrderStatus(orderId, ORDER_STATUS.ACCEPTED);
       console.log(`StaffOrderContext: acceptOrder result:`, result);
       return result;
     } catch (error) {
@@ -156,9 +131,7 @@ export const StaffOrderProvider = ({ children }) => {
   // Mark order as ready
   const markOrderAsReady = async (orderId) => {
     try {
-      const result = await updateOrderStatus(orderId, ORDER_STATUS.READY, {
-        markedReadyBy: 'staff'
-      });
+      const result = await updateOrderStatus(orderId, ORDER_STATUS.READY);
       return result;
     } catch (error) {
       console.error('Error marking order as ready:', error);
@@ -169,9 +142,7 @@ export const StaffOrderProvider = ({ children }) => {
   // Complete order (delivered/picked up)
   const completeOrder = async (orderId) => {
     try {
-      const result = await updateOrderStatus(orderId, ORDER_STATUS.COMPLETED, {
-        completedBy: 'staff'
-      });
+      const result = await updateOrderStatus(orderId, ORDER_STATUS.COMPLETED);
       return result;
     } catch (error) {
       console.error('Error completing order:', error);

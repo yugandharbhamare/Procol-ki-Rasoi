@@ -43,32 +43,22 @@ export default function StaffDashboard() {
     setPlayNotification(false);
   };
 
-  // Debug function to test order creation
+  // Debug function to test Supabase order creation
   const testOrderCreation = async () => {
     try {
-      console.log('StaffDashboard: Testing order creation...');
-      const { createOrder, ORDER_STATUS } = await import('../services/firestoreService');
+      console.log('StaffDashboard: Testing Supabase order creation...');
+      const { createOrder, ORDER_STATUS } = await import('../services/supabaseService');
       
       const testOrder = {
-        id: `test_${Date.now()}`,
-        items: {
-          test_item: {
+        user_id: 'test-user-' + Date.now(),
+        order_amount: 100,
+        items: [
+          {
             name: 'Test Item',
-            price: 100,
-            quantity: 1
+            quantity: 1,
+            price: 100
           }
-        },
-        user: {
-          email: 'test@example.com',
-          displayName: 'Test User'
-        },
-        total: 100,
-        status: ORDER_STATUS.PENDING,
-        paymentConfirmed: true,
-        paymentDetails: {
-          status: 'success',
-          amount: 100
-        }
+        ]
       };
       
       console.log('StaffDashboard: Creating test order:', testOrder);
@@ -76,13 +66,34 @@ export default function StaffDashboard() {
       console.log('StaffDashboard: Test order creation result:', result);
       
       if (result.success) {
-        alert('Test order created successfully! Check the pending orders tab.');
+        alert('✅ Test order created successfully! Check the pending orders tab.');
       } else {
-        alert('Test order creation failed: ' + result.error);
+        alert('❌ Test order creation failed: ' + result.error);
       }
     } catch (error) {
       console.error('StaffDashboard: Test order creation error:', error);
-      alert('Test order creation error: ' + error.message);
+      alert('❌ Test order creation error: ' + error.message);
+    }
+  };
+
+  // Debug function to test Supabase connection
+  const testSupabaseConnection = async () => {
+    try {
+      console.log('StaffDashboard: Testing Supabase connection...');
+      const { getAllOrders } = await import('../services/supabaseService');
+      
+      const result = await getAllOrders();
+      console.log('StaffDashboard: Supabase connection test result:', result);
+      
+      if (result.success) {
+        alert(`✅ Supabase connection successful! Found ${result.orders?.length || 0} orders.`);
+      } else {
+        alert('❌ Supabase connection failed: ' + result.error);
+      }
+      
+    } catch (error) {
+      console.error('StaffDashboard: Supabase connection test error:', error);
+      alert('❌ Supabase connection failed: ' + error.message);
     }
   };
 
@@ -90,29 +101,19 @@ export default function StaffDashboard() {
   const testOrderAcceptanceFlow = async () => {
     try {
       console.log('StaffDashboard: Testing order acceptance flow...');
-      const { createOrder, ORDER_STATUS } = await import('../services/firestoreService');
+      const { createOrder, ORDER_STATUS } = await import('../services/supabaseService');
       
       // Create a test order
       const testOrder = {
-        id: `test_accept_${Date.now()}`,
-        items: {
-          test_item: {
+        user_id: 'test-user-' + Date.now(),
+        order_amount: 300,
+        items: [
+          {
             name: 'Test Item for Acceptance',
-            price: 150,
-            quantity: 2
+            quantity: 2,
+            price: 150
           }
-        },
-        user: {
-          email: 'test@example.com',
-          displayName: 'Test User'
-        },
-        total: 300,
-        status: ORDER_STATUS.PENDING,
-        paymentConfirmed: true,
-        paymentDetails: {
-          status: 'success',
-          amount: 300
-        }
+        ]
       };
       
       console.log('StaffDashboard: Creating test order for acceptance flow:', testOrder);
@@ -120,59 +121,31 @@ export default function StaffDashboard() {
       console.log('StaffDashboard: Test order creation result:', createResult);
       
       if (createResult.success) {
-        alert('Test order created! Now testing acceptance...');
+        alert('✅ Test order created! Now testing acceptance...');
         
         // Wait a moment for the order to appear in the pending list
         setTimeout(async () => {
           try {
-            console.log('StaffDashboard: Testing order acceptance for order:', createResult.orderId);
-            const { acceptOrder } = useStaffOrders();
-            const acceptResult = await acceptOrder(createResult.orderId);
+            console.log('StaffDashboard: Testing order acceptance for order:', createResult.order.id);
+            const acceptResult = await acceptOrder(createResult.order.id);
             console.log('StaffDashboard: Order acceptance result:', acceptResult);
             
             if (acceptResult.success) {
-              alert('Order acceptance test completed! Check the "In Preparation" tab.');
+              alert('✅ Order acceptance test completed! Check the "In Preparation" tab.');
             } else {
-              alert('Order acceptance test failed: ' + acceptResult.error);
+              alert('❌ Order acceptance test failed: ' + acceptResult.error);
             }
           } catch (error) {
             console.error('StaffDashboard: Order acceptance test error:', error);
-            alert('Order acceptance test error: ' + error.message);
+            alert('❌ Order acceptance test error: ' + error.message);
           }
         }, 2000);
       } else {
-        alert('Test order creation failed: ' + createResult.error);
+        alert('❌ Test order creation failed: ' + createResult.error);
       }
     } catch (error) {
       console.error('StaffDashboard: Order acceptance flow test error:', error);
-      alert('Order acceptance flow test error: ' + error.message);
-    }
-  };
-
-  // Debug function to test Firebase connection
-  const testFirebaseConnection = async () => {
-    try {
-      console.log('StaffDashboard: Testing Firebase connection...');
-      const { db } = await import('../firebase/config');
-      
-      if (!db) {
-        alert('❌ Firebase db is null - Firebase not configured properly');
-        return;
-      }
-      
-      console.log('StaffDashboard: Firebase db object:', db);
-      console.log('StaffDashboard: Firebase db type:', typeof db);
-      
-      // Try to access a collection to test the connection
-      const { collection, getDocs } = await import('firebase/firestore');
-      const testCollection = collection(db, 'test');
-      
-      console.log('StaffDashboard: Test collection created:', testCollection);
-      alert('✅ Firebase connection successful! Check console for details.');
-      
-    } catch (error) {
-      console.error('StaffDashboard: Firebase connection test error:', error);
-      alert('❌ Firebase connection failed: ' + error.message);
+      alert('❌ Order acceptance flow test error: ' + error.message);
     }
   };
 
@@ -192,7 +165,7 @@ export default function StaffDashboard() {
             <h3 className="text-lg font-medium text-red-800 mb-2">Connection Error</h3>
             <p className="text-red-600 mb-4">{error}</p>
             <p className="text-sm text-gray-500">
-              Please check your Firebase configuration and try refreshing the page.
+              Please check your Supabase configuration and try refreshing the page.
             </p>
           </div>
         </div>
@@ -285,10 +258,10 @@ export default function StaffDashboard() {
             ✅ Test Order Acceptance Flow
           </button>
           <button
-            onClick={testFirebaseConnection}
+            onClick={testSupabaseConnection}
             className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium ml-2"
           >
-            🔗 Test Firebase Connection
+            🔗 Test Supabase Connection
           </button>
         </div>
 

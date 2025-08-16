@@ -124,7 +124,23 @@ export const getAllOrders = async () => {
       .rpc('get_all_orders')
 
     if (error) throw error
-    return { success: true, orders: data }
+    
+    // Transform the data to match the expected format
+    const transformedOrders = data.map(order => ({
+      id: order.order_id,
+      status: order.order_status,
+      order_amount: order.order_amount,
+      created_at: order.order_created_at,
+      updated_at: order.order_updated_at,
+      user: {
+        name: order.user_name,
+        email: order.user_email
+      },
+      items: order.items || [],
+      timestamp: order.order_created_at
+    }))
+    
+    return { success: true, orders: transformedOrders }
   } catch (error) {
     console.error('Error getting all orders:', error)
     return { success: false, error: error.message }
@@ -177,9 +193,44 @@ export const subscribeToOrders = (callback) => {
     .channel('orders')
     .on('postgres_changes', 
       { event: '*', schema: 'public', table: 'orders' },
-      (payload) => {
+      async (payload) => {
         console.log('Order change:', payload)
-        callback(payload)
+        
+        // For INSERT and UPDATE events, fetch the complete order data
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          try {
+            const orderResult = await getOrderById(payload.new.id)
+            if (orderResult.success) {
+              // Transform the order data to match expected format
+              const transformedOrder = {
+                id: orderResult.order.id,
+                status: orderResult.order.status,
+                order_amount: orderResult.order.order_amount,
+                created_at: orderResult.order.created_at,
+                updated_at: orderResult.order.updated_at,
+                user: orderResult.order.users ? {
+                  name: orderResult.order.users.name,
+                  email: orderResult.order.users.emailid
+                } : null,
+                items: orderResult.order.order_items || [],
+                timestamp: orderResult.order.created_at
+              }
+              
+              callback({
+                eventType: payload.eventType,
+                new: transformedOrder,
+                old: payload.old
+              })
+            } else {
+              callback(payload)
+            }
+          } catch (error) {
+            console.error('Error fetching order details for real-time update:', error)
+            callback(payload)
+          }
+        } else {
+          callback(payload)
+        }
       }
     )
     .subscribe()
