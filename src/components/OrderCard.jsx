@@ -152,11 +152,14 @@ export default function OrderCard({ order, status }) {
 
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
-      {/* Compact Header */}
+      {/* Compact Header - Customer Name First */}
       <div className="bg-gradient-to-r from-orange-50 to-orange-100 px-4 py-3 border-b border-orange-200">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold text-gray-900">#{order.id?.slice(-8) || 'Unknown'}</h3>
+            <svg className="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+            </svg>
+            <h3 className="text-lg font-bold text-gray-900">{order.user?.name || 'Unknown User'}</h3>
             <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(status)}`}>
               {getStatusText(status)}
             </span>
@@ -168,14 +171,14 @@ export default function OrderCard({ order, status }) {
         </div>
       </div>
 
-      {/* Compact Customer Info */}
+      {/* Compact Order Info */}
       <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
             </svg>
-            <span className="font-medium text-gray-900">{order.user?.name || 'Unknown User'}</span>
+            <span className="font-medium text-gray-900">#{order.id?.slice(-8) || 'Unknown'}</span>
           </div>
           <span className="text-gray-500 text-xs">{order.user?.email || 'No email'}</span>
         </div>
