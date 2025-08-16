@@ -43,39 +43,6 @@ export default function StaffDashboard() {
     setPlayNotification(false);
   };
 
-  // Debug function to test Supabase order creation
-  const testOrderCreation = async () => {
-    try {
-      console.log('StaffDashboard: Testing Supabase order creation...');
-      const { createOrder, ORDER_STATUS } = await import('../services/supabaseService');
-      
-      const testOrder = {
-        user_id: 'test-user-' + Date.now(),
-        order_amount: 100,
-        items: [
-          {
-            name: 'Test Item',
-            quantity: 1,
-            price: 100
-          }
-        ]
-      };
-      
-      console.log('StaffDashboard: Creating test order:', testOrder);
-      const result = await createOrder(testOrder);
-      console.log('StaffDashboard: Test order creation result:', result);
-      
-      if (result.success) {
-        alert('✅ Test order created successfully! Check the pending orders tab.');
-      } else {
-        alert('❌ Test order creation failed: ' + result.error);
-      }
-    } catch (error) {
-      console.error('StaffDashboard: Test order creation error:', error);
-      alert('❌ Test order creation error: ' + error.message);
-    }
-  };
-
   // Debug function to test Supabase connection
   const testSupabaseConnection = async () => {
     try {
@@ -94,58 +61,6 @@ export default function StaffDashboard() {
     } catch (error) {
       console.error('StaffDashboard: Supabase connection test error:', error);
       alert('❌ Supabase connection failed: ' + error.message);
-    }
-  };
-
-  // Debug function to test order acceptance flow
-  const testOrderAcceptanceFlow = async () => {
-    try {
-      console.log('StaffDashboard: Testing order acceptance flow...');
-      const { createOrder, ORDER_STATUS } = await import('../services/supabaseService');
-      
-      // Create a test order
-      const testOrder = {
-        user_id: 'test-user-' + Date.now(),
-        order_amount: 300,
-        items: [
-          {
-            name: 'Test Item for Acceptance',
-            quantity: 2,
-            price: 150
-          }
-        ]
-      };
-      
-      console.log('StaffDashboard: Creating test order for acceptance flow:', testOrder);
-      const createResult = await createOrder(testOrder);
-      console.log('StaffDashboard: Test order creation result:', createResult);
-      
-      if (createResult.success) {
-        alert('✅ Test order created! Now testing acceptance...');
-        
-        // Wait a moment for the order to appear in the pending list
-        setTimeout(async () => {
-          try {
-            console.log('StaffDashboard: Testing order acceptance for order:', createResult.order.id);
-            const acceptResult = await acceptOrder(createResult.order.id);
-            console.log('StaffDashboard: Order acceptance result:', acceptResult);
-            
-            if (acceptResult.success) {
-              alert('✅ Order acceptance test completed! Check the "In Preparation" tab.');
-            } else {
-              alert('❌ Order acceptance test failed: ' + acceptResult.error);
-            }
-          } catch (error) {
-            console.error('StaffDashboard: Order acceptance test error:', error);
-            alert('❌ Order acceptance test error: ' + error.message);
-          }
-        }, 2000);
-      } else {
-        alert('❌ Test order creation failed: ' + createResult.error);
-      }
-    } catch (error) {
-      console.error('StaffDashboard: Order acceptance flow test error:', error);
-      alert('❌ Order acceptance flow test error: ' + error.message);
     }
   };
 
@@ -246,20 +161,8 @@ export default function StaffDashboard() {
             <p>• Error: {error || 'None'}</p>
           </div>
           <button
-            onClick={testOrderCreation}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-          >
-            🧪 Test Order Creation
-          </button>
-          <button
-            onClick={testOrderAcceptanceFlow}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium ml-2"
-          >
-            ✅ Test Order Acceptance Flow
-          </button>
-          <button
             onClick={testSupabaseConnection}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium ml-2"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
           >
             🔗 Test Supabase Connection
           </button>
