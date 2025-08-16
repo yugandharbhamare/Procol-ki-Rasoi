@@ -26,7 +26,7 @@ ALTER TABLE orders ALTER COLUMN user_id DROP NOT NULL;
 COMMENT ON COLUMN orders.user_id IS 'Can be null if user is not found in Supabase users table (e.g., Firebase auth user not synced)';
 
 -- 4. Update RLS policies to allow order creation from the app
--- Drop existing policies
+-- Drop existing policies (if they exist)
 DROP POLICY IF EXISTS "Users can view own profile" ON users;
 DROP POLICY IF EXISTS "Users can update own profile" ON users;
 DROP POLICY IF EXISTS "Users can insert own profile" ON users;
@@ -39,22 +39,27 @@ DROP POLICY IF EXISTS "Users can insert own order items" ON order_items;
 -- Create new user policies
 CREATE POLICY "Allow user creation for Firebase auth" ON users
     FOR INSERT WITH CHECK (true);
+
 CREATE POLICY "Users can view own profile" ON users
     FOR SELECT USING (true);
+
 CREATE POLICY "Users can update own profile" ON users
     FOR UPDATE USING (true);
 
 -- Create new order policies
 CREATE POLICY "Allow order creation" ON orders
     FOR INSERT WITH CHECK (true);
+
 CREATE POLICY "Allow viewing all orders" ON orders
     FOR SELECT USING (true);
+
 CREATE POLICY "Allow updating all orders" ON orders
     FOR UPDATE USING (true);
 
 -- Create new order_items policies
 CREATE POLICY "Allow order items creation" ON order_items
     FOR INSERT WITH CHECK (true);
+
 CREATE POLICY "Allow viewing all order items" ON order_items
     FOR SELECT USING (true);
 
