@@ -76,37 +76,29 @@ export const StaffOrderProvider = ({ children }) => {
     const subscription = subscribeToOrders((payload) => {
       console.log('StaffOrderProvider: Real-time order update received:', payload);
       
-      const { eventType, new: newRecord, old: oldRecord } = payload;
+      // Refresh all orders when any change occurs
+      // This is simpler and more reliable than trying to sync individual changes
+      const refreshOrders = async () => {
+        try {
+          const result = await getAllOrders();
+          if (result.success) {
+            const orders = result.orders || [];
+            
+            // Filter orders by status
+            const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
+            const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
+            const ready = orders.filter(order => order.status === ORDER_STATUS.READY);
+            
+            setPendingOrders(pending);
+            setAcceptedOrders(accepted);
+            setReadyOrders(ready);
+          }
+        } catch (error) {
+          console.error('StaffOrderProvider: Error refreshing orders:', error);
+        }
+      };
       
-      if (eventType === 'INSERT') {
-        // New order added
-        if (newRecord.status === ORDER_STATUS.PENDING) {
-          setPendingOrders(prev => [newRecord, ...prev]);
-        }
-      } else if (eventType === 'UPDATE') {
-        // Order status changed
-        const orderId = newRecord.id;
-        
-        // Remove from all lists first
-        setPendingOrders(prev => prev.filter(order => order.id !== orderId));
-        setAcceptedOrders(prev => prev.filter(order => order.id !== orderId));
-        setReadyOrders(prev => prev.filter(order => order.id !== orderId));
-        
-        // Add to appropriate list based on new status
-        if (newRecord.status === ORDER_STATUS.PENDING) {
-          setPendingOrders(prev => [newRecord, ...prev]);
-        } else if (newRecord.status === ORDER_STATUS.ACCEPTED) {
-          setAcceptedOrders(prev => [newRecord, ...prev]);
-        } else if (newRecord.status === ORDER_STATUS.READY) {
-          setReadyOrders(prev => [newRecord, ...prev]);
-        }
-      } else if (eventType === 'DELETE') {
-        // Order deleted
-        const orderId = oldRecord.id;
-        setPendingOrders(prev => prev.filter(order => order.id !== orderId));
-        setAcceptedOrders(prev => prev.filter(order => order.id !== orderId));
-        setReadyOrders(prev => prev.filter(order => order.id !== orderId));
-      }
+      refreshOrders();
     });
 
     return () => {

@@ -107,11 +107,52 @@ export const createOrder = async (orderData) => {
 
 export const getUserOrders = async (userId) => {
   try {
-    const { data, error } = await supabase
-      .rpc('get_user_orders', { user_uuid: userId })
+    // Get orders for the specific user
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        users (name, emailid)
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
 
-    if (error) throw error
-    return { success: true, orders: data }
+    if (ordersError) throw ordersError
+
+    // Get order items for all orders
+    const orderIds = orders.map(order => order.id)
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('order_items')
+      .select('*')
+      .in('order_id', orderIds)
+
+    if (itemsError) throw itemsError
+
+    // Group items by order_id
+    const itemsByOrderId = {}
+    orderItems.forEach(item => {
+      if (!itemsByOrderId[item.order_id]) {
+        itemsByOrderId[item.order_id] = []
+      }
+      itemsByOrderId[item.order_id].push(item)
+    })
+
+    // Transform the data to match the expected format
+    const transformedOrders = orders.map(order => ({
+      id: order.id,
+      status: order.status,
+      order_amount: order.order_amount,
+      created_at: order.created_at,
+      updated_at: order.updated_at,
+      user: order.users ? {
+        name: order.users.name,
+        email: order.users.emailid
+      } : null,
+      items: itemsByOrderId[order.id] || [],
+      timestamp: order.created_at
+    }))
+
+    return { success: true, orders: transformedOrders }
   } catch (error) {
     console.error('Error getting user orders:', error)
     return { success: false, error: error.message }
@@ -120,24 +161,48 @@ export const getUserOrders = async (userId) => {
 
 export const getAllOrders = async () => {
   try {
-    const { data, error } = await supabase
-      .rpc('get_all_orders')
+    // Get orders with user information
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        users (name, emailid)
+      `)
+      .order('created_at', { ascending: false })
 
-    if (error) throw error
-    
+    if (ordersError) throw ordersError
+
+    // Get order items for all orders
+    const orderIds = orders.map(order => order.id)
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('order_items')
+      .select('*')
+      .in('order_id', orderIds)
+
+    if (itemsError) throw itemsError
+
+    // Group items by order_id
+    const itemsByOrderId = {}
+    orderItems.forEach(item => {
+      if (!itemsByOrderId[item.order_id]) {
+        itemsByOrderId[item.order_id] = []
+      }
+      itemsByOrderId[item.order_id].push(item)
+    })
+
     // Transform the data to match the expected format
-    const transformedOrders = data.map(order => ({
-      id: order.order_id,
-      status: order.order_status,
+    const transformedOrders = orders.map(order => ({
+      id: order.id,
+      status: order.status,
       order_amount: order.order_amount,
-      created_at: order.order_created_at,
-      updated_at: order.order_updated_at,
-      user: {
-        name: order.user_name,
-        email: order.user_email
-      },
-      items: order.items || [],
-      timestamp: order.order_created_at
+      created_at: order.created_at,
+      updated_at: order.updated_at,
+      user: order.users ? {
+        name: order.users.name,
+        email: order.users.emailid
+      } : null,
+      items: itemsByOrderId[order.id] || [],
+      timestamp: order.created_at
     }))
     
     return { success: true, orders: transformedOrders }
@@ -193,44 +258,9 @@ export const subscribeToOrders = (callback) => {
     .channel('orders')
     .on('postgres_changes', 
       { event: '*', schema: 'public', table: 'orders' },
-      async (payload) => {
+      (payload) => {
         console.log('Order change:', payload)
-        
-        // For INSERT and UPDATE events, fetch the complete order data
-        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-          try {
-            const orderResult = await getOrderById(payload.new.id)
-            if (orderResult.success) {
-              // Transform the order data to match expected format
-              const transformedOrder = {
-                id: orderResult.order.id,
-                status: orderResult.order.status,
-                order_amount: orderResult.order.order_amount,
-                created_at: orderResult.order.created_at,
-                updated_at: orderResult.order.updated_at,
-                user: orderResult.order.users ? {
-                  name: orderResult.order.users.name,
-                  email: orderResult.order.users.emailid
-                } : null,
-                items: orderResult.order.order_items || [],
-                timestamp: orderResult.order.created_at
-              }
-              
-              callback({
-                eventType: payload.eventType,
-                new: transformedOrder,
-                old: payload.old
-              })
-            } else {
-              callback(payload)
-            }
-          } catch (error) {
-            console.error('Error fetching order details for real-time update:', error)
-            callback(payload)
-          }
-        } else {
-          callback(payload)
-        }
+        callback(payload)
       }
     )
     .subscribe()
