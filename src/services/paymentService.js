@@ -194,10 +194,10 @@ const handlePaymentSuccess = async (orderId, paymentDetails) => {
       const sheetsResult = await storeOrderInGoogleSheets(completedOrder)
       console.log('PaymentService: Google Sheets result:', sheetsResult)
       
-      // Add to order context (this will also save to localStorage)
-      console.log('PaymentService: Adding order to context...')
-      const contextResult = await addToOrderContext(completedOrder)
-      console.log('PaymentService: Context result:', contextResult)
+      // Note: We don't add to order context here to prevent duplicate orders
+      // The main app flow (App.jsx) will handle adding the order to context
+      // This prevents the double order creation issue
+      console.log('PaymentService: Skipping order context addition to prevent duplicates')
       
       // Trigger receipt generation
       console.log('PaymentService: Generating receipt...')

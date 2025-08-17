@@ -46,16 +46,31 @@ export const OrderProvider = ({ children }) => {
       return;
     }
     
+    // Check if order is already being processed (prevent race conditions)
+    if (supabaseOrderIds.has(order.id)) {
+      console.log('OrderContext: Order already being processed, skipping:', order.id);
+      return;
+    }
+    
+    // Additional check: Look for orders with same transaction ID to prevent duplicates
+    if (order.paymentDetails?.transactionId) {
+      const existingWithSameTxn = completedOrders.find(existing => 
+        existing.paymentDetails?.transactionId === order.paymentDetails.transactionId
+      );
+      if (existingWithSameTxn) {
+        console.log('OrderContext: Order with same transaction ID already exists, skipping:', order.paymentDetails.transactionId);
+        return;
+      }
+    }
+    
     // Only add orders that have been successfully paid
     if (order.paymentDetails && order.paymentDetails.status === 'success') {
       console.log('OrderContext: Payment confirmed, adding order to state and Supabase');
-      setCompletedOrders(prev => [order, ...prev])
       
-      // Add order to Supabase (only if not already created)
-      if (supabaseOrderIds.has(order.id)) {
-        console.log('OrderContext: Order already created in Supabase, skipping:', order.id);
-        return;
-      }
+      // Mark this order as being processed immediately to prevent race conditions
+      setSupabaseOrderIds(prev => new Set([...prev, order.id]))
+      
+      setCompletedOrders(prev => [order, ...prev])
       
       try {
         console.log('OrderContext: Creating order in Supabase...');
@@ -116,10 +131,15 @@ export const OrderProvider = ({ children }) => {
         
         if (supabaseResult.success) {
           console.log('OrderContext: Order successfully created in Supabase:', supabaseResult.order.id)
-          // Track this order as created in Supabase
-          setSupabaseOrderIds(prev => new Set([...prev, order.id]))
+          // Order is already tracked as being processed, no need to add again
         } else {
           console.error('OrderContext: Failed to create order in Supabase:', supabaseResult.error)
+          // Remove from processing set if failed
+          setSupabaseOrderIds(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(order.id)
+            return newSet
+          })
         }
       } catch (error) {
         console.error('OrderContext: Error creating order in Supabase:', error)
