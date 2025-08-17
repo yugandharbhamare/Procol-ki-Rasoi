@@ -62,7 +62,10 @@ export const OrderProvider = ({ children }) => {
         
         // Get current user from localStorage or context
         const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
-        console.log('OrderContext: Current user:', currentUser);
+        console.log('OrderContext: Current user from localStorage:', currentUser);
+        console.log('OrderContext: User displayName:', currentUser.displayName);
+        console.log('OrderContext: User name:', currentUser.name);
+        console.log('OrderContext: User email:', currentUser.email);
         
         // Get user from Supabase by email to get the correct UUID
         let supabaseUserId = null;
@@ -90,17 +93,24 @@ export const OrderProvider = ({ children }) => {
         
         console.log('OrderContext: Converted order items:', orderItems);
         
+        // Fallback to order.user data if localStorage is empty
+        const userName = currentUser.displayName || currentUser.name || order.user?.displayName || order.user?.name || 'Unknown User';
+        const userEmail = currentUser.email || order.user?.email || '';
+        const userPhotoURL = currentUser.photoURL || order.user?.photoURL || null;
+        
         const orderData = {
           user_id: supabaseUserId, // Use Supabase UUID instead of Firebase UID
-          user_name: currentUser.name || 'Unknown User', // Add user name
-          user_email: currentUser.email || '', // Add user email
-          user_photo_url: currentUser.photoURL || null, // Add user photo URL
+          user_name: userName, // Use fallback chain for user name
+          user_email: userEmail, // Use fallback chain for user email
+          user_photo_url: userPhotoURL, // Use fallback chain for user photo
           order_amount: order.total || 0,
           status: 'pending', // Start as pending for staff approval
           items: orderItems // Include items for order creation
         };
         
         console.log('OrderContext: Order data prepared for Supabase:', orderData);
+        console.log('OrderContext: User name being sent:', orderData.user_name);
+        console.log('OrderContext: User email being sent:', orderData.user_email);
         
         const supabaseResult = await createOrder(orderData)
         

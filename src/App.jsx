@@ -71,8 +71,10 @@ function MenuPage() {
   }
 
   const placeOrder = () => {
+    // Generate a simpler order ID: ORD + 6-digit number
+    const orderNumber = Math.floor(Math.random() * 900000) + 100000; // 6-digit number
     const order = {
-      id: `ORD${Date.now()}`,
+      id: `ORD${orderNumber}`,
       items: cart,
       total: getTotalPrice(),
       timestamp: new Date().toISOString(),
@@ -95,7 +97,7 @@ function MenuPage() {
       const completedOrder = {
         ...currentOrder,
         paymentDetails: {
-          transactionId: `TXN_${Date.now()}`,
+          transactionId: `TXN${Math.floor(Math.random() * 900000) + 100000}`, // 6-digit number
           paymentMethod: 'UPI',
           amount: getTotalPrice(),
           status: 'success',
