@@ -118,11 +118,11 @@ const ReceiptModal = ({ order }) => {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">
-                      {typeof item.price === 'number' ? `₹${item.price * item.quantity}` : 'MRP'}
-                    </p>
-                  </div>
+                                      <div className="text-right">
+                      <p className="font-semibold text-gray-900">
+                        {typeof item.price === 'number' ? `₹${item.item_amount || (item.price * item.quantity)}` : 'MRP'}
+                      </p>
+                    </div>
                 </div>
               ))}
             </div>

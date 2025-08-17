@@ -115,13 +115,17 @@ export const createOrder = async (orderData) => {
 
     if (orderError) throw orderError
 
-    // Insert order items
+    // Insert order items with enhanced data
     if (orderData.items && orderData.items.length > 0) {
       const orderItems = orderData.items.map(item => ({
         order_id: order.id,
         item_name: item.name,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        item_amount: item.price * item.quantity, // Calculate total amount
+        ordered_by: orderData.user_name, // User who placed the order
+        order_status: orderData.status, // Order status
+        custom_order_id: orderData.custom_order_id // Custom order ID
       }))
 
       const { error: itemsError } = await supabase
@@ -149,7 +153,7 @@ export const getUserOrders = async (userId) => {
 
     if (ordersError) throw ordersError
 
-    // Get order items for all orders
+    // Get order items for all orders with enhanced data
     const orderIds = orders.map(order => order.id)
     const { data: orderItems, error: itemsError } = await supabase
       .from('order_items')
@@ -158,13 +162,20 @@ export const getUserOrders = async (userId) => {
 
     if (itemsError) throw itemsError
 
-    // Group items by order_id
+    // Group items by order_id and enhance with calculated data
     const itemsByOrderId = {}
     orderItems.forEach(item => {
       if (!itemsByOrderId[item.order_id]) {
         itemsByOrderId[item.order_id] = []
       }
-      itemsByOrderId[item.order_id].push(item)
+      
+      // Ensure item_amount is calculated if not present
+      const enhancedItem = {
+        ...item,
+        item_amount: item.item_amount || (item.price * item.quantity)
+      }
+      
+      itemsByOrderId[item.order_id].push(enhancedItem)
     })
 
     // Transform the data to match the expected format
@@ -201,7 +212,7 @@ export const getAllOrders = async () => {
 
     if (ordersError) throw ordersError
 
-    // Get order items for all orders
+    // Get order items for all orders with enhanced data
     const orderIds = orders.map(order => order.id)
     const { data: orderItems, error: itemsError } = await supabase
       .from('order_items')
@@ -210,13 +221,20 @@ export const getAllOrders = async () => {
 
     if (itemsError) throw itemsError
 
-    // Group items by order_id
+    // Group items by order_id and enhance with calculated data
     const itemsByOrderId = {}
     orderItems.forEach(item => {
       if (!itemsByOrderId[item.order_id]) {
         itemsByOrderId[item.order_id] = []
       }
-      itemsByOrderId[item.order_id].push(item)
+      
+      // Ensure item_amount is calculated if not present
+      const enhancedItem = {
+        ...item,
+        item_amount: item.item_amount || (item.price * item.quantity)
+      }
+      
+      itemsByOrderId[item.order_id].push(enhancedItem)
     })
 
     // Transform the data to match the expected format
@@ -265,6 +283,7 @@ export const updateOrderStatus = async (orderId, status) => {
       console.log('updateOrderStatus: Found Supabase ID:', supabaseOrderId);
     }
     
+    // Update order status
     const { data, error } = await supabase
       .from('orders')
       .update({ status })
@@ -273,6 +292,17 @@ export const updateOrderStatus = async (orderId, status) => {
       .single()
 
     if (error) throw error
+
+    // Also update order_status in order_items table
+    const { error: itemsUpdateError } = await supabase
+      .from('order_items')
+      .update({ order_status: status })
+      .eq('order_id', supabaseOrderId)
+
+    if (itemsUpdateError) {
+      console.warn('Warning: Failed to update order_items status:', itemsUpdateError)
+    }
+
     return { success: true, order: data }
   } catch (error) {
     console.error('Error updating order status:', error)

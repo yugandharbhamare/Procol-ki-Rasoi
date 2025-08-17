@@ -381,7 +381,7 @@ export default function OrderCard({ order, status }) {
                     
                     {/* Item Total Price */}
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900 text-sm">₹{item.price * item.quantity}</p>
+                      <p className="font-semibold text-gray-900 text-sm">₹{item.item_amount || (item.price * item.quantity)}</p>
                     </div>
                   </div>
                 ))
