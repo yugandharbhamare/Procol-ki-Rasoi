@@ -57,20 +57,23 @@ export default function OrderCard({ order, status }) {
     setLoading(true);
     try {
       let result;
+      // Use Supabase ID for database operations, custom ID for display
+      const orderIdForUpdate = order.supabase_id || order.id;
+      
       switch (action) {
         case 'accept':
-          console.log(`OrderCard: Calling acceptOrder for order ${order.id}`);
-          result = await acceptOrder(order.id);
+          console.log(`OrderCard: Calling acceptOrder for order ${orderIdForUpdate}`);
+          result = await acceptOrder(orderIdForUpdate);
           console.log(`OrderCard: acceptOrder result:`, result);
           break;
         case 'ready':
-          console.log(`OrderCard: Calling markOrderAsReady for order ${order.id}`);
-          result = await markOrderAsReady(order.id);
+          console.log(`OrderCard: Calling markOrderAsReady for order ${orderIdForUpdate}`);
+          result = await markOrderAsReady(orderIdForUpdate);
           console.log(`OrderCard: markOrderAsReady result:`, result);
           break;
         case 'complete':
-          console.log(`OrderCard: Calling completeOrder for order ${order.id}`);
-          result = await completeOrder(order.id);
+          console.log(`OrderCard: Calling completeOrder for order ${orderIdForUpdate}`);
+          result = await completeOrder(orderIdForUpdate);
           console.log(`OrderCard: completeOrder result:`, result);
           break;
         default:
@@ -317,7 +320,7 @@ export default function OrderCard({ order, status }) {
                 </span>
               </div>
               <div className="text-xs text-gray-500 space-x-2">
-                <span>#{order.id?.slice(-8) || 'Unknown'}</span>
+                <span>#{order.id || 'Unknown'}</span>
                 <span>•</span>
                 <span className="truncate">{order.user?.email || 'No email'}</span>
               </div>

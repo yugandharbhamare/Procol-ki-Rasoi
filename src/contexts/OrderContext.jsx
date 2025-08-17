@@ -119,6 +119,7 @@ export const OrderProvider = ({ children }) => {
           user_email: userEmail, // Use fallback chain for user email
           user_photo_url: userPhotoURL, // Use fallback chain for user photo
           order_amount: order.total || 0,
+          custom_order_id: order.id, // Use the simplified order ID (e.g., ORD123456)
           status: 'pending', // Start as pending for staff approval
           items: orderItems // Include items for order creation
         };

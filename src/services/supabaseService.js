@@ -106,6 +106,7 @@ export const createOrder = async (orderData) => {
         user_email: orderData.user_email,
         user_photo_url: orderData.user_photo_url,
         order_amount: orderData.order_amount,
+        custom_order_id: orderData.custom_order_id, // Add custom order ID
         status: 'pending'
       }])
       .select()
@@ -167,7 +168,8 @@ export const getUserOrders = async (userId) => {
 
     // Transform the data to match the expected format
     const transformedOrders = orders.map(order => ({
-      id: order.id,
+      id: order.custom_order_id || order.id, // Use custom order ID for display, fallback to UUID
+      supabase_id: order.id, // Keep the original UUID for internal use
       status: order.status,
       order_amount: order.order_amount,
       created_at: order.created_at,
@@ -218,7 +220,8 @@ export const getAllOrders = async () => {
 
     // Transform the data to match the expected format
     const transformedOrders = orders.map(order => ({
-      id: order.id,
+      id: order.custom_order_id || order.id, // Use custom order ID for display, fallback to UUID
+      supabase_id: order.id, // Keep the original UUID for internal use
       status: order.status,
       order_amount: order.order_amount,
       created_at: order.created_at,
