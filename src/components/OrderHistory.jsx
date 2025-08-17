@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useOrders } from '../contexts/OrderContext'
+import { getUserByEmail, getUserOrders } from '../services/supabaseService'
 import ReceiptModal from './ReceiptModal'
 
 const OrderHistory = () => {
@@ -45,43 +46,72 @@ const OrderHistory = () => {
       setIsLoading(true)
       
       try {
-        // First sync from Google Sheets to get latest data
-        await syncFromGoogleSheets()
+        console.log('OrderHistory: Loading orders for user:', user.email);
         
-        // Get all completed orders (local + Google Sheets)
-        const allOrders = completedOrders
-        
-        // Filter orders for the current user
-        const filteredOrders = allOrders.filter(order => {
-          // Check if order has user email and it matches current user
-          if (order.user && order.user.email) {
-            return order.user.email === user.email
+        // Get user's Supabase UUID first
+        let supabaseUserId = null;
+        if (user.email) {
+          const userResult = await getUserByEmail(user.email);
+          if (userResult.success && userResult.user) {
+            supabaseUserId = userResult.user.id;
+            console.log('OrderHistory: Found Supabase user ID:', supabaseUserId);
+          } else {
+            console.warn('OrderHistory: User not found in Supabase');
           }
-          return false
-        })
+        }
+        
+        // Fetch orders from Supabase
+        let supabaseOrders = [];
+        if (supabaseUserId) {
+          const supabaseResult = await getUserOrders(supabaseUserId);
+          if (supabaseResult.success) {
+            supabaseOrders = supabaseResult.orders;
+            console.log('OrderHistory: Fetched orders from Supabase:', supabaseOrders.length);
+          } else {
+            console.error('OrderHistory: Failed to fetch orders from Supabase:', supabaseResult.error);
+          }
+        }
+        
+        // Get local completed orders
+        const localOrders = completedOrders.filter(order => 
+          order.user && order.user.email === user.email
+        );
+        console.log('OrderHistory: Local orders:', localOrders.length);
+        
+        // Combine and deduplicate orders
+        const allOrders = [...supabaseOrders, ...localOrders];
+        
+        // Remove duplicates based on order ID
+        const uniqueOrders = allOrders.filter((order, index, self) => 
+          index === self.findIndex(o => o.id === order.id)
+        );
+        
+        console.log('OrderHistory: Total unique orders:', uniqueOrders.length);
         
         // Sort by timestamp (newest first)
-        const sortedOrders = filteredOrders.sort((a, b) => 
-          new Date(b.timestamp) - new Date(a.timestamp)
-        )
+        const sortedOrders = uniqueOrders.sort((a, b) => {
+          const dateA = new Date(a.timestamp || a.created_at);
+          const dateB = new Date(b.timestamp || b.created_at);
+          return dateB - dateA;
+        });
         
-        setUserOrders(sortedOrders)
+        setUserOrders(sortedOrders);
       } catch (error) {
-        console.error('Error loading user orders:', error)
+        console.error('Error loading user orders:', error);
         // Fallback to local orders only
         const localUserOrders = completedOrders.filter(order => 
           order.user && order.user.email === user.email
-        )
-        setUserOrders(localUserOrders)
+        );
+        setUserOrders(localUserOrders);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
     
     if (user && user.email) {
-      loadUserOrders()
+      loadUserOrders();
     }
-  }, [user, completedOrders, syncFromGoogleSheets])
+  }, [user, completedOrders]);
 
 
 
@@ -118,7 +148,7 @@ const OrderHistory = () => {
             <div className="bg-white rounded-xl p-12 text-center shadow-sm">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Loading your orders...</h3>
-              <p className="text-gray-500">Fetching your order history from Google Sheets</p>
+              <p className="text-gray-500">Fetching your order history from database</p>
             </div>
           ) : (
             <>
@@ -150,11 +180,11 @@ const OrderHistory = () => {
                             </span>
                           </div>
                           <p className="text-sm text-gray-500">
-                            {formatDate(order.timestamp)} at {formatTime(order.timestamp)} • {Object.keys(order.items).length} item{Object.keys(order.items).length !== 1 ? 's' : ''}
+                            {formatDate(order.timestamp || order.created_at)} at {formatTime(order.timestamp || order.created_at)} • {Array.isArray(order.items) ? order.items.length : Object.keys(order.items || {}).length} item{(Array.isArray(order.items) ? order.items.length : Object.keys(order.items || {}).length) !== 1 ? 's' : ''}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-gray-900">₹{order.total}</p>
+                          <p className="text-2xl font-bold text-gray-900">₹{order.total || order.order_amount}</p>
                         </div>
                         <svg className="w-5 h-5 text-gray-400 flex-shrink-0 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
