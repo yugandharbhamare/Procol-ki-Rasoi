@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useOrders } from '../contexts/OrderContext'
 import { getUserByEmail, getUserOrders } from '../services/supabaseService'
+import { getDisplayOrderId } from '../utils/orderUtils'
 import ReceiptModal from './ReceiptModal'
 
 const OrderHistory = () => {
@@ -81,9 +82,14 @@ const OrderHistory = () => {
         // Combine and deduplicate orders
         const allOrders = [...supabaseOrders, ...localOrders];
         
-        // Remove duplicates based on order ID
+        // Remove duplicates based on order ID (handle both custom and Supabase IDs)
         const uniqueOrders = allOrders.filter((order, index, self) => 
-          index === self.findIndex(o => o.id === order.id)
+          index === self.findIndex(o => {
+            // Compare by custom order ID first, then by Supabase ID
+            if (o.id === order.id) return true;
+            if (o.supabase_id && order.supabase_id && o.supabase_id === order.supabase_id) return true;
+            return false;
+          })
         );
         
         console.log('OrderHistory: Total unique orders:', uniqueOrders.length);
@@ -174,7 +180,7 @@ const OrderHistory = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="text-xl font-semibold text-gray-900">{order.id}</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">{getDisplayOrderId(order)}</h3>
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               Completed
                             </span>

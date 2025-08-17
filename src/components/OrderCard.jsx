@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStaffOrders } from '../contexts/StaffOrderContext';
+import { getDisplayOrderId, getDatabaseOrderId } from '../utils/orderUtils';
 
 export default function OrderCard({ order, status }) {
   const { acceptOrder, markOrderAsReady, completeOrder } = useStaffOrders();
@@ -58,7 +59,7 @@ export default function OrderCard({ order, status }) {
     try {
       let result;
       // Use Supabase ID for database operations, custom ID for display
-      const orderIdForUpdate = order.supabase_id || order.id;
+      const orderIdForUpdate = getDatabaseOrderId(order);
       
       switch (action) {
         case 'accept':
@@ -320,7 +321,7 @@ export default function OrderCard({ order, status }) {
                 </span>
               </div>
               <div className="text-xs text-gray-500 space-x-2">
-                <span>#{order.id || 'Unknown'}</span>
+                <span>#{getDisplayOrderId(order)}</span>
                 <span>•</span>
                 <span className="truncate">{order.user?.email || 'No email'}</span>
               </div>

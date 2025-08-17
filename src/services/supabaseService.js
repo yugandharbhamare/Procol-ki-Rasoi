@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { isCustomOrderId } from '../utils/orderUtils'
 
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -244,10 +245,30 @@ export const getAllOrders = async () => {
 
 export const updateOrderStatus = async (orderId, status) => {
   try {
+    console.log('updateOrderStatus: Updating order status for ID:', orderId);
+    
+    // If orderId looks like a custom order ID (starts with ORD), find the Supabase ID
+    let supabaseOrderId = orderId;
+    if (isCustomOrderId(orderId)) {
+      const { data: order, error: findError } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('custom_order_id', orderId)
+        .single();
+      
+      if (findError) {
+        console.error('updateOrderStatus: Error finding order by custom ID:', findError);
+        return { success: false, error: 'Order not found' };
+      }
+      
+      supabaseOrderId = order.id;
+      console.log('updateOrderStatus: Found Supabase ID:', supabaseOrderId);
+    }
+    
     const { data, error } = await supabase
       .from('orders')
       .update({ status })
-      .eq('id', orderId)
+      .eq('id', supabaseOrderId)
       .select()
       .single()
 
@@ -261,6 +282,26 @@ export const updateOrderStatus = async (orderId, status) => {
 
 export const getOrderById = async (orderId) => {
   try {
+    console.log('getOrderById: Getting order for ID:', orderId);
+    
+    // If orderId looks like a custom order ID (starts with ORD), find the Supabase ID
+    let supabaseOrderId = orderId;
+    if (isCustomOrderId(orderId)) {
+      const { data: order, error: findError } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('custom_order_id', orderId)
+        .single();
+      
+      if (findError) {
+        console.error('getOrderById: Error finding order by custom ID:', findError);
+        return { success: false, error: 'Order not found' };
+      }
+      
+      supabaseOrderId = order.id;
+      console.log('getOrderById: Found Supabase ID:', supabaseOrderId);
+    }
+    
     const { data, error } = await supabase
       .from('orders')
       .select(`
@@ -268,7 +309,7 @@ export const getOrderById = async (orderId) => {
         users (name, emailid),
         order_items (*)
       `)
-      .eq('id', orderId)
+      .eq('id', supabaseOrderId)
       .single()
 
     if (error) throw error
