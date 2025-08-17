@@ -98,15 +98,15 @@ export const updateUser = async (userId, updates) => {
 
 export const createOrder = async (orderData) => {
   try {
-    // Start a transaction
+    // Start a transaction with null safeguards
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert([{
         user_id: orderData.user_id,
-        user_name: orderData.user_name,
-        user_email: orderData.user_email,
+        user_name: orderData.user_name || 'Unknown User',
+        user_email: orderData.user_email || 'no-email@example.com',
         user_photo_url: orderData.user_photo_url,
-        order_amount: orderData.order_amount,
+        order_amount: orderData.order_amount || 0,
         custom_order_id: orderData.custom_order_id, // Add custom order ID
         status: 'pending'
       }])
@@ -115,17 +115,17 @@ export const createOrder = async (orderData) => {
 
     if (orderError) throw orderError
 
-    // Insert order items with enhanced data
+    // Insert order items with enhanced data and null safeguards
     if (orderData.items && orderData.items.length > 0) {
       const orderItems = orderData.items.map(item => ({
         order_id: order.id,
-        item_name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        item_amount: item.price * item.quantity, // Calculate total amount
-        ordered_by: orderData.user_name, // User who placed the order
-        order_status: orderData.status, // Order status
-        custom_order_id: orderData.custom_order_id // Custom order ID
+        item_name: item.name || 'Unknown Item',
+        quantity: item.quantity || 1,
+        price: item.price || 0,
+        item_amount: (item.price || 0) * (item.quantity || 1), // Calculate total amount with safeguards
+        ordered_by: orderData.user_name || 'Unknown User', // User who placed the order
+        order_status: orderData.status || 'pending', // Order status
+        custom_order_id: orderData.custom_order_id || order.id // Custom order ID with fallback
       }))
 
       const { error: itemsError } = await supabase

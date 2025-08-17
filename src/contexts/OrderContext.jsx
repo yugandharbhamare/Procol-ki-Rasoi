@@ -99,18 +99,18 @@ export const OrderProvider = ({ children }) => {
           }
         }
         
-        // Convert order items from object to array format for Supabase
+        // Convert order items from object to array format for Supabase with null safeguards
         const orderItems = Object.values(order.items || {}).map(item => ({
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price
+          name: item.name || 'Unknown Item',
+          quantity: item.quantity || 1,
+          price: item.price || 0
         }));
         
         console.log('OrderContext: Converted order items:', orderItems);
         
-        // Fallback to order.user data if localStorage is empty
+        // Fallback to order.user data if localStorage is empty with null safeguards
         const userName = currentUser.displayName || currentUser.name || order.user?.displayName || order.user?.name || 'Unknown User';
-        const userEmail = currentUser.email || order.user?.email || '';
+        const userEmail = currentUser.email || order.user?.email || 'no-email@example.com';
         const userPhotoURL = currentUser.photoURL || order.user?.photoURL || null;
         
         const orderData = {
