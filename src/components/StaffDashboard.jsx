@@ -136,7 +136,7 @@ export default function StaffDashboard() {
 
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 mb-8">
+        <div className="border-b border-gray-200 mb-4">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('pending')}
@@ -192,11 +192,6 @@ export default function StaffDashboard() {
               }`}
             >
               Completed
-              {orderCounts.completed > 0 && (
-                <span className="ml-2 bg-purple-500 text-white px-2 py-1 rounded-full text-xs">
-                  {orderCounts.completed}
-                </span>
-              )}
             </button>
           </nav>
         </div>

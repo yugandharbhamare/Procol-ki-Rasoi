@@ -70,6 +70,11 @@ export default function DateRangeSelector({
   const hasErrors = Object.keys(errors).length > 0;
   const hasDates = startDate || endDate;
 
+  // Determine which quick filter is active
+  const isTodayActive = startDate === today && endDate === today;
+  const isLastWeekActive = startDate === new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] && endDate === today;
+  const isLastMonthActive = startDate === new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] && endDate === today;
+
   return (
     <div className={`bg-white rounded-lg shadow p-6 ${className}`}>
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end justify-between">
@@ -118,24 +123,36 @@ export default function DateRangeSelector({
         {/* Quick Actions and Download */}
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="flex gap-2">
-                      <button
-            onClick={setToday}
-            className="px-3 py-2 h-10 text-sm bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
-          >
-            Today
-          </button>
-          <button
-            onClick={setLastWeek}
-            className="px-3 py-2 h-10 text-sm bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
-          >
-            Last Week
-          </button>
-          <button
-            onClick={setLastMonth}
-            className="px-3 py-2 h-10 text-sm bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
-          >
-            Last Month
-          </button>
+            <button
+              onClick={setToday}
+              className={`px-3 py-2 h-10 text-sm rounded-md transition-colors border ${
+                isTodayActive
+                  ? 'border-orange-500 text-orange-600 hover:bg-orange-50'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={setLastWeek}
+              className={`px-3 py-2 h-10 text-sm rounded-md transition-colors border ${
+                isLastWeekActive
+                  ? 'border-orange-500 text-orange-600 hover:bg-orange-50'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Last Week
+            </button>
+            <button
+              onClick={setLastMonth}
+              className={`px-3 py-2 h-10 text-sm rounded-md transition-colors border ${
+                isLastMonthActive
+                  ? 'border-orange-500 text-orange-600 hover:bg-orange-50'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Last Month
+            </button>
           </div>
           
           {hasDates && (
