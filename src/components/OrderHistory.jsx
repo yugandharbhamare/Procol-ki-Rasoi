@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useOrders } from '../contexts/OrderContext'
 import { getUserByEmail, getUserOrders } from '../services/supabaseService'
-import { getDisplayOrderId } from '../utils/orderUtils'
+import { getDisplayOrderId, normalizeOrderForReceipt } from '../utils/orderUtils'
 import ReceiptModal from './ReceiptModal'
 
 const OrderHistory = () => {
@@ -222,7 +222,7 @@ const OrderHistory = () => {
             {/* Receipt Content */}
             <div className="overflow-y-auto max-h-[90vh]">
               <ReceiptModal 
-                order={selectedOrder} 
+                order={normalizeOrderForReceipt(selectedOrder)} 
               />
             </div>
           </div>

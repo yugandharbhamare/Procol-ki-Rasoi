@@ -45,3 +45,56 @@ export const getDatabaseOrderId = (order) => {
 export const isValidOrderId = (orderId) => {
   return isCustomOrderId(orderId) || isSupabaseUUID(orderId);
 };
+
+/**
+ * Normalize order data for receipt display
+ * Handles both object and array formats for items
+ * @param {Object} order - The order object
+ * @returns {Object} - Normalized order object
+ */
+export const normalizeOrderForReceipt = (order) => {
+  if (!order) return null;
+
+  // Convert items to object format if they're in array format
+  let normalizedItems = {};
+  
+  if (Array.isArray(order.items)) {
+    // Convert array to object format
+    order.items.forEach((item, index) => {
+      const itemId = item.id || `item_${index}`;
+      normalizedItems[itemId] = {
+        name: item.name || item.item_name || 'Unknown Item',
+        quantity: item.quantity || 1,
+        price: item.price || 0,
+        image: item.image || '🍽️',
+        item_amount: item.item_amount || ((item.price || 0) * (item.quantity || 1))
+      };
+    });
+  } else if (order.items && typeof order.items === 'object') {
+    // Already in object format, just ensure all required fields
+    Object.entries(order.items).forEach(([itemId, item]) => {
+      normalizedItems[itemId] = {
+        name: item.name || 'Unknown Item',
+        quantity: item.quantity || 1,
+        price: item.price || 0,
+        image: item.image || '🍽️',
+        item_amount: item.item_amount || ((item.price || 0) * (item.quantity || 1))
+      };
+    });
+  }
+
+  // Normalize user data
+  const normalizedUser = {
+    displayName: order.user?.name || order.user?.displayName || 'Unknown User',
+    email: order.user?.email || 'no-email@example.com',
+    photoURL: order.user?.photoURL || null
+  };
+
+  return {
+    ...order,
+    items: normalizedItems,
+    user: normalizedUser,
+    total: order.total || order.order_amount || 0,
+    timestamp: order.timestamp || order.created_at || new Date().toISOString()
+  };
+};

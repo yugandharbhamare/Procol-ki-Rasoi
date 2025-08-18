@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
+import { normalizeOrderForReceipt } from '../utils/orderUtils'
 
 const ReceiptScreen = ({ order, onNewOrder }) => {
+  // Normalize the order data for consistent display
+  const normalizedOrder = normalizeOrderForReceipt(order)
   const [currentTime, setCurrentTime] = useState(new Date())
 
   // Update time every second
@@ -30,11 +33,11 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
   }
 
   const getTotalItems = () => {
-    return Object.values(order.items).reduce((total, item) => total + item.quantity, 0)
+    return Object.values(normalizedOrder.items).reduce((total, item) => total + item.quantity, 0)
   }
 
   const getTotalPrice = () => {
-    return Object.values(order.items).reduce((total, item) => {
+    return Object.values(normalizedOrder.items).reduce((total, item) => {
       if (typeof item.price === 'number') {
         return total + (item.price * item.quantity)
       }
@@ -42,7 +45,7 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
     }, 0)
   }
 
-  const hasMRPItems = Object.values(order.items).some(item => typeof item.price !== 'number')
+  const hasMRPItems = Object.values(normalizedOrder.items).some(item => typeof item.price !== 'number')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
@@ -85,7 +88,7 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Order ID</span>
-                <span className="font-semibold text-gray-900">{order.id}</span>
+                <span className="font-semibold text-gray-900">{normalizedOrder.id}</span>
               </div>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Date</span>
@@ -95,15 +98,15 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
                 <span className="text-gray-600">Time</span>
                 <span className="font-semibold text-gray-900">{formatTime(currentTime)}</span>
               </div>
-              {order.user && (
+              {normalizedOrder.user && (
                 <>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-gray-600">Customer</span>
-                    <span className="font-semibold text-gray-900">{order.user.displayName}</span>
+                    <span className="font-semibold text-gray-900">{normalizedOrder.user.displayName}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Email</span>
-                    <span className="font-semibold text-gray-900">{order.user.email}</span>
+                    <span className="font-semibold text-gray-900">{normalizedOrder.user.email}</span>
                   </div>
                 </>
               )}
@@ -118,7 +121,7 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
                 </span>
               </div>
               <div className="space-y-3">
-                {Object.entries(order.items).map(([itemId, item]) => (
+                {Object.entries(normalizedOrder.items).map(([itemId, item]) => (
                   <div key={itemId} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">

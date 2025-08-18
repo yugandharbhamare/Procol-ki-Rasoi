@@ -89,7 +89,7 @@ const ReceiptModal = ({ order }) => {
               </span>
             </div>
             <div className="space-y-3">
-              {Object.entries(order.items).map(([itemId, item]) => (
+              {Object.entries(order.items || {}).map(([itemId, item]) => (
                 <div key={itemId} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3">
@@ -118,11 +118,11 @@ const ReceiptModal = ({ order }) => {
                       </div>
                     </div>
                   </div>
-                                      <div className="text-right">
-                      <p className="font-semibold text-gray-900">
-                        {typeof item.price === 'number' ? `₹${item.item_amount || (item.price * item.quantity)}` : 'MRP'}
-                      </p>
-                    </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">
+                      {typeof item.price === 'number' ? `₹${item.item_amount || (item.price * item.quantity)}` : 'MRP'}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
