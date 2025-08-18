@@ -15,6 +15,8 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
     date: '',
     items: ''
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     if (orders && orders.length > 0) {
@@ -22,6 +24,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
     } else {
       setFilteredOrders([]);
     }
+    setCurrentPage(1); // Reset to first page when filters change
   }, [orders, startDate, endDate, filters, sortConfig]);
 
   const filterOrders = () => {
@@ -134,7 +137,6 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       'Order ID',
       'Customer Name',
       'Order Items',
-      'Phone',
       'Total Amount',
       'Order Date',
       'Completion Date',
@@ -145,7 +147,6 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       order.id,
       order.user?.name || 'N/A',
       formatOrderItems(order.items),
-      'N/A', // Phone not available in current schema
       `₹${order.order_amount || 0}`,
       new Date(order.created_at).toLocaleString('en-IN'),
       new Date(order.updated_at).toLocaleString('en-IN'),
@@ -229,6 +230,24 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
     );
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentOrders = filteredOrders.slice(startIndex, endIndex);
+
+  const goToPage = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToPreviousPage = () => {
+    goToPage(currentPage - 1);
+  };
+
+  const goToNextPage = () => {
+    goToPage(currentPage + 1);
+  };
+
   const formatOrderItems = (items) => {
     if (!items || items.length === 0) return 'No items';
     
@@ -236,6 +255,53 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       `${item.item_name} x ${item.quantity}`
     ).join(', ');
   };
+
+  // Calculate statistics
+  const calculateStats = () => {
+    if (!filteredOrders || filteredOrders.length === 0) {
+      return {
+        totalSales: 0,
+        totalOrders: 0,
+        mostOrderedItem: null,
+        topCustomer: null
+      };
+    }
+
+    // Calculate total sales
+    const totalSales = filteredOrders.reduce((sum, order) => sum + (order.order_amount || 0), 0);
+    const totalOrders = filteredOrders.length;
+
+    // Find most ordered item
+    const itemCounts = {};
+    filteredOrders.forEach(order => {
+      order.items?.forEach(item => {
+        const itemName = item.item_name;
+        itemCounts[itemName] = (itemCounts[itemName] || 0) + item.quantity;
+      });
+    });
+
+    const mostOrderedItem = Object.entries(itemCounts)
+      .sort(([,a], [,b]) => b - a)[0];
+
+    // Find top customer
+    const customerOrders = {};
+    filteredOrders.forEach(order => {
+      const customerName = order.user?.name || 'Unknown';
+      customerOrders[customerName] = (customerOrders[customerName] || 0) + 1;
+    });
+
+    const topCustomer = Object.entries(customerOrders)
+      .sort(([,a], [,b]) => b - a)[0];
+
+    return {
+      totalSales,
+      totalOrders,
+      mostOrderedItem: mostOrderedItem ? { name: mostOrderedItem[0], count: mostOrderedItem[1] } : null,
+      topCustomer: topCustomer ? { name: topCustomer[0], orders: topCustomer[1] } : null
+    };
+  };
+
+  const stats = calculateStats();
 
   if (loading) {
     return (
@@ -260,6 +326,66 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
     <div className="space-y-6">
       {/* Unified Card with Date Range and Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
+        {/* Statistics Section */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Total Sales */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-500">Total Sales</p>
+                  <p className="text-lg font-semibold text-gray-900">{formatCurrency(stats.totalSales)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Most Ordered Item */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-500">Most Ordered</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {stats.mostOrderedItem ? `${stats.mostOrderedItem.name} (${stats.mostOrderedItem.count})` : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Customer */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-500">Top Customer</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {stats.topCustomer ? `${stats.topCustomer.name} (${stats.topCustomer.orders} orders)` : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Date Range Selector */}
         <div className="p-6 border-b border-gray-200">
           <DateRangeSelector
@@ -275,21 +401,6 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
         </div>
         
         {/* Orders Table */}
-        <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">
-              Showing {filteredOrders.length} of {orders.length} orders
-            </span>
-            {(filters.orderDetails || filters.customer || filters.amount || filters.payment || filters.date) && (
-              <button
-                onClick={clearFilters}
-                className="text-sm text-orange-600 hover:text-orange-700 font-medium"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-        </div>
         
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12">
@@ -416,7 +527,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOrders.map((order) => (
+                {currentOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">#{order.id.slice(-8)}</div>
@@ -450,6 +561,66 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Table Footer with Pagination */}
+        {filteredOrders.length > 0 && (
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between">
+              {/* Results Counter */}
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600">
+                  Showing {startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
+                </span>
+                {(filters.orderDetails || filters.customer || filters.amount || filters.date || filters.items) && (
+                  <button
+                    onClick={clearFilters}
+                    className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={goToPreviousPage}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  
+                  {/* Page Numbers */}
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className={`px-3 py-1 text-sm border rounded-md ${
+                          currentPage === page
+                            ? 'bg-orange-500 text-white border-orange-500'
+                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
