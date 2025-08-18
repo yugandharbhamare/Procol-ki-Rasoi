@@ -22,6 +22,7 @@ export const StaffOrderProvider = ({ children }) => {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [acceptedOrders, setAcceptedOrders] = useState([]);
   const [readyOrders, setReadyOrders] = useState([]);
+  const [completedOrders, setCompletedOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -44,16 +45,19 @@ export const StaffOrderProvider = ({ children }) => {
           const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
           const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
           const ready = orders.filter(order => order.status === ORDER_STATUS.READY);
+          const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
           
           console.log('StaffOrderProvider: Filtered orders:', {
             pending: pending.length,
             accepted: accepted.length,
-            ready: ready.length
+            ready: ready.length,
+            completed: completed.length
           });
           
           setPendingOrders(pending);
           setAcceptedOrders(accepted);
           setReadyOrders(ready);
+          setCompletedOrders(completed);
         } else {
           console.error('StaffOrderProvider: Failed to load orders:', result.error);
           setError(result.error);
@@ -88,10 +92,12 @@ export const StaffOrderProvider = ({ children }) => {
             const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
             const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
             const ready = orders.filter(order => order.status === ORDER_STATUS.READY);
+            const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
             
             setPendingOrders(pending);
             setAcceptedOrders(accepted);
             setReadyOrders(ready);
+            setCompletedOrders(completed);
           }
         } catch (error) {
           console.error('StaffOrderProvider: Error refreshing orders:', error);
@@ -148,6 +154,7 @@ export const StaffOrderProvider = ({ children }) => {
       pending: pendingOrders.length,
       accepted: acceptedOrders.length,
       ready: readyOrders.length,
+      completed: completedOrders.length,
       total: pendingOrders.length + acceptedOrders.length + readyOrders.length
     };
   };
@@ -156,6 +163,7 @@ export const StaffOrderProvider = ({ children }) => {
     pendingOrders,
     acceptedOrders,
     readyOrders,
+    completedOrders,
     loading,
     error,
     acceptOrder,

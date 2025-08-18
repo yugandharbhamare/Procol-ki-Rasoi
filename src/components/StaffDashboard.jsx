@@ -4,6 +4,7 @@ import { useStaffOrders } from '../contexts/StaffOrderContext';
 import OrderCard from './OrderCard';
 import StaffHeader from './StaffHeader';
 import NotificationSound from './NotificationSound';
+import CompletedOrdersTable from './CompletedOrdersTable';
 
 export default function StaffDashboard() {
   const { staffUser, signOutUser } = useStaffAuth();
@@ -11,6 +12,7 @@ export default function StaffDashboard() {
     pendingOrders, 
     acceptedOrders, 
     readyOrders, 
+    completedOrders,
     loading, 
     error,
     getOrderCounts 
@@ -130,7 +132,7 @@ export default function StaffDashboard() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 
 
         {/* Tabs */}
@@ -138,7 +140,7 @@ export default function StaffDashboard() {
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('pending')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`pt-0 pb-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'pending'
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -153,7 +155,7 @@ export default function StaffDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('accepted')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`pt-0 pb-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'accepted'
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -168,7 +170,7 @@ export default function StaffDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('ready')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`pt-0 pb-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'ready'
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -181,6 +183,21 @@ export default function StaffDashboard() {
                 </span>
               )}
             </button>
+            <button
+              onClick={() => setActiveTab('completed')}
+              className={`pt-0 pb-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'completed'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Completed
+              {orderCounts.completed > 0 && (
+                <span className="ml-2 bg-purple-500 text-white px-2 py-1 rounded-full text-xs">
+                  {orderCounts.completed}
+                </span>
+              )}
+            </button>
           </nav>
         </div>
 
@@ -189,6 +206,13 @@ export default function StaffDashboard() {
           {activeTab === 'pending' && renderOrders(pendingOrders, 'pending')}
           {activeTab === 'accepted' && renderOrders(acceptedOrders, 'accepted')}
           {activeTab === 'ready' && renderOrders(readyOrders, 'ready')}
+          {activeTab === 'completed' && (
+            <CompletedOrdersTable 
+              orders={completedOrders} 
+              loading={loading} 
+              error={error} 
+            />
+          )}
         </div>
       </div>
     </div>
