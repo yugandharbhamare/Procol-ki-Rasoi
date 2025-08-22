@@ -365,67 +365,67 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
   return (
     <div className="space-y-4">
       {/* Statistics Cards - Direct on Background */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Total Sales */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
+                  <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 shadow-sm">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-xs sm:text-sm font-medium text-gray-500">Total Sales</p>
+                <p className="text-sm sm:text-lg font-semibold text-gray-900">{formatCurrency(stats.totalSales)}</p>
               </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Total Sales</p>
-              <p className="text-lg font-semibold text-gray-900">{formatCurrency(stats.totalSales)}</p>
-            </div>
           </div>
-        </div>
 
-        {/* Most Ordered Item */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                  {/* Most Ordered Item */}
+          <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 shadow-sm">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-xs sm:text-sm font-medium text-gray-500">Most Ordered</p>
+                <p className="text-xs sm:text-sm font-semibold text-gray-900">
+                  {stats.mostOrderedItem ? `${stats.mostOrderedItem.name} (${stats.mostOrderedItem.count})` : 'N/A'}
+                </p>
               </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Most Ordered</p>
-              <p className="text-sm font-semibold text-gray-900">
-                {stats.mostOrderedItem ? `${stats.mostOrderedItem.name} (${stats.mostOrderedItem.count})` : 'N/A'}
-              </p>
-            </div>
           </div>
-        </div>
 
-        {/* Top Customer */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+          {/* Top Customer */}
+          <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 shadow-sm">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-xs sm:text-sm font-medium text-gray-500">Top Customer</p>
+                <p className="text-xs sm:text-sm font-semibold text-gray-900">
+                  {stats.topCustomer ? `${stats.topCustomer.name} (${stats.topCustomer.orders} orders)` : 'N/A'}
+                </p>
               </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Top Customer</p>
-              <p className="text-sm font-semibold text-gray-900">
-                {stats.topCustomer ? `${stats.topCustomer.name} (${stats.topCustomer.orders} orders)` : 'N/A'}
-              </p>
-            </div>
           </div>
-        </div>
       </div>
 
       {/* Table Card */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {/* Date Range Selector */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="border-b border-gray-200">
           <DateRangeSelector
             startDate={startDate}
             endDate={endDate}
