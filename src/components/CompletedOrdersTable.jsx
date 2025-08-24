@@ -430,8 +430,8 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
   return (
     <div className="space-y-4">
-      {/* Statistics Cards - Direct on Background */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      {/* Statistics Cards - Hidden on Mobile */}
+      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Total Sales */}
                   <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 shadow-sm">
             <div className="flex items-center">
@@ -490,8 +490,8 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
       {/* Table Card */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        {/* Date Range Selector */}
-        <div className="border-b border-gray-200 p-3 sm:p-4">
+        {/* Date Range Selector - Hidden on Mobile */}
+        <div className="hidden sm:block border-b border-gray-200 p-3 sm:p-4">
           <DateRangeSelector
             startDate={startDate}
             endDate={endDate}
@@ -520,11 +520,11 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
           </div>
         ) : (
           <>
-            {/* Mobile Card View */}
+            {/* Mobile Card View - Direct on Background */}
             <div className="block sm:hidden">
-              <div className="space-y-4 p-3 sm:p-4">
+              <div className="space-y-4">
                 {currentOrders.map((order) => (
-                  <div key={order.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
+                  <div key={order.id} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm relative">
                     {/* Card Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div>
