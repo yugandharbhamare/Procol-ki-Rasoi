@@ -83,6 +83,7 @@ export const StaffOrderProvider = ({ children }) => {
       // Refresh all orders when any change occurs
       // This is simpler and more reliable than trying to sync individual changes
       const refreshOrders = async () => {
+        console.log('StaffOrderProvider: Refreshing orders after real-time update');
         try {
           const result = await getAllOrders();
           if (result.success) {
@@ -93,6 +94,13 @@ export const StaffOrderProvider = ({ children }) => {
             const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
             const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
             const cancelled = orders.filter(order => order.status === ORDER_STATUS.CANCELLED);
+            
+            console.log('StaffOrderProvider: Updated order counts:', {
+              pending: pending.length,
+              accepted: accepted.length,
+              completed: completed.length,
+              cancelled: cancelled.length
+            });
             
             setPendingOrders(pending);
             setAcceptedOrders(accepted);
@@ -161,6 +169,45 @@ export const StaffOrderProvider = ({ children }) => {
     }
   };
 
+  // Move order from completed to pending
+  const moveToPending = async (orderId) => {
+    console.log('StaffOrderContext: moveToPending called for order:', orderId);
+    try {
+      const result = await updateOrderStatus(orderId, ORDER_STATUS.PENDING);
+      console.log('StaffOrderContext: moveToPending result:', result);
+      return result;
+    } catch (error) {
+      console.error('Error moving order to pending:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  // Move order from completed to accepted
+  const moveToAccepted = async (orderId) => {
+    console.log('StaffOrderContext: moveToAccepted called for order:', orderId);
+    try {
+      const result = await updateOrderStatus(orderId, ORDER_STATUS.ACCEPTED);
+      console.log('StaffOrderContext: moveToAccepted result:', result);
+      return result;
+    } catch (error) {
+      console.error('Error moving order to accepted:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  // Move order from completed to cancelled
+  const moveToCancelled = async (orderId) => {
+    console.log('StaffOrderContext: moveToCancelled called for order:', orderId);
+    try {
+      const result = await updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
+      console.log('StaffOrderContext: moveToCancelled result:', result);
+      return result;
+    } catch (error) {
+      console.error('Error moving order to cancelled:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   // Get order counts
   const getOrderCounts = () => {
     return {
@@ -183,6 +230,9 @@ export const StaffOrderProvider = ({ children }) => {
     completeOrder,
     cancelOrder,
     deleteOrder,
+    moveToPending,
+    moveToAccepted,
+    moveToCancelled,
     getOrderCounts
   };
 

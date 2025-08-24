@@ -1,11 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStaffOrders } from '../contexts/StaffOrderContext';
 import { getDisplayOrderId, getDatabaseOrderId } from '../utils/orderUtils';
+import { updateOrderStatus } from '../services/supabaseService';
 
 export default function OrderCard({ order, status }) {
   const { acceptOrder, completeOrder, cancelOrder, deleteOrder } = useStaffOrders();
-  const [loading, setLoading] = useState(false);
-  const [actionSuccess, setActionSuccess] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
@@ -55,7 +70,6 @@ export default function OrderCard({ order, status }) {
 
   const handleAction = async (action) => {
     console.log(`OrderCard: Starting ${action} action for order ${order.id}`);
-    setLoading(true);
     try {
       let result;
       // Use Supabase ID for database operations, custom ID for display
@@ -78,6 +92,11 @@ export default function OrderCard({ order, status }) {
           result = await cancelOrder(orderIdForUpdate);
           console.log(`OrderCard: cancelOrder result:`, result);
           break;
+        case 'pending':
+          console.log(`OrderCard: Calling updateOrderStatus to pending for order ${orderIdForUpdate}`);
+          result = await updateOrderStatus(orderIdForUpdate, 'pending');
+          console.log(`OrderCard: updateOrderStatus to pending result:`, result);
+          break;
         case 'delete':
           console.log(`OrderCard: Calling deleteOrder for order ${orderIdForUpdate}`);
           result = await deleteOrder(orderIdForUpdate);
@@ -92,15 +111,12 @@ export default function OrderCard({ order, status }) {
         alert(result?.error || 'Action failed. Please try again.');
       } else {
         console.log(`OrderCard: ${action} action completed successfully`);
-        setActionSuccess(true);
-        // Hide success message after 3 seconds
-        setTimeout(() => setActionSuccess(false), 3000);
       }
     } catch (error) {
       console.error(`OrderCard: Error performing ${action} action:`, error);
       alert('Action failed. Please try again.');
     } finally {
-      setLoading(false);
+      // No loading state needed
     }
   };
 
@@ -229,99 +245,65 @@ export default function OrderCard({ order, status }) {
   }
 
   const renderActionButton = () => {
-    if (loading) {
+
+    // Show Accept/Reject buttons for pending orders
+    if (status === 'pending') {
       return (
-        <button disabled className="w-full bg-gray-200 text-gray-400 font-semibold py-2 px-4 rounded-lg transition-all duration-200 cursor-not-allowed">
+        <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
+          <button
+            onClick={() => handleAction('accept')}
+            className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg text-sm sm:text-base"
+          >
+            <div className="flex items-center justify-center">
+              <svg className="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Accept Order
+            </div>
+          </button>
+          <button
+            onClick={() => handleAction('cancel')}
+            className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg text-sm sm:text-base"
+          >
+            <div className="flex items-center justify-center">
+              <svg className="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Reject Order
+            </div>
+          </button>
+        </div>
+      );
+    }
+
+    // Show Complete Order button only for accepted orders
+    if (status === 'accepted') {
+      return (
+        <button
+          onClick={() => handleAction('complete')}
+          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg text-sm sm:text-base"
+        >
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent mr-2"></div>
-            Processing...
+            <svg className="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Complete Order
           </div>
         </button>
       );
     }
 
-    switch (status) {
-      case 'pending':
-        return (
-          <div className="flex space-x-2">
-            <button
-              onClick={() => handleAction('accept')}
-              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
-            >
-              <div className="flex items-center justify-center">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Accept
-              </div>
-            </button>
-            <button
-              onClick={() => handleAction('cancel')}
-              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
-            >
-              <div className="flex items-center justify-center">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Cancel
-              </div>
-            </button>
-          </div>
-        );
-      case 'accepted':
-        return (
-          <button
-            onClick={() => handleAction('complete')}
-            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
-          >
-            <div className="flex items-center justify-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Complete Order
-            </div>
-          </button>
-        );
-      case 'cancelled':
-        return (
-          <div className="flex space-x-2">
-            <button
-              onClick={() => handleAction('accept')}
-              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
-            >
-              <div className="flex items-center justify-center">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Accept
-              </div>
-            </button>
-            <button
-              onClick={() => handleAction('delete')}
-              className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
-            >
-              <div className="flex items-center justify-center">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete
-              </div>
-            </button>
-          </div>
-        );
-      default:
-        return null;
-    }
+    return null;
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
       {/* Compact Header - Customer Name First */}
-      <div className="bg-gradient-to-r from-orange-50 to-orange-100 px-4 py-3 border-b border-orange-200">
+      <div className={`px-3 sm:px-4 py-3 border-b ${status === 'accepted' ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200' : 'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200'}`}>
         <div className="flex justify-between items-start">
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-2 sm:gap-3">
             {/* User Profile Photo or Initials */}
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-orange-100 border-2 border-orange-200 flex items-center justify-center flex-shrink-0">
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 flex items-center justify-center flex-shrink-0 ${status === 'accepted' ? 'bg-blue-100 border-blue-200' : 'bg-orange-100 border-orange-200'}`}>
               {order.user?.photoURL ? (
                 <img 
                   src={order.user.photoURL} 
@@ -348,8 +330,8 @@ export default function OrderCard({ order, status }) {
             
             {/* Customer Info with Subtext */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-lg font-bold text-gray-900 truncate">{order.user?.name || 'Unknown User'}</h3>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">{order.user?.name || 'Unknown User'}</h3>
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(status)}`}>
                   {getStatusText(status)}
                 </span>
@@ -363,20 +345,130 @@ export default function OrderCard({ order, status }) {
           </div>
           
           <div className="text-right flex-shrink-0">
-            <p className="text-xl font-bold text-gray-900">₹{order.order_amount || order.total || 0}</p>
-            <p className="text-xs text-gray-500">{formatDateTime(order.created_at || order.timestamp)}</p>
+            <div className="flex items-center justify-end gap-2">
+              <div>
+                <p className="text-lg sm:text-xl font-bold text-gray-900">₹{order.order_amount || order.total || 0}</p>
+                <p className="text-xs text-gray-500">{formatDateTime(order.created_at || order.timestamp)}</p>
+              </div>
+              {/* Three-dot menu for status changes */}
+              {(status === 'accepted' || status === 'cancelled') && (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setShowDropdown(!showDropdown)}
+                    className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                    </svg>
+                  </button>
+                  
+                  {showDropdown && (
+                    <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                      <div className="py-1">
+                        {status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => {
+                                handleAction('accept');
+                                setShowDropdown(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Accept Order
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleAction('cancel');
+                                setShowDropdown(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              Cancel Order
+                            </button>
+                          </>
+                        )}
+                        
+                        {status === 'accepted' && (
+                          <>
+                            <button
+                              onClick={() => {
+                                handleAction('pending');
+                                setShowDropdown(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              Mark as Pending
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleAction('cancel');
+                                setShowDropdown(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              Cancel Order
+                            </button>
+                          </>
+                        )}
+                        
+                        {status === 'cancelled' && (
+                          <>
+                            <button
+                              onClick={() => {
+                                handleAction('accept');
+                                setShowDropdown(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              Accept Order
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleAction('delete');
+                                setShowDropdown(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              Delete Order
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
                 {/* Order Items - Matching User Side Style */}
-          <div className="px-4 py-3">
+          <div className="px-3 sm:px-4 py-3">
             <div className="space-y-3">
               {Array.isArray(order.items) && order.items.length > 0 ? (
                 order.items.map((item, index) => (
                   <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2 sm:space-x-3">
                         {/* Item Image */}
                         {(() => {
                           const imagePath = item.image || getMenuItemImage(item.name || item.item_name)
@@ -384,7 +476,7 @@ export default function OrderCard({ order, status }) {
                             <img 
                               src={imagePath} 
                               alt={item.name || item.item_name}
-                              className="w-8 h-8 rounded object-cover"
+                              className="w-6 h-6 sm:w-8 sm:h-8 rounded object-cover"
                               onError={(e) => {
                                 e.target.style.display = 'none'
                                 e.target.nextSibling.style.display = 'block'
@@ -393,7 +485,7 @@ export default function OrderCard({ order, status }) {
                           ) : null
                         })()}
                         <span 
-                          className="text-2xl" 
+                          className="text-xl sm:text-2xl" 
                           style={{ 
                             display: (item.image || getMenuItemImage(item.name || item.item_name)) && 
                                     (item.image || getMenuItemImage(item.name || item.item_name)).startsWith('/') ? 'none' : 'block' 
@@ -403,19 +495,19 @@ export default function OrderCard({ order, status }) {
                         </span>
                         
                         {/* Item Details */}
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">{item.name || item.item_name}</p>
-                          <div className="flex items-center space-x-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 text-xs sm:text-sm truncate">{item.name || item.item_name}</p>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                             <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
-                            <p className="text-xs text-gray-500">• ₹{item.price} each</p>
+                            <p className="text-xs text-gray-500">₹{item.price} each</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     
                     {/* Item Total Price */}
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900 text-sm">₹{item.item_amount || (item.price * item.quantity)}</p>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-semibold text-gray-900 text-xs sm:text-sm">₹{item.item_amount || (item.price * item.quantity)}</p>
                     </div>
                   </div>
                 ))
@@ -431,23 +523,13 @@ export default function OrderCard({ order, status }) {
           </div>
 
       {/* Compact Action Button */}
-      <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
-        {actionSuccess && (
-          <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center">
-              <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span className="text-green-700 font-medium text-sm">Action completed successfully!</span>
-            </div>
-          </div>
-        )}
+      <div className="px-3 sm:px-4 py-3 bg-white">
         {renderActionButton()}
       </div>
 
       {/* Compact Order Notes */}
       {order.notes && (
-        <div className="px-4 py-2 bg-yellow-50 border-t border-yellow-200">
+        <div className="px-3 sm:px-4 py-2 bg-yellow-50 border-t border-yellow-200">
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />

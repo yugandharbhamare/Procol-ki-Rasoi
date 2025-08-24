@@ -79,8 +79,8 @@ export default function DateRangeSelector({
     <div className={`bg-white rounded-lg shadow p-3 sm:p-4 ${className}`}>
       <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end justify-between">
         {/* Date Inputs */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
-          <div className="flex-1">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1 w-full">
+          <div className="w-full sm:flex-1">
             <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
               Start Date
             </label>
@@ -99,7 +99,7 @@ export default function DateRangeSelector({
             )}
           </div>
           
-          <div className="flex-1">
+          <div className="w-full sm:flex-1">
             <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
               End Date
             </label>
@@ -121,11 +121,11 @@ export default function DateRangeSelector({
         </div>
 
         {/* Quick Actions and Download */}
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex gap-1 sm:gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="flex gap-1 sm:gap-2 w-full sm:w-auto">
             <button
               onClick={setToday}
-              className={`px-2 sm:px-3 py-2 h-10 text-xs sm:text-sm rounded-md transition-colors border ${
+              className={`flex-1 sm:flex-none px-2 sm:px-3 py-2 h-10 text-xs sm:text-sm rounded-md transition-colors border ${
                 isTodayActive
                   ? 'border-orange-500 text-orange-600 hover:bg-orange-50'
                   : 'border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -135,7 +135,7 @@ export default function DateRangeSelector({
             </button>
             <button
               onClick={setLastWeek}
-              className={`px-2 sm:px-3 py-2 h-10 text-xs sm:text-sm rounded-md transition-colors border ${
+              className={`flex-1 sm:flex-none px-2 sm:px-3 py-2 h-10 text-xs sm:text-sm rounded-md transition-colors border ${
                 isLastWeekActive
                   ? 'border-orange-500 text-orange-600 hover:bg-orange-50'
                   : 'border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -146,7 +146,7 @@ export default function DateRangeSelector({
             </button>
             <button
               onClick={setLastMonth}
-              className={`px-2 sm:px-3 py-2 h-10 text-xs sm:text-sm rounded-md transition-colors border ${
+              className={`flex-1 sm:flex-none px-2 sm:px-3 py-2 h-10 text-xs sm:text-sm rounded-md transition-colors border ${
                 isLastMonthActive
                   ? 'border-orange-500 text-orange-600 hover:bg-orange-50'
                   : 'border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -160,7 +160,7 @@ export default function DateRangeSelector({
           {hasDates && (
             <button
               onClick={clearDates}
-              className="px-3 py-2 h-10 text-sm bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
+              className="w-full sm:w-auto px-3 py-2 h-10 text-sm bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
             >
               Clear
             </button>
@@ -171,7 +171,7 @@ export default function DateRangeSelector({
         <button
           onClick={onDownload}
           disabled={downloadDisabled}
-          className="bg-green-600 text-white px-3 sm:px-6 py-3 h-10 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2 font-medium transition-colors text-xs sm:text-sm"
+          className="w-full sm:w-auto bg-green-600 text-white px-3 sm:px-6 py-3 h-10 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-1 sm:gap-2 font-medium transition-colors text-xs sm:text-sm"
         >
           <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

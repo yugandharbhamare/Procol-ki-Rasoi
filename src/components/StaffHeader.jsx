@@ -4,13 +4,7 @@ import ChefLogo from './ChefLogo';
 export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNotifications }) {
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const formatTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
+
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -56,10 +50,7 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
               )}
             </div>
 
-            {/* Current Time */}
-            <div className="text-sm text-gray-500">
-              {formatTime(new Date())}
-            </div>
+
           </div>
 
           {/* User Menu */}

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DateRangeSelector from './DateRangeSelector';
+import { useStaffOrders } from '../contexts/StaffOrderContext';
 
 export default function CompletedOrdersTable({ orders, loading, error }) {
   // Note: Only orders with status 'completed' are passed to this component
@@ -17,6 +18,9 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [showDropdown, setShowDropdown] = useState(null);
+  const dropdownRefs = useRef({});
+  const { moveToPending, moveToAccepted, moveToCancelled } = useStaffOrders();
 
   useEffect(() => {
     if (orders && orders.length > 0) {
@@ -26,6 +30,68 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
     }
     setCurrentPage(1); // Reset to first page when filters change
   }, [orders, startDate, endDate, filters, sortConfig]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const isClickInside = Object.values(dropdownRefs.current).some(ref => 
+        ref && ref.contains(event.target)
+      );
+      
+      if (!isClickInside) {
+        setShowDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
+
+  const handleAction = async (orderId, action) => {
+    console.log('CompletedOrdersTable: handleAction called with:', { orderId, action });
+    console.log('CompletedOrdersTable: Order ID type:', typeof orderId);
+    console.log('CompletedOrdersTable: Order ID value:', orderId);
+    
+    try {
+      let result;
+      switch (action) {
+        case 'pending':
+          console.log('CompletedOrdersTable: Calling moveToPending for order:', orderId);
+          result = await moveToPending(orderId);
+          break;
+        case 'accepted':
+          console.log('CompletedOrdersTable: Calling moveToAccepted for order:', orderId);
+          result = await moveToAccepted(orderId);
+          break;
+        case 'cancelled':
+          console.log('CompletedOrdersTable: Calling moveToCancelled for order:', orderId);
+          result = await moveToCancelled(orderId);
+          break;
+        default:
+          console.error('CompletedOrdersTable: Unknown action:', action);
+          return;
+      }
+
+      console.log('CompletedOrdersTable: Action result:', result);
+
+      if (result.success) {
+        console.log(`CompletedOrdersTable: Order ${orderId} moved to ${action}`);
+        // The order will be automatically removed from completed orders
+        // and moved to the appropriate tab via real-time updates
+      } else {
+        console.error('CompletedOrdersTable: Failed to move order:', result.error);
+        alert('Failed to move order. Please try again.');
+      }
+    } catch (error) {
+      console.error('CompletedOrdersTable: Error moving order:', error);
+      alert('An error occurred while moving the order.');
+    }
+    setShowDropdown(null);
+  };
 
   const filterOrders = () => {
     let filtered = [...orders];
@@ -425,7 +491,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       {/* Table Card */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         {/* Date Range Selector */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-gray-200 p-3 sm:p-4">
           <DateRangeSelector
             startDate={startDate}
             endDate={endDate}
@@ -453,11 +519,97 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+          <>
+            {/* Mobile Card View */}
+            <div className="block sm:hidden">
+              <div className="space-y-4 p-3 sm:p-4">
+                {currentOrders.map((order) => (
+                  <div key={order.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 relative">
+                    {/* Card Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900">#{order.id.slice(-8)}</h3>
+                        <p className="text-xs text-gray-500">{order.items?.length || 0} items</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-gray-900">{formatCurrency(order.order_amount || 0)}</p>
+                        <p className="text-xs text-gray-500">{formatDate(order.created_at)}</p>
+                      </div>
+                    </div>
+
+                    {/* Customer Info */}
+                    <div className="mb-3">
+                      <p className="text-sm font-medium text-gray-900">{order.user?.name || 'N/A'}</p>
+                      <p className="text-xs text-gray-500">{order.user?.email || 'N/A'}</p>
+                    </div>
+
+                    {/* Order Items */}
+                    <div className="mb-4">
+                      <p className="text-xs font-medium text-gray-700 mb-1">Order Items:</p>
+                      <p className="text-sm text-gray-900">{formatOrderItems(order.items)}</p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-end">
+                      <div className="relative z-10" ref={el => dropdownRefs.current[order.id] = el}>
+                        <button
+                          onClick={() => {
+                            console.log('Mobile dropdown clicked for order:', order.id);
+                            setShowDropdown(showDropdown === order.id ? null : order.id);
+                          }}
+                          className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+                        >
+                          <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                          </svg>
+                        </button>
+                        
+                        {showDropdown === order.id && (
+                          <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                            <div className="py-1">
+                              <button
+                                onClick={() => handleAction(order.id, 'pending')}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
+                              >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Mark as Pending
+                              </button>
+                              <button
+                                onClick={() => handleAction(order.id, 'accepted')}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
+                              >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Mark as Accepted
+                              </button>
+                              <button
+                                onClick={() => handleAction(order.id, 'cancelled')}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
+                              >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Mark as Cancelled
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center justify-between">
                       <span>Order Details</span>
                       <button
@@ -468,7 +620,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                       </button>
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center justify-between">
                       <span>Customer</span>
                       <button
@@ -479,7 +631,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                       </button>
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center justify-between">
                       <span>Order Items</span>
                       <button
@@ -490,7 +642,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                       </button>
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center justify-between">
                       <span>Amount</span>
                       <button
@@ -502,7 +654,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                     </div>
                   </th>
 
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center justify-between">
                       <span>Date</span>
                       <button
@@ -513,10 +665,13 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                       </button>
                     </div>
                   </th>
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <span>Actions</span>
+                  </th>
                 </tr>
                 {/* Filter Row */}
                 <tr className="bg-gray-100">
-                  <th className="px-6 py-2">
+                  <th className="px-3 sm:px-6 py-2">
                     <input
                       type="text"
                       placeholder="Filter by ID..."
@@ -525,7 +680,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                       onChange={(e) => handleFilterChange('orderDetails', e.target.value)}
                     />
                   </th>
-                  <th className="px-6 py-2">
+                  <th className="px-3 sm:px-6 py-2">
                     <input
                       type="text"
                       placeholder="Filter by name/email..."
@@ -534,7 +689,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                       onChange={(e) => handleFilterChange('customer', e.target.value)}
                     />
                   </th>
-                  <th className="px-6 py-2">
+                  <th className="px-3 sm:px-6 py-2">
                     <input
                       type="text"
                       placeholder="Filter by items..."
@@ -543,7 +698,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                       onChange={(e) => handleFilterChange('items', e.target.value)}
                     />
                   </th>
-                  <th className="px-6 py-2">
+                  <th className="px-3 sm:px-6 py-2">
                     <input
                       type="text"
                       placeholder="Filter by amount..."
@@ -553,7 +708,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                     />
                   </th>
 
-                  <th className="px-6 py-2">
+                  <th className="px-3 sm:px-6 py-2">
                     <input
                       type="text"
                       placeholder="Filter by date..."
@@ -562,18 +717,21 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                       onChange={(e) => handleFilterChange('date', e.target.value)}
                     />
                   </th>
+                  <th className="px-3 sm:px-6 py-2">
+                    {/* No filter for actions column */}
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">#{order.id.slice(-8)}</div>
                       <div className="text-sm text-gray-500">
                         {order.items?.length || 0} items
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {order.user?.name || 'N/A'}
                       </div>
@@ -581,30 +739,77 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                         {order.user?.email || 'N/A'}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 sm:px-6 py-4">
                       <div className="text-sm text-gray-900">
                         {formatOrderItems(order.items)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {formatCurrency(order.order_amount || 0)}
                       </div>
                     </td>
 
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(order.created_at)}
+                    </td>
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="relative" ref={el => dropdownRefs.current[order.id] = el}>
+                        <button
+                          onClick={() => setShowDropdown(showDropdown === order.id ? null : order.id)}
+                          className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                          <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                          </svg>
+                        </button>
+                        
+                        {showDropdown === order.id && (
+                          <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                            <div className="py-1">
+                              <button
+                                onClick={() => handleAction(order.id, 'pending')}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
+                              >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Mark as Pending
+                              </button>
+                              <button
+                                onClick={() => handleAction(order.id, 'accepted')}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
+                              >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Mark as Accepted
+                              </button>
+                              <button
+                                onClick={() => handleAction(order.id, 'cancelled')}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
+                              >
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Mark as Cancelled
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        )}
+            </>
+          )}
 
         {/* Table Footer with Pagination */}
         {filteredOrders.length > 0 && (
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="px-3 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               {/* Results Counter */}
               <div className="flex items-center space-x-4">
