@@ -98,3 +98,74 @@ export const normalizeOrderForReceipt = (order) => {
     timestamp: order.timestamp || order.created_at || new Date().toISOString()
   };
 };
+
+// Get the correct order status display for users
+export const getOrderStatusDisplay = (order) => {
+  // If order has a status field, use it
+  if (order.status) {
+    switch (order.status.toLowerCase()) {
+      case 'pending':
+        return {
+          status: 'Kitchen to confirm payment',
+          description: 'Your order is received. Kitchen will confirm payment shortly.',
+          color: 'orange',
+          icon: '⏳'
+        }
+      case 'accepted':
+        return {
+          status: 'Order Accepted',
+          description: 'Your order has been accepted and is being prepared.',
+          color: 'blue',
+          icon: '👨‍🍳'
+        }
+
+      case 'completed':
+        return {
+          status: 'Order Completed',
+          description: 'Your order has been completed. Thank you for your business!',
+          color: 'green',
+          icon: '🎉'
+        }
+      case 'rejected':
+        return {
+          status: 'Order Rejected',
+          description: 'Your order was rejected as payment was not confirmed by kitchen staff.',
+          color: 'red',
+          icon: '❌'
+        }
+      case 'cancelled':
+        return {
+          status: 'Order Cancelled',
+          description: 'Your order has been cancelled.',
+          color: 'red',
+          icon: '❌'
+        }
+      default:
+        return {
+          status: 'Kitchen to confirm payment',
+          description: 'Your order is received. Kitchen will confirm payment shortly.',
+          color: 'orange',
+          icon: '⏳'
+        }
+    }
+  }
+  
+  // Default for orders without explicit status (new orders after payment)
+  return {
+    status: 'Kitchen to confirm payment',
+    description: 'Your order is received. Kitchen will confirm payment shortly.',
+    color: 'orange',
+    icon: '⏳'
+  }
+}
+
+// Get status badge styling
+export const getStatusBadgeStyle = (color) => {
+  const styles = {
+    orange: 'bg-orange-100 text-orange-800 border-orange-200',
+    blue: 'bg-blue-100 text-blue-800 border-blue-200',
+    green: 'bg-green-100 text-green-800 border-green-200',
+    red: 'bg-red-100 text-red-800 border-red-200'
+  }
+  return styles[color] || styles.orange
+}

@@ -495,17 +495,6 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
             >
               {selectedPaymentMethod ? 'Pay Now' : 'Select a payment method'}
             </button>
-            <button
-              onClick={onBack}
-              disabled={paymentStatus === 'processing'}
-              className={`w-full py-3 rounded-lg transition-colors ${
-                paymentStatus === 'processing'
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'btn-secondary'
-              }`}
-            >
-              Back to Cart
-            </button>
           </div>
         )}
 
@@ -516,23 +505,6 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
           >
             Back to Payment Options
           </button>
-        )}
-
-        {/* Desktop QR Code Action Buttons */}
-        {isQRVisible && paymentStatus === 'pending' && !isMobile && (
-          <div className="space-y-3">
-            <button
-              onClick={onBack}
-              disabled={paymentStatus === 'processing'}
-              className={`w-full py-3 rounded-lg transition-colors ${
-                paymentStatus === 'processing'
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'btn-secondary'
-              }`}
-            >
-              Back to Cart
-            </button>
-          </div>
         )}
       </div>
     </div>

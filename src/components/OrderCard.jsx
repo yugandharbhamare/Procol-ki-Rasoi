@@ -3,7 +3,7 @@ import { useStaffOrders } from '../contexts/StaffOrderContext';
 import { getDisplayOrderId, getDatabaseOrderId } from '../utils/orderUtils';
 
 export default function OrderCard({ order, status }) {
-  const { acceptOrder, markOrderAsReady, completeOrder } = useStaffOrders();
+  const { acceptOrder, completeOrder, rejectOrder, deleteOrder } = useStaffOrders();
   const [loading, setLoading] = useState(false);
   const [actionSuccess, setActionSuccess] = useState(false);
 
@@ -67,15 +67,21 @@ export default function OrderCard({ order, status }) {
           result = await acceptOrder(orderIdForUpdate);
           console.log(`OrderCard: acceptOrder result:`, result);
           break;
-        case 'ready':
-          console.log(`OrderCard: Calling markOrderAsReady for order ${orderIdForUpdate}`);
-          result = await markOrderAsReady(orderIdForUpdate);
-          console.log(`OrderCard: markOrderAsReady result:`, result);
-          break;
+
         case 'complete':
           console.log(`OrderCard: Calling completeOrder for order ${orderIdForUpdate}`);
           result = await completeOrder(orderIdForUpdate);
           console.log(`OrderCard: completeOrder result:`, result);
+          break;
+        case 'reject':
+          console.log(`OrderCard: Calling rejectOrder for order ${orderIdForUpdate}`);
+          result = await rejectOrder(orderIdForUpdate);
+          console.log(`OrderCard: rejectOrder result:`, result);
+          break;
+        case 'delete':
+          console.log(`OrderCard: Calling deleteOrder for order ${orderIdForUpdate}`);
+          result = await deleteOrder(orderIdForUpdate);
+          console.log(`OrderCard: deleteOrder result:`, result);
           break;
         default:
           break;
@@ -104,8 +110,9 @@ export default function OrderCard({ order, status }) {
         return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'accepted':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'ready':
-        return 'bg-green-100 text-green-800 border-green-200';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-200';
+
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -117,8 +124,9 @@ export default function OrderCard({ order, status }) {
         return 'Awaiting Confirmation';
       case 'accepted':
         return 'In Preparation';
-      case 'ready':
-        return 'Ready for Pickup';
+      case 'rejected':
+        return 'Payment Not Confirmed';
+
       default:
         return status;
     }
@@ -235,33 +243,32 @@ export default function OrderCard({ order, status }) {
     switch (status) {
       case 'pending':
         return (
-          <button
-            onClick={() => handleAction('accept')}
-            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
-          >
-            <div className="flex items-center justify-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Accept Order
-            </div>
-          </button>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => handleAction('accept')}
+              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
+            >
+              <div className="flex items-center justify-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Accept
+              </div>
+            </button>
+            <button
+              onClick={() => handleAction('reject')}
+              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
+            >
+              <div className="flex items-center justify-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Reject
+              </div>
+            </button>
+          </div>
         );
       case 'accepted':
-        return (
-          <button
-            onClick={() => handleAction('ready')}
-            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
-          >
-            <div className="flex items-center justify-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Mark as Ready
-            </div>
-          </button>
-        );
-      case 'ready':
         return (
           <button
             onClick={() => handleAction('complete')}
@@ -274,6 +281,33 @@ export default function OrderCard({ order, status }) {
               Complete Order
             </div>
           </button>
+        );
+      case 'rejected':
+        return (
+          <div className="flex space-x-2">
+            <button
+              onClick={() => handleAction('accept')}
+              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
+            >
+              <div className="flex items-center justify-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Accept
+              </div>
+            </button>
+            <button
+              onClick={() => handleAction('delete')}
+              className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
+            >
+              <div className="flex items-center justify-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete
+              </div>
+            </button>
+          </div>
         );
       default:
         return null;

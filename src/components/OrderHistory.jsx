@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useOrders } from '../contexts/OrderContext'
-import { getUserByEmail, getUserOrders } from '../services/supabaseService'
-import { getDisplayOrderId, normalizeOrderForReceipt } from '../utils/orderUtils'
+import { getUserByEmail, getUserOrders, subscribeToOrders } from '../services/supabaseService'
+import { getDisplayOrderId, normalizeOrderForReceipt, getOrderStatusDisplay, getStatusBadgeStyle } from '../utils/orderUtils'
 import ReceiptModal from './ReceiptModal'
 
 const OrderHistory = () => {
@@ -42,82 +42,110 @@ const OrderHistory = () => {
   }
 
   // Load and filter orders for the current user
-  useEffect(() => {
-    const loadUserOrders = async () => {
-      setIsLoading(true)
-      
-      try {
-        console.log('OrderHistory: Loading orders for user:', user.email);
-        
-        // Get user's Supabase UUID first
-        let supabaseUserId = null;
-        if (user.email) {
-          const userResult = await getUserByEmail(user.email);
-          if (userResult.success && userResult.user) {
-            supabaseUserId = userResult.user.id;
-            console.log('OrderHistory: Found Supabase user ID:', supabaseUserId);
-          } else {
-            console.warn('OrderHistory: User not found in Supabase');
-          }
-        }
-        
-        // Fetch orders from Supabase
-        let supabaseOrders = [];
-        if (supabaseUserId) {
-          const supabaseResult = await getUserOrders(supabaseUserId);
-          if (supabaseResult.success) {
-            supabaseOrders = supabaseResult.orders;
-            console.log('OrderHistory: Fetched orders from Supabase:', supabaseOrders.length);
-          } else {
-            console.error('OrderHistory: Failed to fetch orders from Supabase:', supabaseResult.error);
-          }
-        }
-        
-        // Get local completed orders
-        const localOrders = completedOrders.filter(order => 
-          order.user && order.user.email === user.email
-        );
-        console.log('OrderHistory: Local orders:', localOrders.length);
-        
-        // Combine and deduplicate orders
-        const allOrders = [...supabaseOrders, ...localOrders];
-        
-        // Remove duplicates based on order ID (handle both custom and Supabase IDs)
-        const uniqueOrders = allOrders.filter((order, index, self) => 
-          index === self.findIndex(o => {
-            // Compare by custom order ID first, then by Supabase ID
-            if (o.id === order.id) return true;
-            if (o.supabase_id && order.supabase_id && o.supabase_id === order.supabase_id) return true;
-            return false;
-          })
-        );
-        
-        console.log('OrderHistory: Total unique orders:', uniqueOrders.length);
-        
-        // Sort by timestamp (newest first)
-        const sortedOrders = uniqueOrders.sort((a, b) => {
-          const dateA = new Date(a.timestamp || a.created_at);
-          const dateB = new Date(b.timestamp || b.created_at);
-          return dateB - dateA;
-        });
-        
-        setUserOrders(sortedOrders);
-      } catch (error) {
-        console.error('Error loading user orders:', error);
-        // Fallback to local orders only
-        const localUserOrders = completedOrders.filter(order => 
-          order.user && order.user.email === user.email
-        );
-        setUserOrders(localUserOrders);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const loadUserOrders = async () => {
+    setIsLoading(true)
     
+    try {
+      console.log('OrderHistory: Loading orders for user:', user.email);
+      
+      // Get user's Supabase UUID first
+      let supabaseUserId = null;
+      if (user.email) {
+        const userResult = await getUserByEmail(user.email);
+        if (userResult.success && userResult.user) {
+          supabaseUserId = userResult.user.id;
+          console.log('OrderHistory: Found Supabase user ID:', supabaseUserId);
+        } else {
+          console.warn('OrderHistory: User not found in Supabase');
+        }
+      }
+      
+      // Fetch orders from Supabase
+      let supabaseOrders = [];
+      if (supabaseUserId) {
+        const supabaseResult = await getUserOrders(supabaseUserId);
+        if (supabaseResult.success) {
+          supabaseOrders = supabaseResult.orders;
+          console.log('OrderHistory: Fetched orders from Supabase:', supabaseOrders.length);
+        } else {
+          console.error('OrderHistory: Failed to fetch orders from Supabase:', supabaseResult.error);
+        }
+      }
+      
+      // Get local completed orders
+      const localOrders = completedOrders.filter(order => 
+        order.user && order.user.email === user.email
+      );
+      console.log('OrderHistory: Local orders:', localOrders.length);
+      
+      // Combine and deduplicate orders
+      const allOrders = [...supabaseOrders, ...localOrders];
+      
+      // Remove duplicates based on order ID (handle both custom and Supabase IDs)
+      const uniqueOrders = allOrders.filter((order, index, self) => 
+        index === self.findIndex(o => {
+          // Compare by custom order ID first, then by Supabase ID
+          if (o.id === order.id) return true;
+          if (o.supabase_id && order.supabase_id && o.supabase_id === order.supabase_id) return true;
+          return false;
+        })
+      );
+      
+      console.log('OrderHistory: Total unique orders:', uniqueOrders.length);
+      
+      // Sort by timestamp (newest first)
+      const sortedOrders = uniqueOrders.sort((a, b) => {
+        const dateA = new Date(a.timestamp || a.created_at);
+        const dateB = new Date(b.timestamp || b.created_at);
+        return dateB - dateA;
+      });
+      
+      setUserOrders(sortedOrders);
+    } catch (error) {
+      console.error('Error loading user orders:', error);
+      // Fallback to local orders only
+      const localUserOrders = completedOrders.filter(order => 
+        order.user && order.user.email === user.email
+      );
+      setUserOrders(localUserOrders);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial load of orders
+  useEffect(() => {
     if (user && user.email) {
       loadUserOrders();
     }
   }, [user, completedOrders]);
+
+  // Real-time subscription for order updates
+  useEffect(() => {
+    if (!user || !user.email) return;
+
+    console.log('OrderHistory: Setting up real-time subscription for user:', user.email);
+    
+    const subscription = subscribeToOrders((payload) => {
+      console.log('OrderHistory: Real-time order update received:', payload);
+      
+      // Check if the updated order belongs to the current user
+      if (payload.new && payload.new.user_id) {
+        // Get user's Supabase UUID to compare
+        getUserByEmail(user.email).then(userResult => {
+          if (userResult.success && userResult.user && userResult.user.id === payload.new.user_id) {
+            console.log('OrderHistory: Order update for current user, refreshing orders');
+            loadUserOrders();
+          }
+        });
+      }
+    });
+
+    return () => {
+      console.log('OrderHistory: Cleaning up real-time subscription');
+      subscription.unsubscribe();
+    };
+  }, [user]);
 
 
 
@@ -138,8 +166,8 @@ const OrderHistory = () => {
                 </svg>
               </button>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Order History</h1>
-                <p className="text-sm text-gray-600">View your past orders and receipts</p>
+                <h1 className="text-xl font-bold text-gray-900">My Orders</h1>
+                <p className="text-sm text-gray-600">Track your current and past orders</p>
               </div>
             </div>
         </div>
@@ -166,8 +194,8 @@ const OrderHistory = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No completed orders yet</h3>
-                  <p className="text-gray-500">Your order history will appear here once you successfully place and pay for your first order.</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No orders yet</h3>
+                  <p className="text-gray-500">Your orders will appear here once you successfully place and pay for your first order.</p>
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -179,12 +207,17 @@ const OrderHistory = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="text-xl font-semibold text-gray-900">{getDisplayOrderId(order)}</h3>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              Completed
-                            </span>
-                          </div>
+                                                  <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-xl font-semibold text-gray-900">{getDisplayOrderId(order)}</h3>
+                          {(() => {
+                            const orderStatus = getOrderStatusDisplay(order)
+                            return (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadgeStyle(orderStatus.color)}`}>
+                                {orderStatus.status}
+                              </span>
+                            )
+                          })()}
+                        </div>
                           <p className="text-sm text-gray-500">
                             {formatDate(order.timestamp || order.created_at)} at {formatTime(order.timestamp || order.created_at)} • {Array.isArray(order.items) ? order.items.length : Object.keys(order.items || {}).length} item{(Array.isArray(order.items) ? order.items.length : Object.keys(order.items || {}).length) !== 1 ? 's' : ''}
                           </p>

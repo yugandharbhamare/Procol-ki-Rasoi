@@ -21,8 +21,8 @@ export { useStaffOrders };
 export const StaffOrderProvider = ({ children }) => {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [acceptedOrders, setAcceptedOrders] = useState([]);
-  const [readyOrders, setReadyOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
+  const [rejectedOrders, setRejectedOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -44,20 +44,20 @@ export const StaffOrderProvider = ({ children }) => {
           // Filter orders by status
           const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
           const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
-          const ready = orders.filter(order => order.status === ORDER_STATUS.READY);
           const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
+          const rejected = orders.filter(order => order.status === ORDER_STATUS.REJECTED);
           
           console.log('StaffOrderProvider: Filtered orders:', {
             pending: pending.length,
             accepted: accepted.length,
-            ready: ready.length,
-            completed: completed.length
+            completed: completed.length,
+            rejected: rejected.length
           });
           
           setPendingOrders(pending);
           setAcceptedOrders(accepted);
-          setReadyOrders(ready);
           setCompletedOrders(completed);
+          setRejectedOrders(rejected);
         } else {
           console.error('StaffOrderProvider: Failed to load orders:', result.error);
           setError(result.error);
@@ -91,13 +91,13 @@ export const StaffOrderProvider = ({ children }) => {
             // Filter orders by status
             const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
             const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
-            const ready = orders.filter(order => order.status === ORDER_STATUS.READY);
             const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
+            const rejected = orders.filter(order => order.status === ORDER_STATUS.REJECTED);
             
             setPendingOrders(pending);
             setAcceptedOrders(accepted);
-            setReadyOrders(ready);
             setCompletedOrders(completed);
+            setRejectedOrders(rejected);
           }
         } catch (error) {
           console.error('StaffOrderProvider: Error refreshing orders:', error);
@@ -126,16 +126,7 @@ export const StaffOrderProvider = ({ children }) => {
     }
   };
 
-  // Mark order as ready
-  const markOrderAsReady = async (orderId) => {
-    try {
-      const result = await updateOrderStatus(orderId, ORDER_STATUS.READY);
-      return result;
-    } catch (error) {
-      console.error('Error marking order as ready:', error);
-      return { success: false, error: error.message };
-    }
-  };
+
 
   // Complete order (delivered/picked up)
   const completeOrder = async (orderId) => {
@@ -148,27 +139,50 @@ export const StaffOrderProvider = ({ children }) => {
     }
   };
 
+  // Reject order (payment not confirmed)
+  const rejectOrder = async (orderId) => {
+    try {
+      const result = await updateOrderStatus(orderId, ORDER_STATUS.REJECTED);
+      return result;
+    } catch (error) {
+      console.error('Error rejecting order:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  // Delete order (permanently remove from rejected orders)
+  const deleteOrder = async (orderId) => {
+    try {
+      const result = await updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
+      return result;
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   // Get order counts
   const getOrderCounts = () => {
     return {
       pending: pendingOrders.length,
       accepted: acceptedOrders.length,
-      ready: readyOrders.length,
       completed: completedOrders.length,
-      total: pendingOrders.length + acceptedOrders.length + readyOrders.length
+      rejected: rejectedOrders.length,
+      total: pendingOrders.length + acceptedOrders.length
     };
   };
 
   const value = {
     pendingOrders,
     acceptedOrders,
-    readyOrders,
     completedOrders,
+    rejectedOrders,
     loading,
     error,
     acceptOrder,
-    markOrderAsReady,
     completeOrder,
+    rejectOrder,
+    deleteOrder,
     getOrderCounts
   };
 

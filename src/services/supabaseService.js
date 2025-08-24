@@ -479,8 +479,8 @@ export const isStaffMember = async () => {
 export const ORDER_STATUS = {
   PENDING: 'pending',
   ACCEPTED: 'accepted',
-  READY: 'ready',
   COMPLETED: 'completed',
+  REJECTED: 'rejected',
   CANCELLED: 'cancelled'
 }
 

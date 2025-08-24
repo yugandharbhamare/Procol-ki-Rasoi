@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
+import { getOrderStatusDisplay } from '../utils/orderUtils'
 
 const ReceiptModal = ({ order }) => {
+  // Get the correct order status display
+  const orderStatus = getOrderStatusDisplay(order)
 
 
   const formatDate = (date) => {
@@ -21,7 +24,7 @@ const ReceiptModal = ({ order }) => {
   }
 
   const getTotalItems = () => {
-    return Object.values(order.items).reduce((total, item) => total + item.quantity, 0)
+    return Object.keys(order.items || {}).length
   }
 
   const getTotalPrice = () => {
@@ -40,14 +43,12 @@ const ReceiptModal = ({ order }) => {
       {/* Receipt Card */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         {/* Receipt Header */}
-        <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-6 text-center">
+        <div className={`text-white p-6 text-center ${orderStatus.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : (orderStatus.color === 'green' ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-primary-500 to-primary-600')}`}>
           <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <span className="text-3xl">{orderStatus.icon}</span>
           </div>
-          <h2 className="text-2xl font-bold mb-2">Payment Successful!</h2>
-          <p className="text-primary-100">Your order has been confirmed</p>
+          <h2 className="text-2xl font-bold mb-2">{orderStatus.status}</h2>
+          <p className={`${orderStatus.color === 'blue' ? 'text-blue-100' : (orderStatus.color === 'green' ? 'text-green-100' : 'text-primary-100')}`}>{orderStatus.description}</p>
         </div>
 
         {/* Receipt Content */}
@@ -84,37 +85,21 @@ const ReceiptModal = ({ order }) => {
           <div className="mb-6">
             <div className="flex items-center space-x-3 mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Order Details</h3>
-              <span className="bg-primary-100 text-primary-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                {getTotalItems()} {getTotalItems() === 1 ? 'item' : 'items'}
-              </span>
+                              <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${orderStatus.color === 'blue' ? 'bg-blue-100 text-blue-800' : (orderStatus.color === 'green' ? 'bg-green-100 text-green-800' : 'bg-primary-100 text-primary-800')}`}>
+                  {getTotalItems()} {getTotalItems() === 1 ? 'item' : 'items'}
+                </span>
             </div>
             <div className="space-y-3">
               {Object.entries(order.items || {}).map(([itemId, item]) => (
                 <div key={itemId} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      {item.image && item.image.startsWith('/') ? (
-                        <img 
-                          src={item.image} 
-                          alt={item.name}
-                          className="w-8 h-8 rounded object-cover"
-                          onError={(e) => {
-                            e.target.style.display = 'none'
-                            e.target.nextSibling.style.display = 'block'
-                          }}
-                        />
-                      ) : null}
-                      <span className="text-2xl" style={{ display: item.image && item.image.startsWith('/') ? 'none' : 'block' }}>
-                        {item.image || '🍽️'}
-                      </span>
-                      <div>
-                        <p className="font-medium text-gray-900">{item.name}</p>
-                        <div className="flex items-center space-x-2">
-                          <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                          {typeof item.price === 'number' && (
-                            <p className="text-xs text-gray-500">• ₹{item.price} each</p>
-                          )}
-                        </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{item.name}</p>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                        {typeof item.price === 'number' && (
+                          <p className="text-xs text-gray-500">• ₹{item.price} each</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -143,7 +128,7 @@ const ReceiptModal = ({ order }) => {
             )}
             <div className="flex justify-between items-center">
               <span className="text-lg font-bold text-gray-900">Total Amount</span>
-              <span className="text-xl font-bold text-primary-600">
+              <span className={`text-xl font-bold ${orderStatus.color === 'blue' ? 'text-blue-600' : (orderStatus.color === 'green' ? 'text-green-600' : 'text-primary-600')}`}>
                 {getTotalPrice() > 0 ? `₹${getTotalPrice()}` : 'MRP Items Only'}
               </span>
             </div>
@@ -163,27 +148,11 @@ const ReceiptModal = ({ order }) => {
             </div>
           </div>
 
-          {/* Payment Method */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Payment Method</h3>
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-semibold text-green-800">UPI Payment</p>
-                  <p className="text-sm text-green-600">Q629741098@ybl</p>
-                </div>
-              </div>
-            </div>
-          </div>
+
 
           {/* Thank You Message */}
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 ${orderStatus.color === 'blue' ? 'bg-blue-100' : (orderStatus.color === 'green' ? 'bg-green-100' : 'bg-primary-100')}`}>
               <span className="text-2xl">🍛</span>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Thank You!</h3>
@@ -192,7 +161,7 @@ const ReceiptModal = ({ order }) => {
 
           {/* Card Footer - Scrolling Ticker */}
           <div className="overflow-hidden -mx-6 -mb-6">
-            <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white py-2">
+            <div className={`text-white py-2 ${orderStatus.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : (orderStatus.color === 'green' ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-primary-500 to-primary-600')}`}>
               <div className="animate-marquee whitespace-nowrap">
                 <span className="inline-block px-4">
                   Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛

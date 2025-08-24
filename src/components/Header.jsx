@@ -76,22 +76,22 @@ const Header = ({ searchQuery, onSearchChange }) => {
                 </button>
                 
                 {/* Desktop: User Dropdown */}
-                <div className="hidden md:block absolute right-0 top-12 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
-                  {/* Order History Option */}
+                <div className="hidden md:block absolute right-0 top-12 w-64 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20">
+                  {/* My Orders Option */}
                   <button
                     onClick={() => {
                       navigate('/order-history')
                     }}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-t-lg transition-colors border-b border-gray-100"
+                    className="w-full flex items-start space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-t-lg transition-colors border-b border-gray-100"
                   >
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                       <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <span className="font-medium text-gray-900">Order History</span>
-                      <p className="text-xs text-gray-500">View your past orders</p>
+                      <span className="font-medium text-gray-900">My Orders</span>
+                      <p className="text-xs text-gray-500">Track your current and past orders</p>
                     </div>
                   </button>
                   
@@ -164,7 +164,7 @@ const Header = ({ searchQuery, onSearchChange }) => {
               {/* Drawer Content */}
               <div className="flex-1 px-4 py-3">
                 <div className="space-y-3">
-                  {/* Order History Option */}
+                  {/* My Orders Option */}
                   <button
                     onClick={() => {
                       navigate('/order-history')
@@ -178,8 +178,8 @@ const Header = ({ searchQuery, onSearchChange }) => {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <span className="font-semibold text-gray-900">Order History</span>
-                      <p className="text-sm text-gray-500 mt-1">View your past orders</p>
+                      <span className="font-semibold text-gray-900">My Orders</span>
+                      <p className="text-sm text-gray-500 mt-1">Track your current and past orders</p>
                     </div>
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
