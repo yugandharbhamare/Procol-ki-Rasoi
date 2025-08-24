@@ -12,6 +12,7 @@ export default function StaffDashboard() {
     pendingOrders, 
     acceptedOrders, 
     completedOrders,
+    cancelledOrders,
     loading, 
     error,
     getOrderCounts 
@@ -180,6 +181,22 @@ export default function StaffDashboard() {
               <span className="hidden sm:inline">Completed</span>
               <span className="sm:hidden">Done</span>
             </button>
+            <button
+              onClick={() => setActiveTab('cancelled')}
+              className={`pt-0 pb-2 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                activeTab === 'cancelled'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <span className="hidden sm:inline">Cancelled</span>
+              <span className="sm:hidden">Cancelled</span>
+              {orderCounts.cancelled > 0 && (
+                <span className="ml-1 sm:ml-2 bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs">
+                  {orderCounts.cancelled}
+                </span>
+              )}
+            </button>
 
           </nav>
         </div>
@@ -195,6 +212,7 @@ export default function StaffDashboard() {
               error={error} 
             />
           )}
+          {activeTab === 'cancelled' && renderOrders(cancelledOrders, 'cancelled')}
 
         </div>
       </div>

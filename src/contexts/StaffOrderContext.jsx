@@ -22,6 +22,7 @@ export const StaffOrderProvider = ({ children }) => {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [acceptedOrders, setAcceptedOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
+  const [cancelledOrders, setCancelledOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -44,16 +45,19 @@ export const StaffOrderProvider = ({ children }) => {
           const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
           const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
           const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
+          const cancelled = orders.filter(order => order.status === ORDER_STATUS.CANCELLED);
           
           console.log('StaffOrderProvider: Filtered orders:', {
             pending: pending.length,
             accepted: accepted.length,
-            completed: completed.length
+            completed: completed.length,
+            cancelled: cancelled.length
           });
           
           setPendingOrders(pending);
           setAcceptedOrders(accepted);
           setCompletedOrders(completed);
+          setCancelledOrders(cancelled);
         } else {
           console.error('StaffOrderProvider: Failed to load orders:', result.error);
           setError(result.error);
@@ -88,10 +92,12 @@ export const StaffOrderProvider = ({ children }) => {
             const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
             const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
             const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
+            const cancelled = orders.filter(order => order.status === ORDER_STATUS.CANCELLED);
             
             setPendingOrders(pending);
             setAcceptedOrders(accepted);
             setCompletedOrders(completed);
+            setCancelledOrders(cancelled);
           }
         } catch (error) {
           console.error('StaffOrderProvider: Error refreshing orders:', error);
@@ -161,6 +167,7 @@ export const StaffOrderProvider = ({ children }) => {
       pending: pendingOrders.length,
       accepted: acceptedOrders.length,
       completed: completedOrders.length,
+      cancelled: cancelledOrders.length,
       total: pendingOrders.length + acceptedOrders.length
     };
   };
@@ -169,6 +176,7 @@ export const StaffOrderProvider = ({ children }) => {
     pendingOrders,
     acceptedOrders,
     completedOrders,
+    cancelledOrders,
     loading,
     error,
     acceptOrder,
