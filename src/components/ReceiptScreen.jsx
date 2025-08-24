@@ -73,12 +73,12 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
         {/* Receipt Card */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           {/* Receipt Header */}
-          <div className={`text-white p-6 text-center ${orderStatus.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : (orderStatus.color === 'green' ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-primary-500 to-primary-600')}`}>
+          <div className={`text-white p-6 text-center ${orderStatus.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : (orderStatus.color === 'green' ? 'bg-gradient-to-r from-green-500 to-green-600' : (orderStatus.color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-primary-500 to-primary-600'))}`}>
             <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">{orderStatus.icon}</span>
             </div>
             <h2 className="text-2xl font-bold mb-2">{orderStatus.status}</h2>
-            <p className={`${orderStatus.color === 'blue' ? 'text-blue-100' : (orderStatus.color === 'green' ? 'text-green-100' : 'text-primary-100')}`}>{orderStatus.description}</p>
+            <p className={`${orderStatus.color === 'blue' ? 'text-blue-100' : (orderStatus.color === 'green' ? 'text-green-100' : (orderStatus.color === 'red' ? 'text-red-100' : 'text-primary-100'))}`}>{orderStatus.description}</p>
           </div>
 
           {/* Receipt Content */}
@@ -117,7 +117,7 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
             <div className="mb-6">
               <div className="flex items-center space-x-3 mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Order Details</h3>
-                <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${orderStatus.color === 'blue' ? 'bg-blue-100 text-blue-800' : (orderStatus.color === 'green' ? 'bg-green-100 text-green-800' : 'bg-primary-100 text-primary-800')}`}>
+                <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${orderStatus.color === 'blue' ? 'bg-blue-100 text-blue-800' : (orderStatus.color === 'green' ? 'bg-green-100 text-green-800' : (orderStatus.color === 'red' ? 'bg-red-100 text-red-800' : 'bg-primary-100 text-primary-800'))}`}>
                   {getTotalItems()} {getTotalItems() === 1 ? 'item' : 'items'}
                 </span>
               </div>
@@ -160,7 +160,7 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
               )}
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-gray-900">Total Amount</span>
-                              <span className={`text-xl font-bold ${orderStatus.color === 'blue' ? 'text-blue-600' : (orderStatus.color === 'green' ? 'text-green-600' : 'text-primary-600')}`}>
+                              <span className={`text-xl font-bold ${orderStatus.color === 'blue' ? 'text-blue-600' : (orderStatus.color === 'green' ? 'text-green-600' : (orderStatus.color === 'red' ? 'text-red-600' : 'text-primary-600'))}`}>
                 {getTotalPrice() > 0 ? `₹${getTotalPrice()}` : 'MRP Items Only'}
               </span>
               </div>
@@ -184,7 +184,7 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
 
             {/* Thank You Message */}
             <div className="text-center mb-6">
-                          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 ${orderStatus.color === 'blue' ? 'bg-blue-100' : (orderStatus.color === 'green' ? 'bg-green-100' : 'bg-primary-100')}`}>
+                          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 ${orderStatus.color === 'blue' ? 'bg-blue-100' : (orderStatus.color === 'green' ? 'bg-green-100' : (orderStatus.color === 'red' ? 'bg-red-100' : 'bg-primary-100'))}`}>
               <span className="text-2xl">🍛</span>
             </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Thank You!</h3>
@@ -202,7 +202,7 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
 
             {/* Card Footer - Scrolling Ticker */}
             <div className="overflow-hidden -mx-6 -mb-6">
-              <div className={`text-white py-2 ${orderStatus.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : (orderStatus.color === 'green' ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-primary-500 to-primary-600')}`}>
+              <div className={`text-white py-2 ${orderStatus.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : (orderStatus.color === 'green' ? 'bg-gradient-to-r from-green-500 to-green-600' : (orderStatus.color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-primary-500 to-primary-600'))}`}>
                 <div className="animate-marquee whitespace-nowrap">
                   <span className="inline-block px-4">
                     Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛 • Thank you for supporting Procol ki Rasoi 🍛
