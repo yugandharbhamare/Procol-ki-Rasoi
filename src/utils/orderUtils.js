@@ -126,17 +126,11 @@ export const getOrderStatusDisplay = (order) => {
           color: 'green',
           icon: '🎉'
         }
-      case 'rejected':
-        return {
-          status: 'Order Rejected',
-          description: 'Your order was rejected as payment was not confirmed by kitchen staff.',
-          color: 'red',
-          icon: '❌'
-        }
+
       case 'cancelled':
         return {
           status: 'Order Cancelled',
-          description: 'Your order has been cancelled.',
+          description: 'Your order was cancelled as payment was not confirmed by kitchen staff.',
           color: 'red',
           icon: '❌'
         }

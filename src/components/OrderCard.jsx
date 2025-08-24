@@ -3,7 +3,7 @@ import { useStaffOrders } from '../contexts/StaffOrderContext';
 import { getDisplayOrderId, getDatabaseOrderId } from '../utils/orderUtils';
 
 export default function OrderCard({ order, status }) {
-  const { acceptOrder, completeOrder, rejectOrder, deleteOrder } = useStaffOrders();
+  const { acceptOrder, completeOrder, cancelOrder, deleteOrder } = useStaffOrders();
   const [loading, setLoading] = useState(false);
   const [actionSuccess, setActionSuccess] = useState(false);
 
@@ -73,10 +73,10 @@ export default function OrderCard({ order, status }) {
           result = await completeOrder(orderIdForUpdate);
           console.log(`OrderCard: completeOrder result:`, result);
           break;
-        case 'reject':
-          console.log(`OrderCard: Calling rejectOrder for order ${orderIdForUpdate}`);
-          result = await rejectOrder(orderIdForUpdate);
-          console.log(`OrderCard: rejectOrder result:`, result);
+        case 'cancel':
+          console.log(`OrderCard: Calling cancelOrder for order ${orderIdForUpdate}`);
+          result = await cancelOrder(orderIdForUpdate);
+          console.log(`OrderCard: cancelOrder result:`, result);
           break;
         case 'delete':
           console.log(`OrderCard: Calling deleteOrder for order ${orderIdForUpdate}`);
@@ -110,7 +110,7 @@ export default function OrderCard({ order, status }) {
         return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'accepted':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'rejected':
+      case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-200';
 
       default:
@@ -124,8 +124,8 @@ export default function OrderCard({ order, status }) {
         return 'Awaiting Confirmation';
       case 'accepted':
         return 'In Preparation';
-      case 'rejected':
-        return 'Payment Not Confirmed';
+      case 'cancelled':
+        return 'Order Cancelled';
 
       default:
         return status;
@@ -256,14 +256,14 @@ export default function OrderCard({ order, status }) {
               </div>
             </button>
             <button
-              onClick={() => handleAction('reject')}
+              onClick={() => handleAction('cancel')}
               className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg"
             >
               <div className="flex items-center justify-center">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Reject
+                Cancel
               </div>
             </button>
           </div>
@@ -282,7 +282,7 @@ export default function OrderCard({ order, status }) {
             </div>
           </button>
         );
-      case 'rejected':
+      case 'cancelled':
         return (
           <div className="flex space-x-2">
             <button

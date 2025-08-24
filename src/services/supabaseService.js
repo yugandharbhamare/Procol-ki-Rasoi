@@ -480,7 +480,6 @@ export const ORDER_STATUS = {
   PENDING: 'pending',
   ACCEPTED: 'accepted',
   COMPLETED: 'completed',
-  REJECTED: 'rejected',
   CANCELLED: 'cancelled'
 }
 

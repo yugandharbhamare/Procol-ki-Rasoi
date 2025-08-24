@@ -22,7 +22,6 @@ export const StaffOrderProvider = ({ children }) => {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [acceptedOrders, setAcceptedOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
-  const [rejectedOrders, setRejectedOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -45,19 +44,16 @@ export const StaffOrderProvider = ({ children }) => {
           const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
           const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
           const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
-          const rejected = orders.filter(order => order.status === ORDER_STATUS.REJECTED);
           
           console.log('StaffOrderProvider: Filtered orders:', {
             pending: pending.length,
             accepted: accepted.length,
-            completed: completed.length,
-            rejected: rejected.length
+            completed: completed.length
           });
           
           setPendingOrders(pending);
           setAcceptedOrders(accepted);
           setCompletedOrders(completed);
-          setRejectedOrders(rejected);
         } else {
           console.error('StaffOrderProvider: Failed to load orders:', result.error);
           setError(result.error);
@@ -92,12 +88,10 @@ export const StaffOrderProvider = ({ children }) => {
             const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
             const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
             const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
-            const rejected = orders.filter(order => order.status === ORDER_STATUS.REJECTED);
             
             setPendingOrders(pending);
             setAcceptedOrders(accepted);
             setCompletedOrders(completed);
-            setRejectedOrders(rejected);
           }
         } catch (error) {
           console.error('StaffOrderProvider: Error refreshing orders:', error);
@@ -139,18 +133,18 @@ export const StaffOrderProvider = ({ children }) => {
     }
   };
 
-  // Reject order (payment not confirmed)
-  const rejectOrder = async (orderId) => {
+  // Cancel order (payment not confirmed or order rejected)
+  const cancelOrder = async (orderId) => {
     try {
-      const result = await updateOrderStatus(orderId, ORDER_STATUS.REJECTED);
+      const result = await updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
       return result;
     } catch (error) {
-      console.error('Error rejecting order:', error);
+      console.error('Error cancelling order:', error);
       return { success: false, error: error.message };
     }
   };
 
-  // Delete order (permanently remove from rejected orders)
+  // Delete order (permanently remove from cancelled orders)
   const deleteOrder = async (orderId) => {
     try {
       const result = await updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
@@ -167,7 +161,6 @@ export const StaffOrderProvider = ({ children }) => {
       pending: pendingOrders.length,
       accepted: acceptedOrders.length,
       completed: completedOrders.length,
-      rejected: rejectedOrders.length,
       total: pendingOrders.length + acceptedOrders.length
     };
   };
@@ -176,12 +169,11 @@ export const StaffOrderProvider = ({ children }) => {
     pendingOrders,
     acceptedOrders,
     completedOrders,
-    rejectedOrders,
     loading,
     error,
     acceptOrder,
     completeOrder,
-    rejectOrder,
+    cancelOrder,
     deleteOrder,
     getOrderCounts
   };
