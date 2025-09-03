@@ -10,6 +10,17 @@ export default function OrderCard({ order, status }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Debug: Log order object structure
+  useEffect(() => {
+    console.log('OrderCard: Order object received:', {
+      id: order.id,
+      supabase_id: order.supabase_id,
+      custom_order_id: order.custom_order_id,
+      status: order.status,
+      order_amount: order.order_amount
+    });
+  }, [order]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
