@@ -34,7 +34,26 @@ export const getDisplayOrderId = (order) => {
  * @returns {string} - The database order ID
  */
 export const getDatabaseOrderId = (order) => {
-  return order.supabase_id || order.id || null;
+  // For database operations, we need the actual Supabase UUID
+  // The order object should have supabase_id for the UUID and id for display
+  if (order.supabase_id) {
+    return order.supabase_id; // This is the actual UUID for database operations
+  }
+  
+  // If no supabase_id, check if the current id is a UUID
+  if (order.id && isSupabaseUUID(order.id)) {
+    return order.id; // This is already a UUID
+  }
+  
+  // If we have a custom order ID, we need to find the UUID
+  // This should not happen in normal flow, but log it for debugging
+  console.warn('getDatabaseOrderId: No valid UUID found for order:', {
+    id: order.id,
+    supabase_id: order.supabase_id,
+    custom_order_id: order.custom_order_id
+  });
+  
+  return null;
 };
 
 /**
