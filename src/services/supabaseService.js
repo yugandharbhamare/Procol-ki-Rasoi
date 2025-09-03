@@ -511,35 +511,40 @@ const isStaff = await isStaffMember()
 // Delete order permanently (staff only)
 export const deleteOrder = async (orderId) => {
   try {
-    console.log(`supabaseService: Deleting order ${orderId} permanently`)
+    console.log(`supabaseService: Deleting order ${orderId} permanently`);
+    console.log(`supabaseService: orderId type: ${typeof orderId}, value: ${orderId}`);
     
     // First delete order items (due to foreign key constraint)
+    console.log(`supabaseService: Deleting order items for order ${orderId}`);
     const { error: itemsError } = await supabase
       .from('order_items')
       .delete()
-      .eq('order_id', orderId)
+      .eq('order_id', orderId);
 
     if (itemsError) {
-      console.error('Error deleting order items:', itemsError)
-      throw itemsError
+      console.error('supabaseService: Error deleting order items:', itemsError);
+      throw itemsError;
     }
+    
+    console.log(`supabaseService: Successfully deleted order items for order ${orderId}`);
 
     // Then delete the order
+    console.log(`supabaseService: Deleting order ${orderId}`);
     const { error: orderError } = await supabase
       .from('orders')
       .delete()
-      .eq('id', orderId)
+      .eq('id', orderId);
 
     if (orderError) {
-      console.error('Error deleting order:', orderError)
-      throw orderError
+      console.error('supabaseService: Error deleting order:', orderError);
+      throw orderError;
     }
 
-    console.log(`supabaseService: Order ${orderId} deleted successfully`)
-    return { success: true }
+    console.log(`supabaseService: Order ${orderId} deleted successfully`);
+    return { success: true };
   } catch (error) {
-    console.error('Error deleting order:', error)
-    return { success: false, error: error.message }
+    console.error('supabaseService: Error deleting order:', error);
+    return { success: false, error: error.message };
   }
-}
+};
 

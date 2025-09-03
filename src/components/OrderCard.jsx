@@ -125,7 +125,22 @@ export default function OrderCard({ order, status }) {
   // Handle delete confirmation
   const handleDeleteConfirm = async () => {
     try {
+      console.log('OrderCard: handleDeleteConfirm called with order:', order);
+      
       const orderIdForUpdate = getDatabaseOrderId(order);
+      console.log(`OrderCard: getDatabaseOrderId returned: ${orderIdForUpdate}`);
+      console.log(`OrderCard: order object structure:`, {
+        id: order.id,
+        supabase_id: order.supabase_id,
+        custom_order_id: order.custom_order_id
+      });
+      
+      if (!orderIdForUpdate) {
+        console.error('OrderCard: No valid order ID found for deletion');
+        alert('Error: Could not identify order for deletion');
+        return;
+      }
+      
       console.log(`OrderCard: Confirming delete for order ${orderIdForUpdate}`);
       
       const result = await deleteOrder(orderIdForUpdate);
