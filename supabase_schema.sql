@@ -70,6 +70,7 @@ CREATE INDEX idx_menu_items_name ON menu_items(name);
 -- ========================================
 -- TRIGGERS FOR UPDATED_AT
 -- ========================================
+-- Create updated_at trigger
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -77,6 +78,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql';
+
+-- Drop trigger if it already exists to prevent errors on re-run
+DROP TRIGGER IF EXISTS update_orders_updated_at ON orders;
 
 CREATE TRIGGER update_orders_updated_at 
     BEFORE UPDATE ON orders 
@@ -91,6 +95,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Drop trigger if it already exists to prevent errors on re-run
+DROP TRIGGER IF EXISTS update_menu_items_updated_at ON menu_items;
 
 CREATE TRIGGER update_menu_items_updated_at
     BEFORE UPDATE ON menu_items

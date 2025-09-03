@@ -1,5 +1,27 @@
--- Create menu_items table for Procol ki Rasoi
-CREATE TABLE IF NOT EXISTS menu_items (
+-- Clean Menu Migration Script for Procol ki Rasoi
+-- This script can be run multiple times safely
+
+-- ========================================
+-- 1. DROP EXISTING OBJECTS (if they exist)
+-- ========================================
+
+-- Drop triggers first
+DROP TRIGGER IF EXISTS update_menu_items_updated_at ON menu_items;
+
+-- Drop functions
+DROP FUNCTION IF EXISTS update_menu_items_updated_at();
+
+-- Drop views
+DROP VIEW IF EXISTS available_menu_items;
+
+-- Drop table (this will also drop indexes and RLS policies)
+DROP TABLE IF EXISTS menu_items CASCADE;
+
+-- ========================================
+-- 2. CREATE TABLE AND INDEXES
+-- ========================================
+
+CREATE TABLE menu_items (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
@@ -12,11 +34,14 @@ CREATE TABLE IF NOT EXISTS menu_items (
 );
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_menu_items_category ON menu_items(category);
-CREATE INDEX IF NOT EXISTS idx_menu_items_is_available ON menu_items(is_available);
-CREATE INDEX IF NOT EXISTS idx_menu_items_name ON menu_items(name);
+CREATE INDEX idx_menu_items_category ON menu_items(category);
+CREATE INDEX idx_menu_items_is_available ON menu_items(is_available);
+CREATE INDEX idx_menu_items_name ON menu_items(name);
 
--- Create updated_at trigger
+-- ========================================
+-- 3. CREATE TRIGGER FUNCTION AND TRIGGER
+-- ========================================
+
 CREATE OR REPLACE FUNCTION update_menu_items_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -25,18 +50,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Drop trigger if it already exists to prevent errors on re-run
-DROP TRIGGER IF EXISTS update_menu_items_updated_at ON menu_items;
-
 CREATE TRIGGER update_menu_items_updated_at
     BEFORE UPDATE ON menu_items
     FOR EACH ROW
     EXECUTE FUNCTION update_menu_items_updated_at();
 
--- Enable Row Level Security
+-- ========================================
+-- 4. ENABLE ROW LEVEL SECURITY
+-- ========================================
+
 ALTER TABLE menu_items ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies
+-- ========================================
+-- 5. CREATE RLS POLICIES
+-- ========================================
+
 -- Anyone can view available menu items
 CREATE POLICY "Anyone can view available menu items" ON menu_items
     FOR SELECT USING (is_available = true);
@@ -57,7 +85,10 @@ CREATE POLICY "Staff can update menu items" ON menu_items
 CREATE POLICY "Staff can delete menu items" ON menu_items
     FOR DELETE USING (true);
 
--- Insert all existing menu items from Menu.jsx (ORIGINAL VERSION ONLY)
+-- ========================================
+-- 6. INSERT ORIGINAL MENU ITEMS
+-- ========================================
+
 INSERT INTO menu_items (id, name, price, description, image, category) VALUES
 -- Hot Beverages
 (1, 'Ginger Chai', 10.00, 'Hot ginger tea with aromatic spices', '/optimized/Ginger Tea.png', 'Hot Beverages'),
@@ -116,6 +147,10 @@ INSERT INTO menu_items (id, name, price, description, image, category) VALUES
 (21, 'Saunf', 5.00, 'Fennel seeds for digestion', '/optimized/Sauf.png', 'Add-ons & Extras'),
 (34, 'Pass Pass', 2.00, 'Small candy for instant refreshment', '/optimized/Pass Pass.png', 'Add-ons & Extras');
 
+-- ========================================
+-- 7. FINAL SETUP
+-- ========================================
+
 -- Reset the sequence to continue from the highest ID
 SELECT setval('menu_items_id_seq', (SELECT MAX(id) FROM menu_items));
 
@@ -127,3 +162,14 @@ SELECT * FROM menu_items WHERE is_available = true;
 GRANT ALL ON menu_items TO authenticated;
 GRANT SELECT ON available_menu_items TO anon;
 GRANT SELECT ON available_menu_items TO authenticated;
+
+-- ========================================
+-- 8. VERIFICATION
+-- ========================================
+
+-- Verify the table was created successfully
+SELECT 
+    'Menu migration completed successfully!' as status,
+    COUNT(*) as total_items,
+    COUNT(DISTINCT category) as total_categories
+FROM menu_items;
