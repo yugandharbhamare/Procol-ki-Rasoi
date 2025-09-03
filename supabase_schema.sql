@@ -20,6 +20,7 @@ CREATE TABLE users (
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    custom_order_id VARCHAR(20) UNIQUE, -- Custom order ID like ORD123456
     status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'completed', 'cancelled')),
     order_amount DECIMAL(10,2) NOT NULL CHECK (order_amount >= 0),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -79,6 +80,22 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Function to generate custom order ID
+CREATE OR REPLACE FUNCTION generate_custom_order_id()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Generate ORD + 6 random digits
+    NEW.custom_order_id := 'ORD' || LPAD(FLOOR(RANDOM() * 900000 + 100000)::TEXT, 6, '0');
+    
+    -- Ensure uniqueness (retry if duplicate)
+    WHILE EXISTS (SELECT 1 FROM orders WHERE custom_order_id = NEW.custom_order_id) LOOP
+        NEW.custom_order_id := 'ORD' || LPAD(FLOOR(RANDOM() * 900000 + 100000)::TEXT, 6, '0');
+    END LOOP;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Drop trigger if it already exists to prevent errors on re-run
 DROP TRIGGER IF EXISTS update_orders_updated_at ON orders;
 
@@ -86,6 +103,14 @@ CREATE TRIGGER update_orders_updated_at
     BEFORE UPDATE ON orders 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Drop trigger if it already exists to prevent errors on re-run
+DROP TRIGGER IF EXISTS generate_custom_order_id_trigger ON orders;
+
+CREATE TRIGGER generate_custom_order_id_trigger
+    BEFORE INSERT ON orders
+    FOR EACH ROW
+    EXECUTE FUNCTION generate_custom_order_id();
 
 -- Menu items updated_at trigger
 CREATE OR REPLACE FUNCTION update_menu_items_updated_at()
