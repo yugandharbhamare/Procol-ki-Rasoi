@@ -10,9 +10,9 @@ echo "🔍 Checking Node.js version..."
 NODE_VERSION=$(node --version)
 echo "   Node.js: $NODE_VERSION"
 
-# Install dependencies
+# Install dependencies (including dev dependencies needed for build)
 echo "📦 Installing dependencies..."
-npm ci --only=production
+npm ci
 
 # Run the build
 echo "🔨 Running build process..."
