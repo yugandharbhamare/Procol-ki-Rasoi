@@ -4,12 +4,18 @@ import { isCustomOrderId } from '../utils/orderUtils'
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables')
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Service role client for user management (bypasses RLS)
+export const supabaseService = supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : supabase // Fallback to regular client if service key not available
 
 // ========================================
 // USER OPERATIONS
@@ -19,7 +25,8 @@ export const createUser = async (userData) => {
   try {
     console.log('🔧 createUser: Attempting to create user with data:', userData);
     
-    const { data, error } = await supabase
+    // Use service role client to bypass RLS for user creation
+    const { data, error } = await supabaseService
       .from('users')
       .upsert([userData], { onConflict: 'emailid' })
       .select()
