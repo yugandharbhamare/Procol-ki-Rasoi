@@ -65,11 +65,11 @@ ALTER TABLE menu_items ENABLE ROW LEVEL SECURITY;
 -- 5. CREATE RLS POLICIES
 -- ========================================
 
--- Anyone can view available menu items
-CREATE POLICY "Anyone can view available menu items" ON menu_items
-    FOR SELECT USING (is_available = true);
+-- Only authenticated users can view menu items
+CREATE POLICY "Authenticated users can view menu items" ON menu_items
+    FOR SELECT USING (auth.role() = 'authenticated');
 
--- Staff can view all menu items
+-- Staff can view all menu items (including unavailable ones)
 CREATE POLICY "Staff can view all menu items" ON menu_items
     FOR SELECT USING (true);
 
@@ -154,14 +154,8 @@ INSERT INTO menu_items (id, name, price, description, image, category) VALUES
 -- Reset the sequence to continue from the highest ID
 SELECT setval('menu_items_id_seq', (SELECT MAX(id) FROM menu_items));
 
--- Create a view for available menu items
-CREATE OR REPLACE VIEW available_menu_items AS
-SELECT * FROM menu_items WHERE is_available = true;
-
--- Grant permissions
+-- Grant permissions (only to authenticated users)
 GRANT ALL ON menu_items TO authenticated;
-GRANT SELECT ON available_menu_items TO anon;
-GRANT SELECT ON available_menu_items TO authenticated;
 
 -- ========================================
 -- 8. VERIFICATION

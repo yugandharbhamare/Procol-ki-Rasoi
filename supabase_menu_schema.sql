@@ -119,11 +119,5 @@ INSERT INTO menu_items (id, name, price, description, image, category) VALUES
 -- Reset the sequence to continue from the highest ID
 SELECT setval('menu_items_id_seq', (SELECT MAX(id) FROM menu_items));
 
--- Create a view for available menu items
-CREATE OR REPLACE VIEW available_menu_items AS
-SELECT * FROM menu_items WHERE is_available = true;
-
--- Grant permissions
+-- Grant permissions (only to authenticated users)
 GRANT ALL ON menu_items TO authenticated;
-GRANT SELECT ON available_menu_items TO anon;
-GRANT SELECT ON available_menu_items TO authenticated;

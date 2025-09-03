@@ -1,7 +1,7 @@
 import { supabase } from '../supabase/config';
 
 export const menuService = {
-  // Get all menu items
+  // Get all menu items (authenticated users only)
   async getAllMenuItems() {
     try {
       const { data, error } = await supabase
@@ -18,7 +18,7 @@ export const menuService = {
     }
   },
 
-  // Get available menu items only
+  // Get available menu items only (authenticated users only)
   async getAvailableMenuItems() {
     try {
       const { data, error } = await supabase
@@ -36,7 +36,7 @@ export const menuService = {
     }
   },
 
-  // Get menu items by category
+  // Get menu items by category (authenticated users only)
   async getMenuItemsByCategory(category) {
     try {
       const { data, error } = await supabase
@@ -54,7 +54,7 @@ export const menuService = {
     }
   },
 
-  // Get menu item by ID
+  // Get menu item by ID (authenticated users only)
   async getMenuItemById(id) {
     try {
       const { data, error } = await supabase
@@ -71,7 +71,7 @@ export const menuService = {
     }
   },
 
-  // Get all categories
+  // Get all categories (authenticated users only)
   async getCategories() {
     try {
       const { data, error } = await supabase
@@ -91,7 +91,7 @@ export const menuService = {
     }
   },
 
-  // Search menu items
+  // Search menu items (authenticated users only)
   async searchMenuItems(query) {
     try {
       const { data, error } = await supabase
