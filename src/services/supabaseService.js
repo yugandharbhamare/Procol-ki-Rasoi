@@ -17,16 +17,29 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export const createUser = async (userData) => {
   try {
+    console.log('🔧 createUser: Attempting to create user with data:', userData);
+    
     const { data, error } = await supabase
       .from('users')
       .upsert([userData], { onConflict: 'emailid' })
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('❌ createUser: Supabase error:', error);
+      throw error;
+    }
+    
+    console.log('✅ createUser: User created successfully:', data);
     return { success: true, user: data }
   } catch (error) {
-    console.error('Error creating user:', error)
+    console.error('❌ createUser: Error creating user:', error);
+    console.error('❌ createUser: Error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
     return { success: false, error: error.message }
   }
 }

@@ -76,9 +76,13 @@ export const AuthProvider = ({ children }) => {
   const syncUserToSupabase = async (firebaseUser) => {
     try {
       console.log('🔄 Syncing Firebase user to Supabase:', firebaseUser.uid);
+      console.log('📧 Firebase user email:', firebaseUser.email);
+      console.log('👤 Firebase user display name:', firebaseUser.displayName);
+      console.log('🖼️ Firebase user photo URL:', firebaseUser.photoURL);
       
       // Check if user already exists in Supabase by email
       const existingUser = await getUserByEmail(firebaseUser.email);
+      console.log('🔍 Existing user check result:', existingUser);
       
       if (existingUser.success && existingUser.user) {
         console.log('✅ User already exists in Supabase:', existingUser.user);
@@ -95,6 +99,7 @@ export const AuthProvider = ({ children }) => {
       
       console.log('📝 Creating new user in Supabase:', userData);
       const result = await createUser(userData);
+      console.log('📝 Create user result:', result);
       
       if (result.success) {
         console.log('✅ User created successfully in Supabase:', result.user);
@@ -105,6 +110,11 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('❌ Error syncing user to Supabase:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
       // Don't throw error here to avoid breaking the sign-in flow
       // The user can still use the app even if Supabase sync fails
     }
