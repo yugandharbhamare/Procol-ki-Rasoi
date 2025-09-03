@@ -8,12 +8,11 @@
   # Base directory (if your app is in a subdirectory)
   # base = ""
 
+# Environment variables that are expected during build
 [build.environment]
-  # Node.js version
-  NODE_VERSION = "18"
-  
-  # Set NPM_FLAGS to ensure clean installs
-  NPM_FLAGS = "--version"
+  # These are the environment variables that should be set in Netlify
+  # They will be available during the build process
+  NODE_VERSION = "18.19.0"
 
 # Redirect rules for SPA (Single Page Application)
 [[redirects]]

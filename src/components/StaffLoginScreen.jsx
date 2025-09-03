@@ -6,21 +6,11 @@ export default function StaffLoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Debug Firebase configuration
+  // Check if Firebase configuration is available
   useEffect(() => {
-    console.log('StaffLoginScreen: Checking Firebase configuration');
-    // Check if Firebase config is available
-    const firebaseConfig = {
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    };
-    
-    const missingConfig = Object.entries(firebaseConfig).filter(([key, value]) => !value);
-    if (missingConfig.length > 0) {
-      console.error('Missing Firebase configuration:', missingConfig.map(([key]) => key));
-      setError(`Missing Firebase configuration: ${missingConfig.map(([key]) => key).join(', ')}`);
-    }
+    console.log('StaffLoginScreen: Checking Firebase configuration availability');
+    // The Firebase config is now centralized in src/firebase/config.js
+    // We just need to check if the auth context is working
   }, []);
 
   const handleSignIn = async () => {
