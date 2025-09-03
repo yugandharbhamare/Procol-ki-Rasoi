@@ -4,7 +4,6 @@ import { isCustomOrderId } from '../utils/orderUtils'
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables')
@@ -12,41 +11,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Service role client for user management (bypasses RLS)
-export const supabaseService = supabaseServiceKey 
-  ? createClient(supabaseUrl, supabaseServiceKey)
-  : supabase // Fallback to regular client if service key not available
-
 // ========================================
 // USER OPERATIONS
 // ========================================
 
 export const createUser = async (userData) => {
   try {
-    console.log('🔧 createUser: Attempting to create user with data:', userData);
-    
-    // Use service role client to bypass RLS for user creation
-    const { data, error } = await supabaseService
+    const { data, error } = await supabase
       .from('users')
       .upsert([userData], { onConflict: 'emailid' })
       .select()
       .single()
 
-    if (error) {
-      console.error('❌ createUser: Supabase error:', error);
-      throw error;
-    }
-    
-    console.log('✅ createUser: User created successfully:', data);
+    if (error) throw error
     return { success: true, user: data }
   } catch (error) {
-    console.error('❌ createUser: Error creating user:', error);
-    console.error('❌ createUser: Error details:', {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint
-    });
+    console.error('Error creating user:', error)
     return { success: false, error: error.message }
   }
 }

@@ -12,7 +12,6 @@ CREATE TABLE users (
     name VARCHAR(255) NOT NULL,
     emailid VARCHAR(255) UNIQUE NOT NULL,
     photo_url VARCHAR(500), -- Google profile photo URL
-    firebase_uid VARCHAR(255), -- Firebase UID for reference
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

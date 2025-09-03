@@ -17,12 +17,15 @@ export default function OrderCard({ order, status }) {
       supabase_id: order.supabase_id,
       custom_order_id: order.custom_order_id,
       status: order.status,
-      order_amount: order.order_amount,
-      user: {
-        name: order.user?.name,
-        email: order.user?.email,
-        photoURL: order.user?.photoURL
-      }
+      order_amount: order.order_amount
+    });
+    
+    // Debug: Log user data specifically
+    console.log('OrderCard: User data:', {
+      name: order.user?.name,
+      email: order.user?.email,
+      photoURL: order.user?.photoURL,
+      hasPhoto: !!order.user?.photoURL
     });
   }, [order]);
 

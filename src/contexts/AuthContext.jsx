@@ -76,13 +76,9 @@ export const AuthProvider = ({ children }) => {
   const syncUserToSupabase = async (firebaseUser) => {
     try {
       console.log('🔄 Syncing Firebase user to Supabase:', firebaseUser.uid);
-      console.log('📧 Firebase user email:', firebaseUser.email);
-      console.log('👤 Firebase user display name:', firebaseUser.displayName);
-      console.log('🖼️ Firebase user photo URL:', firebaseUser.photoURL);
       
       // Check if user already exists in Supabase by email
       const existingUser = await getUserByEmail(firebaseUser.email);
-      console.log('🔍 Existing user check result:', existingUser);
       
       if (existingUser.success && existingUser.user) {
         console.log('✅ User already exists in Supabase:', existingUser.user);
@@ -99,7 +95,6 @@ export const AuthProvider = ({ children }) => {
       
       console.log('📝 Creating new user in Supabase:', userData);
       const result = await createUser(userData);
-      console.log('📝 Create user result:', result);
       
       if (result.success) {
         console.log('✅ User created successfully in Supabase:', result.user);
@@ -110,11 +105,6 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('❌ Error syncing user to Supabase:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        code: error.code,
-        stack: error.stack
-      });
       // Don't throw error here to avoid breaking the sign-in flow
       // The user can still use the app even if Supabase sync fails
     }
@@ -136,23 +126,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     console.log('👂 Setting up Firebase auth listener...');
     
-    // Debug: Check Firebase configuration
-    console.log('🔍 Firebase Config Check:', {
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY?.substring(0, 10) + '...',
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-      hasApiKey: !!import.meta.env.VITE_FIREBASE_API_KEY,
-      hasAuthDomain: !!import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      hasProjectId: !!import.meta.env.VITE_FIREBASE_PROJECT_ID
-    });
-    
-    // Debug: Check if Firebase auth is properly initialized
-    console.log('🔍 Firebase Auth Check:', {
-      auth: !!auth,
-      authProvider: !!auth?.currentUser,
-      authState: auth?.currentUser?.uid
-    });
-    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         console.log('👤 User signed in:', user.email);
@@ -162,7 +135,7 @@ export const AuthProvider = ({ children }) => {
           email: user.email,
           displayName: user.displayName,
           firstName: user.displayName?.split(' ')[0] || '',
-          lastName: user.displayName?.slice(1).join(' ') || '',
+          lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
           photoURL: user.photoURL
         };
         
