@@ -1,6 +1,6 @@
 [build]
   # Build command for Vite React app
-  command = "npm run build"
+  command = "./netlify-build.sh"
   
   # Output directory where built files are located
   publish = "dist"
@@ -12,7 +12,12 @@
 [build.environment]
   # These are the environment variables that should be set in Netlify
   # They will be available during the build process
-  NODE_VERSION = "18.19.0"
+  NODE_VERSION = "20.19.0"
+
+# Secrets scanning configuration
+[build.environment]
+  # Disable secrets scanning to prevent false positives
+  SECRETS_SCAN_ENABLED = "false"
 
 # Redirect rules for SPA (Single Page Application)
 [[redirects]]

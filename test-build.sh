@@ -8,6 +8,23 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
+# Check Node.js version
+echo "🔍 Checking Node.js version..."
+NODE_VERSION=$(node --version)
+NPM_VERSION=$(npm --version)
+echo "   Node.js: $NODE_VERSION"
+echo "   npm: $NPM_VERSION"
+
+# Check if Node.js version meets requirements
+NODE_MAJOR=$(echo $NODE_VERSION | sed 's/v//' | cut -d. -f1)
+if [ "$NODE_MAJOR" -lt 20 ]; then
+    echo "❌ Error: Node.js 20+ is required. Current version: $NODE_VERSION"
+    echo "   Please update Node.js to version 20 or higher."
+    exit 1
+else
+    echo "✅ Node.js version meets requirements"
+fi
+
 # Check if .env file exists
 if [ ! -f ".env" ]; then
     echo "⚠️  Warning: .env file not found. Build may fail due to missing environment variables."
