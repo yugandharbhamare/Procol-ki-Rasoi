@@ -17,7 +17,12 @@ export default function OrderCard({ order, status }) {
       supabase_id: order.supabase_id,
       custom_order_id: order.custom_order_id,
       status: order.status,
-      order_amount: order.order_amount
+      order_amount: order.order_amount,
+      user: {
+        name: order.user?.name,
+        email: order.user?.email,
+        photoURL: order.user?.photoURL
+      }
     });
   }, [order]);
 
@@ -361,8 +366,12 @@ export default function OrderCard({ order, status }) {
                     alt={order.user?.name || 'User'} 
                     className="w-full h-full object-cover"
                     onError={(e) => {
+                      // Hide the image and show initials when photo fails to load
                       e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
+                      const initialsDiv = e.target.nextElementSibling;
+                      if (initialsDiv) {
+                        initialsDiv.style.display = 'flex';
+                      }
                     }}
                   />
                 ) : null}
