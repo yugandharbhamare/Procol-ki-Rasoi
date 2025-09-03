@@ -71,7 +71,7 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
 
       {/* Main Content - Centered */}
       <div className="flex-1 flex items-center justify-center px-4 py-6">
-        <div className="w-full max-w-md mx-auto">
+        <div className="w-auto mx-auto">
           {/* Receipt Card */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             {/* Receipt Header */}
