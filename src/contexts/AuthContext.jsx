@@ -136,6 +136,23 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     console.log('👂 Setting up Firebase auth listener...');
     
+    // Debug: Check Firebase configuration
+    console.log('🔍 Firebase Config Check:', {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY?.substring(0, 10) + '...',
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      hasApiKey: !!import.meta.env.VITE_FIREBASE_API_KEY,
+      hasAuthDomain: !!import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      hasProjectId: !!import.meta.env.VITE_FIREBASE_PROJECT_ID
+    });
+    
+    // Debug: Check if Firebase auth is properly initialized
+    console.log('🔍 Firebase Auth Check:', {
+      auth: !!auth,
+      authProvider: !!auth?.currentUser,
+      authState: auth?.currentUser?.uid
+    });
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         console.log('👤 User signed in:', user.email);
@@ -145,7 +162,7 @@ export const AuthProvider = ({ children }) => {
           email: user.email,
           displayName: user.displayName,
           firstName: user.displayName?.split(' ')[0] || '',
-          lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+          lastName: user.displayName?.slice(1).join(' ') || '',
           photoURL: user.photoURL
         };
         
