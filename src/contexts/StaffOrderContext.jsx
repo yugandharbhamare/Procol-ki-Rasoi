@@ -3,6 +3,7 @@ import {
   getAllOrders, 
   updateOrderStatus, 
   subscribeToOrders,
+  deleteOrder as deleteOrderFromDB,
   ORDER_STATUS 
 } from '../services/supabaseService';
 
@@ -160,11 +161,24 @@ export const StaffOrderProvider = ({ children }) => {
 
   // Delete order (permanently remove from cancelled orders)
   const deleteOrder = async (orderId) => {
+    console.log(`StaffOrderContext: deleteOrder called for order ${orderId}`);
     try {
-      const result = await updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
+      const result = await deleteOrderFromDB(orderId);
+      console.log(`StaffOrderContext: deleteOrder result:`, result);
+      
+      if (result.success) {
+        // Remove the order from all state arrays
+        setPendingOrders(prev => prev.filter(order => order.id !== orderId));
+        setAcceptedOrders(prev => prev.filter(order => order.id !== orderId));
+        setCompletedOrders(prev => prev.filter(order => order.id !== orderId));
+        setCancelledOrders(prev => prev.filter(order => order.id !== orderId));
+        
+        console.log(`StaffOrderContext: Order ${orderId} removed from all state arrays`);
+      }
+      
       return result;
     } catch (error) {
-      console.error('Error deleting order:', error);
+      console.error('StaffOrderContext: Error deleting order:', error);
       return { success: false, error: error.message };
     }
   };
