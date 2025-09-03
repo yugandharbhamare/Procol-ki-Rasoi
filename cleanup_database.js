@@ -243,6 +243,117 @@ async function recalculateOrderAmounts() {
   }
 }
 
+// Function to fix foreign key constraint violations
+async function fixForeignKeyConstraints() {
+  console.log('🔧 Fixing foreign key constraints...');
+  
+  try {
+    // Check if users table exists
+    const { data: tableCheck, error: tableError } = await supabase
+      .from('users')
+      .select('count')
+      .limit(1);
+    
+    if (tableError) {
+      console.log('   Users table does not exist, creating it...');
+      
+      // Create users table
+      const { error: createError } = await supabase.rpc('create_users_table');
+      
+      if (createError) {
+        console.log('   Using direct SQL approach...');
+        // If RPC doesn't exist, we'll handle it differently
+        return false;
+      }
+    }
+    
+    // Get all orders with user_id
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('user_id, created_at')
+      .not('user_id', 'is', null);
+    
+    if (ordersError) {
+      console.error('   ❌ Error fetching orders:', ordersError);
+      return false;
+    }
+    
+    if (!orders || orders.length === 0) {
+      console.log('   ✅ No orders with user_id found');
+      return true;
+    }
+    
+    console.log(`   Found ${orders.length} orders with user_id`);
+    
+    // Create users for each unique user_id
+    const uniqueUserIds = [...new Set(orders.map(o => o.user_id))];
+    console.log(`   Creating ${uniqueUserIds.length} users...`);
+    
+    let createdCount = 0;
+    
+    for (const userId of uniqueUserIds) {
+      const userData = {
+        id: userId,
+        name: `User ${userId.substring(0, 8)}`,
+        emailid: `user_${userId.substring(0, 8)}@procol-ki-rasoi.com`,
+        photo_url: null,
+        firebase_uid: null,
+        created_at: new Date().toISOString()
+      };
+      
+      const { error: insertError } = await supabase
+        .from('users')
+        .upsert([userData], { onConflict: 'id' });
+      
+      if (insertError) {
+        console.error(`   ❌ Error creating user ${userId}:`, insertError);
+      } else {
+        createdCount++;
+      }
+    }
+    
+    console.log(`   ✅ Created ${createdCount} users`);
+    
+    // Create system user for any orders without user_id
+    const systemUser = {
+      id: '00000000-0000-0000-0000-000000000000',
+      name: 'System User',
+      emailid: 'system@procol-ki-rasoi.com',
+      photo_url: null,
+      firebase_uid: null,
+      created_at: new Date().toISOString()
+    };
+    
+    const { error: systemError } = await supabase
+      .from('users')
+      .upsert([systemUser], { onConflict: 'id' });
+    
+    if (systemError) {
+      console.error('   ❌ Error creating system user:', systemError);
+    } else {
+      console.log('   ✅ System user created/updated');
+    }
+    
+    // Update orders without user_id to use system user
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({ user_id: '00000000-0000-0000-0000-000000000000' })
+      .is('user_id', null);
+    
+    if (updateError) {
+      console.error('   ❌ Error updating orders:', updateError);
+    } else {
+      console.log('   ✅ Orders without user_id updated');
+    }
+    
+    return true;
+    
+  } catch (error) {
+    console.error('   ❌ Error fixing foreign key constraints:', error);
+    return false;
+  }
+}
+
 // Main cleanup function
 async function cleanupDatabase() {
   console.log('🚀 Starting Database Cleanup...\n');
@@ -258,16 +369,19 @@ async function cleanupDatabase() {
     // Fix issues step by step
     console.log('🔧 Starting fixes...\n');
     
-    // Step 1: Fix custom_order_id
+    // Step 1: Fix foreign key constraints FIRST
+    await fixForeignKeyConstraints();
+    
+    // Step 2: Fix custom_order_id
     await fixCustomOrderIds();
     
-    // Step 2: Fix status
+    // Step 3: Fix status
     await fixStatus();
     
-    // Step 3: Fix order items
+    // Step 4: Fix order items
     await fixOrderItems();
     
-    // Step 4: Recalculate amounts
+    // Step 5: Recalculate amounts
     await recalculateOrderAmounts();
     
     console.log('\n✅ Cleanup completed!');
