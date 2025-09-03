@@ -13,9 +13,7 @@
   # These are the environment variables that should be set in Netlify
   # They will be available during the build process
   NODE_VERSION = "20.19.0"
-
-# Secrets scanning configuration
-[build.environment]
+  
   # Disable secrets scanning to prevent false positives
   SECRETS_SCAN_ENABLED = "false"
 
