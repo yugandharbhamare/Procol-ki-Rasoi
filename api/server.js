@@ -5,7 +5,6 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const { syncUsersFromOrders, getUserCount, addTestUser } = require('./firebase-sync.js');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -25,84 +24,50 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Firebase to Supabase user sync endpoint
-app.post('/api/sync-users', async (req, res) => {
-  try {
-    console.log('🔄 User sync requested via API');
-    
-    const result = await syncUsersFromOrders();
-    
-    if (result.success) {
-      res.json({
-        success: true,
-        message: result.message,
-        total: result.total,
-        successCount: result.successCount,
-        errorCount: result.errorCount
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: result.error
-      });
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Procol ki Rasoi API Server',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      orders: '/api/orders',
+      menu: '/api/menu'
     }
-  } catch (error) {
-    console.error('❌ API sync error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
+  });
 });
 
-// Get user count endpoint
-app.get('/api/user-count', async (req, res) => {
-  try {
-    const result = await getUserCount();
-    
-    if (result.success) {
-      res.json({
-        success: true,
-        count: result.count
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: result.error
-      });
-    }
-  } catch (error) {
-    console.error('❌ API user count error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
+// Basic orders endpoint (placeholder)
+app.get('/api/orders', (req, res) => {
+  res.json({
+    message: 'Orders endpoint - implement when database is ready',
+    status: 'placeholder'
+  });
 });
 
-// Add test user endpoint
-app.post('/api/add-test-user', async (req, res) => {
-  try {
-    const result = await addTestUser();
-    
-    if (result.success) {
-      res.json({
-        success: true,
-        user: result.user
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: result.error
-      });
-    }
-  } catch (error) {
-    console.error('❌ API add test user error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
+// Basic menu endpoint (placeholder)
+app.get('/api/menu', (req, res) => {
+  res.json({
+    message: 'Menu endpoint - implement when database is ready',
+    status: 'placeholder'
+  });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Endpoint not found',
+    availableEndpoints: ['/health', '/api/orders', '/api/menu']
+  });
+});
+
+// Global error handler
+app.use((error, req, res, next) => {
+  console.error('❌ Server error:', error);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: error.message
+  });
 });
 
 // Start server
