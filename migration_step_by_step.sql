@@ -1,13 +1,22 @@
--- Migration script to update existing orders with missing columns and custom order IDs
--- This script only adds missing columns and functions, it doesn't recreate existing tables
+-- Step-by-step migration script for adding custom order IDs
+-- Run each section separately to avoid errors
 
--- 1. Add custom_order_id column to orders table (if it doesn't exist)
+-- ========================================
+-- STEP 1: Add the custom_order_id column
+-- ========================================
+-- Run this first:
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS custom_order_id VARCHAR(20);
 
--- 2. Create unique index on custom_order_id (if it doesn't exist)
+-- ========================================
+-- STEP 2: Create the unique index
+-- ========================================
+-- Run this after step 1:
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_custom_order_id ON orders(custom_order_id);
 
--- 3. Create the function to generate custom order IDs (if it doesn't exist)
+-- ========================================
+-- STEP 3: Create the function
+-- ========================================
+-- Run this after step 2:
 CREATE OR REPLACE FUNCTION generate_custom_order_id()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -23,7 +32,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 4. Drop the trigger if it exists and recreate it
+-- ========================================
+-- STEP 4: Create the trigger
+-- ========================================
+-- Run this after step 3:
 DROP TRIGGER IF EXISTS generate_custom_order_id_trigger ON orders;
 
 CREATE TRIGGER generate_custom_order_id_trigger
@@ -31,7 +43,10 @@ CREATE TRIGGER generate_custom_order_id_trigger
     FOR EACH ROW
     EXECUTE FUNCTION generate_custom_order_id();
 
--- 5. Generate custom order IDs for existing orders that don't have them
+-- ========================================
+-- STEP 5: Generate IDs for existing orders
+-- ========================================
+-- Run this after step 4:
 DO $$
 DECLARE
     order_record RECORD;
@@ -53,8 +68,22 @@ BEGIN
     END LOOP;
 END $$;
 
--- 6. Make custom_order_id NOT NULL after populating existing records
+-- ========================================
+-- STEP 6: Make the column NOT NULL
+-- ========================================
+-- Run this last, after step 5:
 ALTER TABLE orders ALTER COLUMN custom_order_id SET NOT NULL;
 
--- 7. Update existing orders to use the new structure
--- This will be handled by the application code when it fetches orders
+-- ========================================
+-- VERIFICATION: Check the results
+-- ========================================
+-- Run this to verify everything worked:
+SELECT 
+    id, 
+    custom_order_id, 
+    status, 
+    order_amount, 
+    created_at 
+FROM orders 
+ORDER BY created_at DESC 
+LIMIT 10;
