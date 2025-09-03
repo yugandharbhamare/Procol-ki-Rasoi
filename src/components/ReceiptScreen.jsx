@@ -51,9 +51,9 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
   const hasMRPItems = Object.values(normalizedOrder.items).some(item => typeof item.price !== 'number')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex flex-col">
+    <div className="receipt-screen-container min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+      <div className="receipt-header bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
@@ -70,12 +70,12 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
       </div>
 
       {/* Main Content - Centered */}
-      <div className="flex-1 flex items-center justify-center px-4 py-6">
-        <div className="w-full max-w-[400px]">
+      <div className="receipt-main-content flex-1 flex items-center justify-center px-4 py-6">
+        <div className="receipt-wrapper w-full max-w-[400px]">
           {/* Receipt Card */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="receipt-card bg-white rounded-2xl shadow-lg overflow-hidden">
             {/* Receipt Header */}
-            <div className={`text-white p-6 text-center ${orderStatus.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : (orderStatus.color === 'green' ? 'bg-gradient-to-r from-green-500 to-green-600' : (orderStatus.color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-primary-500 to-primary-600'))}`}>
+            <div className={`receipt-header-section text-white p-6 text-center ${orderStatus.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : (orderStatus.color === 'green' ? 'bg-gradient-to-r from-green-500 to-green-600' : (orderStatus.color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-primary-500 to-primary-600'))}`}>
               <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">{orderStatus.icon}</span>
               </div>
@@ -84,7 +84,7 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
             </div>
 
             {/* Receipt Content */}
-            <div className="p-6">
+            <div className="receipt-content p-6">
               {/* Order Info */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
@@ -222,6 +222,28 @@ const ReceiptScreen = ({ order, onNewOrder }) => {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .receipt-screen-container {
+          width: 100% !important;
+          max-width: none !important;
+        }
+        
+        .receipt-main-content {
+          width: 100% !important;
+          max-width: none !important;
+        }
+        
+        .receipt-wrapper {
+          width: 100% !important;
+          max-width: 400px !important;
+        }
+        
+        .receipt-card {
+          width: 100% !important;
+          max-width: 400px !important;
+        }
+      `}</style>
     </div>
   )
 }

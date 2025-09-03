@@ -5,6 +5,8 @@
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900;
+    width: auto !important;
+    max-width: none !important;
   }
 }
 
@@ -19,6 +21,27 @@
   
   .card {
     @apply bg-white rounded-lg shadow-sm border border-gray-200;
+  }
+  
+  /* Receipt Screen Specific Styles */
+  .receipt-screen-container {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  .receipt-main-content {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  .receipt-wrapper {
+    width: 100% !important;
+    max-width: 400px !important;
+  }
+  
+  .receipt-card {
+    width: 100% !important;
+    max-width: 400px !important;
   }
 }
 
