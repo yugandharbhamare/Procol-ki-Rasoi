@@ -36,11 +36,25 @@ export const StaffOrderProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         
+        // Clear any cached data first
+        console.log('StaffOrderProvider: Clearing any cached order data');
+        setPendingOrders([]);
+        setAcceptedOrders([]);
+        setCompletedOrders([]);
+        setCancelledOrders([]);
+        
+        // Clear any localStorage data that might be interfering
+        console.log('StaffOrderProvider: Clearing localStorage data');
+        localStorage.removeItem('ordersToSync');
+        localStorage.removeItem('googleSheetsOrders');
+        localStorage.removeItem('googleSheetsOrdersConverted');
+        
         const result = await getAllOrders();
         console.log('StaffOrderProvider: Initial orders loaded:', result);
         
         if (result.success) {
           const orders = result.orders || [];
+          console.log('StaffOrderProvider: Raw orders from database:', orders);
           
           // Filter orders by status
           const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
@@ -48,17 +62,23 @@ export const StaffOrderProvider = ({ children }) => {
           const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
           const cancelled = orders.filter(order => order.status === ORDER_STATUS.CANCELLED);
           
-          console.log('StaffOrderProvider: Filtered orders:', {
+          console.log('StaffOrderProvider: Filtered orders from database:', {
             pending: pending.length,
             accepted: accepted.length,
             completed: completed.length,
-            cancelled: cancelled.length
+            cancelled: cancelled.length,
+            totalOrders: orders.length
           });
           
-          setPendingOrders(pending);
-          setAcceptedOrders(accepted);
-          setCompletedOrders(completed);
-          setCancelledOrders(cancelled);
+          // Only set orders if we have real data from database
+          if (orders.length > 0) {
+            setPendingOrders(pending);
+            setAcceptedOrders(accepted);
+            setCompletedOrders(completed);
+            setCancelledOrders(cancelled);
+          } else {
+            console.log('StaffOrderProvider: No orders found in database, keeping empty arrays');
+          }
         } else {
           console.error('StaffOrderProvider: Failed to load orders:', result.error);
           setError(result.error);
