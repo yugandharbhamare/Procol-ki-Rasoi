@@ -15,6 +15,7 @@ export const useOrders = () => {
 export const OrderProvider = ({ children }) => {
   const [completedOrders, setCompletedOrders] = useState([])
   const [supabaseOrderIds, setSupabaseOrderIds] = useState(new Set())
+  const [isSupabaseAvailable, setIsSupabaseAvailable] = useState(true)
 
   // Load completed orders from localStorage on component mount
   useEffect(() => {
@@ -55,7 +56,7 @@ export const OrderProvider = ({ children }) => {
     // Add to local state immediately for UI responsiveness
     setCompletedOrders(prev => [...prev, order])
 
-    // Create order in Supabase
+    // Try to create order in Supabase if available
     try {
       // Get user info from the order
       const user = order.user || {}
@@ -74,49 +75,75 @@ export const OrderProvider = ({ children }) => {
       } else {
         console.error('OrderContext: User not found in Supabase for email:', userEmail)
         console.error('OrderContext: User result:', userResult)
-        throw new Error('User not found in Supabase. Please sign in again.')
+        
+        // If Supabase is not available, continue with local storage only
+        if (userResult.error && userResult.error.includes('Supabase is not available')) {
+          console.warn('OrderContext: Supabase not available, storing order locally only')
+          setIsSupabaseAvailable(false)
+          
+          // Remove from processing set since we're not using Supabase
+          setSupabaseOrderIds(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(order.id)
+            return newSet
+          })
+          
+          // Continue with Google Sheets and local storage
+        } else {
+          throw new Error('User not found in Supabase. Please sign in again.')
+        }
       }
       
-      // Prepare order items for Supabase
-      const orderItems = Object.values(order.items || {}).map(item => ({
-        item_name: item.name,
-        quantity: item.quantity,
-        price: item.price
-      }))
+      // Only proceed with Supabase if we have a user ID
+      if (supabaseUserId) {
+        // Prepare order items for Supabase
+        const orderItems = Object.values(order.items || {}).map(item => ({
+          item_name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        }))
 
-      // Prepare order data for Supabase
-      const orderData = {
-        user_id: supabaseUserId, // Use Supabase user ID, not Firebase UID
-        user_name: user.displayName || user.firstName + ' ' + user.lastName || 'Unknown User',
-        user_email: userEmail,
-        user_photo_url: userPhotoURL,
-        order_amount: order.total || 0,
-        custom_order_id: order.id, // Use the simplified order ID (e.g., ORD123456)
-        status: 'pending', // Start as pending for staff approval
-        items: orderItems // Include items for order creation
-      }
-      
-      console.log('OrderContext: Order data prepared for Supabase:', orderData)
-      console.log('OrderContext: User name being sent:', orderData.user_name)
-      console.log('OrderContext: User email being sent:', orderData.user_email)
-      console.log('OrderContext: Supabase user ID being sent:', orderData.user_id)
-      
-      const supabaseResult = await createOrder(orderData)
-      
-      if (supabaseResult.success) {
-        console.log('OrderContext: Order successfully created in Supabase:', supabaseResult.order.id)
-        // Order is already tracked as being processed, no need to add again
-      } else {
-        console.error('OrderContext: Failed to create order in Supabase:', supabaseResult.error)
-        // Remove from processing set if failed
-        setSupabaseOrderIds(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(order.id)
-          return newSet
-        })
+        // Prepare order data for Supabase
+        const orderData = {
+          user_id: supabaseUserId, // Use Supabase user ID, not Firebase UID
+          user_name: user.displayName || user.firstName + ' ' + user.lastName || 'Unknown User',
+          user_email: userEmail,
+          user_photo_url: userPhotoURL,
+          order_amount: order.total || 0,
+          custom_order_id: order.id, // Use the simplified order ID (e.g., ORD123456)
+          status: 'pending', // Start as pending for staff approval
+          items: orderItems // Include items for order creation
+        }
+        
+        console.log('OrderContext: Order data prepared for Supabase:', orderData)
+        console.log('OrderContext: User name being sent:', orderData.user_name)
+        console.log('OrderContext: User email being sent:', orderData.user_email)
+        console.log('OrderContext: Supabase user ID being sent:', orderData.user_id)
+        
+        const supabaseResult = await createOrder(orderData)
+        
+        if (supabaseResult.success) {
+          console.log('OrderContext: Order successfully created in Supabase:', supabaseResult.order.id)
+          // Order is already tracked as being processed, no need to add again
+        } else {
+          console.error('OrderContext: Failed to create order in Supabase:', supabaseResult.error)
+          // Remove from processing set if failed
+          setSupabaseOrderIds(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(order.id)
+            return newSet
+          })
+        }
       }
     } catch (error) {
       console.error('OrderContext: Error creating order in Supabase:', error)
+      
+      // If it's a Supabase availability error, mark as unavailable
+      if (error.message && error.message.includes('Supabase is not available')) {
+        setIsSupabaseAvailable(false)
+        console.warn('OrderContext: Supabase marked as unavailable')
+      }
+      
       // Remove from processing set if failed
       setSupabaseOrderIds(prev => {
         const newSet = new Set(prev)
@@ -184,7 +211,8 @@ export const OrderProvider = ({ children }) => {
     addCompletedOrder,
     getCompletedOrders,
     syncFromGoogleSheets,
-    clearOrders
+    clearOrders,
+    isSupabaseAvailable
   }
 
   return (

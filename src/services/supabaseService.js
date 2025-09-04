@@ -5,11 +5,26 @@ import { isCustomOrderId } from '../utils/orderUtils'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+// Check if environment variables are set
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables')
+  console.error('❌ Missing Supabase environment variables:')
+  console.error('❌ VITE_SUPABASE_URL:', supabaseUrl ? '✅ Set' : '❌ Missing')
+  console.error('❌ VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing')
+  console.error('❌ Please create a .env file with your Supabase credentials')
+  console.error('❌ Order placement will fail until this is fixed')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Create Supabase client only if environment variables are available
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
+
+// Helper function to check if Supabase is available
+const checkSupabaseAvailability = () => {
+  if (!supabase) {
+    throw new Error('Supabase is not available. Please check your environment variables.')
+  }
+}
 
 // ========================================
 // USER OPERATIONS
@@ -17,6 +32,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export const createUser = async (userData) => {
   try {
+    checkSupabaseAvailability()
+    
     const { data, error } = await supabase
       .from('users')
       .upsert([userData], { onConflict: 'emailid' })
@@ -33,6 +50,8 @@ export const createUser = async (userData) => {
 
 export const getUser = async (userId) => {
   try {
+    checkSupabaseAvailability()
+    
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -55,6 +74,8 @@ export const getUser = async (userId) => {
 
 export const getUserByEmail = async (email) => {
   try {
+    checkSupabaseAvailability()
+    
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -77,6 +98,8 @@ export const getUserByEmail = async (email) => {
 
 export const updateUser = async (userId, updates) => {
   try {
+    checkSupabaseAvailability()
+    
     const { data, error } = await supabase
       .from('users')
       .update(updates)
@@ -98,6 +121,10 @@ export const updateUser = async (userId, updates) => {
 
 export const createOrder = async (orderData) => {
   try {
+    checkSupabaseAvailability()
+    
+    console.log('🔧 supabaseService: Creating order with data:', orderData)
+    
     // Check for recent duplicate orders (within last 5 minutes)
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     
@@ -134,6 +161,8 @@ export const createOrder = async (orderData) => {
 
     if (orderError) throw orderError
 
+    console.log('🔧 supabaseService: Order created successfully:', order)
+
     // Then, create the order items
     if (orderData.items && orderData.items.length > 0) {
       const orderItems = orderData.items.map(item => ({
@@ -143,11 +172,15 @@ export const createOrder = async (orderData) => {
         price: item.price
       }))
 
+      console.log('🔧 supabaseService: Creating order items:', orderItems)
+
       const { error: itemsError } = await supabase
         .from('order_items')
         .insert(orderItems)
 
       if (itemsError) throw itemsError
+      
+      console.log('🔧 supabaseService: Order items created successfully')
     }
 
     return { success: true, order }
