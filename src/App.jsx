@@ -201,6 +201,15 @@ function MenuPageContent() {
           </div>
         </div>
       </div>
+      
+      {/* Cart Summary - Fixed Bottom */}
+      <CartSummary
+        cart={cart}
+        updateQuantity={updateQuantity}
+        totalItems={getTotalItems()}
+        totalPrice={getTotalPrice()}
+        onPlaceOrder={placeOrder}
+      />
     </div>
   )
 }
