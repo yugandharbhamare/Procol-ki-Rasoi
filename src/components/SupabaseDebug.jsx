@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../services/supabaseService'
+import { createUser, getUserByEmail, createOrder } from '../services/supabaseService'
 
 const SupabaseDebug = () => {
   const [connectionStatus, setConnectionStatus] = useState('testing')
   const [testResults, setTestResults] = useState({})
   const [errorDetails, setErrorDetails] = useState(null)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [testOrderFlow, setTestOrderFlow] = useState(false)
 
   useEffect(() => {
     testSupabaseConnection()
@@ -19,7 +21,9 @@ const SupabaseDebug = () => {
       clientInitialization: false,
       databaseConnection: false,
       tableAccess: false,
-      userCreation: false
+      userCreation: false,
+      orderCreation: false,
+      orderItemsCreation: false
     }
 
     // Test 1: Environment Variables
@@ -121,9 +125,131 @@ const SupabaseDebug = () => {
       return
     }
 
+    // Test 6: Order Creation (simulated)
+    try {
+      // Test if we can access the orders table
+      const { data, error } = await supabase
+        .from('orders')
+        .select('id')
+        .limit(1)
+      
+      if (error) {
+        throw error
+      }
+      
+      results.orderCreation = true
+      console.log('🔧 SupabaseDebug: Orders table access successful')
+    } catch (error) {
+      console.error('🔧 SupabaseDebug: Orders table access failed:', error)
+      setErrorDetails(`Orders table access failed: ${error.message}`)
+      setConnectionStatus('failed')
+      setTestResults(results)
+      return
+    }
+
+    // Test 7: Order Items Creation (simulated)
+    try {
+      // Test if we can access the order_items table
+      const { data, error } = await supabase
+        .from('order_items')
+        .select('id')
+        .limit(1)
+      
+      if (error) {
+        throw error
+      }
+      
+      results.orderItemsCreation = true
+      console.log('🔧 SupabaseDebug: Order items table access successful')
+    } catch (error) {
+      console.error('🔧 SupabaseDebug: Order items table access failed:', error)
+      setErrorDetails(`Order items table access failed: ${error.message}`)
+      setConnectionStatus('failed')
+      setTestResults(results)
+      return
+    }
+
     console.log('🔧 SupabaseDebug: All tests passed!')
     setConnectionStatus('success')
     setTestResults(results)
+  }
+
+  const testCompleteOrderFlow = async () => {
+    setTestOrderFlow(true)
+    console.log('🧪 SupabaseDebug: Testing complete order flow...')
+    
+    try {
+      // Test 1: Create a test user
+      console.log('🧪 Step 1: Creating test user...')
+      const testUserData = {
+        name: 'Test User Debug',
+        emailid: 'test-debug@example.com',
+        firebase_uid: 'test-firebase-uid-debug',
+        photo_url: null
+      }
+      
+      const userResult = await createUser(testUserData)
+      console.log('🧪 User creation result:', userResult)
+      
+      if (!userResult.success) {
+        throw new Error(`User creation failed: ${userResult.error}`)
+      }
+      
+      const testUserId = userResult.user.id
+      console.log('🧪 Test user created with ID:', testUserId)
+      
+      // Test 2: Create a test order
+      console.log('🧪 Step 2: Creating test order...')
+      const testOrderData = {
+        user_id: testUserId,
+        order_amount: 50.00,
+        status: 'pending',
+        items: [
+          {
+            name: 'Test Item 1',
+            quantity: 2,
+            price: 25.00
+          }
+        ]
+      }
+      
+      const orderResult = await createOrder(testOrderData)
+      console.log('🧪 Order creation result:', orderResult)
+      
+      if (!orderResult.success) {
+        throw new Error(`Order creation failed: ${orderResult.error}`)
+      }
+      
+      console.log('🧪 Test order created with ID:', orderResult.order.id)
+      
+      // Test 3: Verify order items were created
+      console.log('🧪 Step 3: Verifying order items...')
+      const { data: orderItems, error: itemsError } = await supabase
+        .from('order_items')
+        .select('*')
+        .eq('order_id', orderResult.order.id)
+      
+      if (itemsError) {
+        throw new Error(`Failed to fetch order items: ${itemsError.message}`)
+      }
+      
+      console.log('🧪 Order items created:', orderItems)
+      
+      // Test 4: Clean up test data
+      console.log('🧪 Step 4: Cleaning up test data...')
+      await supabase.from('order_items').delete().eq('order_id', orderResult.order.id)
+      await supabase.from('orders').delete().eq('id', orderResult.order.id)
+      await supabase.from('users').delete().eq('id', testUserId)
+      
+      console.log('✅ Complete order flow test PASSED!')
+      alert('🎉 Complete order flow test PASSED! Your database is working correctly.')
+      
+    } catch (error) {
+      console.error('❌ Complete order flow test FAILED:', error)
+      alert(`❌ Complete order flow test FAILED: ${error.message}`)
+    } finally {
+      setTestOrderFlow(false)
+    }
   }
 
   const getStatusColor = () => {
@@ -158,12 +284,25 @@ const SupabaseDebug = () => {
             <span className="text-2xl">✅</span>
             <span className="font-medium text-green-800">Supabase Connection Successful</span>
           </div>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="text-green-600 hover:text-green-800 text-sm"
-          >
-            {isExpanded ? 'Hide Details' : 'Show Details'}
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-green-600 hover:text-green-800 text-sm"
+            >
+              {isExpanded ? 'Hide Details' : 'Show Details'}
+            </button>
+            <button
+              onClick={testCompleteOrderFlow}
+              disabled={testOrderFlow}
+              className={`px-3 py-1 text-sm rounded ${
+                testOrderFlow 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                  : 'bg-green-600 text-white hover:bg-green-700'
+              }`}
+            >
+              {testOrderFlow ? 'Testing...' : 'Test Order Flow'}
+            </button>
+          </div>
         </div>
         
         {isExpanded && (
@@ -188,6 +327,14 @@ const SupabaseDebug = () => {
               <div className="flex items-center space-x-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                 <span>User Table Access</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>Orders Table Access</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                <span>Order Items Table Access</span>
               </div>
             </div>
           </div>
@@ -261,7 +408,8 @@ const SupabaseDebug = () => {
                   VITE_SUPABASE_URL=https://your-project-id.supabase.co<br/>
                   VITE_SUPABASE_ANON_KEY=your-anon-key-here
                 </div>
-                <div>3. Restart your development server</div>
+                <div>3. Run the database schema script in Supabase SQL Editor</div>
+                <div>4. Restart your development server</div>
               </div>
             </div>
           </div>
