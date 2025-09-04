@@ -120,6 +120,23 @@ const OrderHistory = () => {
     }
   }, [user, completedOrders]);
 
+  // Check for receipt modal flag after orders are loaded
+  useEffect(() => {
+    if (userOrders.length > 0) {
+      const orderIdToShow = sessionStorage.getItem('showReceiptForOrder');
+      if (orderIdToShow) {
+        // Find the order with the matching ID
+        const orderToShow = userOrders.find(order => order.id === orderIdToShow);
+        if (orderToShow) {
+          console.log('OrderHistory: Auto-opening receipt for order:', orderIdToShow);
+          setSelectedOrder(orderToShow);
+        }
+        // Clear the flag
+        sessionStorage.removeItem('showReceiptForOrder');
+      }
+    }
+  }, [userOrders]);
+
   // Real-time subscription for order updates
   useEffect(() => {
     if (!user || !user.email) return;

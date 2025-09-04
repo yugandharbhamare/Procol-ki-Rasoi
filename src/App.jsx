@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import { OrderProvider, useOrders } from './contexts/OrderContext'
 import Header from './components/Header'
@@ -17,9 +17,9 @@ function MenuPageContent() {
   console.log('🔧 MenuPageContent: Component rendering...')
   const { user } = useAuth()
   const { addCompletedOrder, isSupabaseAvailable } = useOrders()
+  const navigate = useNavigate()
   const [cart, setCart] = useState({})
   const [showPayment, setShowPayment] = useState(false)
-  const [showReceipt, setShowReceipt] = useState(false)
   const [currentOrder, setCurrentOrder] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -117,24 +117,26 @@ function MenuPageContent() {
       try {
         await addCompletedOrder(completedOrder);
         console.log('🔧 MenuPageContent: Order successfully added to context');
+        
+        // Store the order ID in sessionStorage to open receipt modal on order history page
+        sessionStorage.setItem('showReceiptForOrder', completedOrder.id);
+        
+        // Clear cart and redirect to order history
+        setCart({});
+        setCurrentOrder(null);
+        setShowPayment(false);
+        
+        // Navigate to order history page
+        navigate('/orders');
       } catch (error) {
         console.error('🔧 MenuPageContent: Error adding order to context:', error);
       }
     }
-    
-    setShowPayment(false)
-    setShowReceipt(true)
   }
 
   const handlePaymentBack = () => {
     setShowPayment(false)
     setCurrentOrder(null)
-  }
-
-  const handleReceiptBack = () => {
-    setShowReceipt(false)
-    setCurrentOrder(null)
-    setCart({})
   }
 
   const handleSearch = (query) => {
@@ -148,16 +150,6 @@ function MenuPageContent() {
         order={currentOrder}
         onPaymentComplete={handlePaymentComplete}
         onBack={handlePaymentBack}
-      />
-    )
-  }
-
-  // If showing receipt screen
-  if (showReceipt) {
-    return (
-      <ReceiptScreen
-        order={currentOrder}
-        onBack={handleReceiptBack}
       />
     )
   }
