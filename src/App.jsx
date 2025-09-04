@@ -188,7 +188,7 @@ function MenuPageContent() {
         </div>
       )}
       
-      <div className="container mx-auto px-4 py-8" style={{ maxWidth: '640px' }}>
+      <div className="container mx-auto px-4 py-8 max-w-md">
         <div className="w-full">
           {/* Menu Section */}
           <div className="w-full">
