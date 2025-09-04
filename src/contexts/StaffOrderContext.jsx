@@ -49,18 +49,44 @@ export const StaffOrderProvider = ({ children }) => {
         localStorage.removeItem('googleSheetsOrders');
         localStorage.removeItem('googleSheetsOrdersConverted');
         
+        // Clear ALL localStorage keys that might contain order data
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.includes('order') || key.includes('Order') || key.includes('ORD'))) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => {
+          console.log('StaffOrderProvider: Removing localStorage key:', key);
+          localStorage.removeItem(key);
+        });
+        
         const result = await getAllOrders();
         console.log('StaffOrderProvider: Initial orders loaded:', result);
+        console.log('StaffOrderProvider: Current timestamp:', new Date().toISOString());
         
         if (result.success) {
           const orders = result.orders || [];
           console.log('StaffOrderProvider: Raw orders from database:', orders);
+          console.log('StaffOrderProvider: Total orders found:', orders.length);
           
-          // Filter orders by status
-          const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
-          const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
-          const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
-          const cancelled = orders.filter(order => order.status === ORDER_STATUS.CANCELLED);
+          // Additional validation: ensure orders have valid database IDs
+          const validOrders = orders.filter(order => {
+            const isValid = order.supabase_id && order.id && order.created_at;
+            if (!isValid) {
+              console.warn('StaffOrderProvider: Invalid order filtered out:', order);
+            }
+            return isValid;
+          });
+          
+          console.log('StaffOrderProvider: Valid orders after filtering:', validOrders.length);
+          
+          // Filter orders by status using validated orders
+          const pending = validOrders.filter(order => order.status === ORDER_STATUS.PENDING);
+          const accepted = validOrders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
+          const completed = validOrders.filter(order => order.status === ORDER_STATUS.COMPLETED);
+          const cancelled = validOrders.filter(order => order.status === ORDER_STATUS.CANCELLED);
           
           console.log('StaffOrderProvider: Filtered orders from database:', {
             pending: pending.length,
@@ -71,13 +97,14 @@ export const StaffOrderProvider = ({ children }) => {
           });
           
           // Only set orders if we have real data from database
-          if (orders.length > 0) {
+          if (validOrders.length > 0) {
             setPendingOrders(pending);
             setAcceptedOrders(accepted);
             setCompletedOrders(completed);
             setCancelledOrders(cancelled);
+            console.log('StaffOrderProvider: Orders set successfully from database');
           } else {
-            console.log('StaffOrderProvider: No orders found in database, keeping empty arrays');
+            console.log('StaffOrderProvider: No valid orders found in database, keeping empty arrays');
           }
         } else {
           console.error('StaffOrderProvider: Failed to load orders:', result.error);
