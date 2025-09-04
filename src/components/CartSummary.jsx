@@ -1,6 +1,11 @@
 const CartSummary = ({ cart, updateQuantity, totalItems, totalPrice, onPlaceOrder }) => {
   console.log('🔧 CartSummary: Rendering with props:', { cart, totalItems, totalPrice, onPlaceOrder })
   
+  // Don't render anything if cart is empty
+  if (totalItems === 0) {
+    return null
+  }
+  
   const handlePlaceOrder = () => {
     console.log('🔧 CartSummary: Place order button clicked')
     console.log('🔧 CartSummary: Cart contents:', cart)
@@ -30,11 +35,9 @@ const CartSummary = ({ cart, updateQuantity, totalItems, totalPrice, onPlaceOrde
                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
                 </svg>
-                {totalItems > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {totalItems}
-                  </span>
-                )}
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {totalItems}
+                </span>
               </div>
               <div>
                 <p className="text-sm text-gray-600">
@@ -49,38 +52,31 @@ const CartSummary = ({ cart, updateQuantity, totalItems, totalPrice, onPlaceOrde
           
           <button
             onClick={handlePlaceOrder}
-            disabled={totalItems === 0}
-            className={`font-semibold px-8 py-3 text-lg rounded-lg transition-colors duration-200 ${
-              totalItems > 0 
-                ? 'bg-orange-500 hover:bg-orange-600 text-white cursor-pointer' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+            className="font-semibold px-8 py-3 text-lg rounded-lg transition-colors duration-200 bg-orange-500 hover:bg-orange-600 text-white cursor-pointer"
           >
-            {totalItems > 0 ? 'Place Order' : 'Cart Empty'}
+            Place Order
           </button>
         </div>
         
         {/* Cart Items Preview */}
-        {Object.keys(cart).length > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(cart).map(([itemId, item]) => (
-                <div
-                  key={itemId}
-                  className="bg-gray-50 rounded-full px-3 py-1 text-sm text-gray-700 flex items-center space-x-2"
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(cart).map(([itemId, item]) => (
+              <div
+                key={itemId}
+                className="bg-gray-50 rounded-full px-3 py-1 text-sm text-gray-700 flex items-center space-x-2"
+              >
+                <span>{item.name} × {item.quantity}</span>
+                <button
+                  onClick={() => updateQuantity && updateQuantity(itemId, item.quantity - 1)}
+                  className="text-red-500 hover:text-red-700 text-xs font-bold"
                 >
-                  <span>{item.name} × {item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity && updateQuantity(itemId, item.quantity - 1)}
-                    className="text-red-500 hover:text-red-700 text-xs font-bold"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
+                  ×
+                </button>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

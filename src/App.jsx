@@ -188,26 +188,15 @@ function MenuPageContent() {
         </div>
       )}
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 py-8" style={{ maxWidth: '640px' }}>
+        <div className="w-full">
           {/* Menu Section */}
-          <div className="lg:col-span-3">
+          <div className="w-full">
             <Menu 
               addToCart={addToCart}
               cart={cart}
               updateQuantity={updateQuantity}
               searchQuery={searchQuery}
-            />
-          </div>
-          
-          {/* Cart Summary */}
-          <div className="lg:col-span-1">
-            <CartSummary
-              cart={cart}
-              updateQuantity={updateQuantity}
-              totalItems={getTotalItems()}
-              totalPrice={getTotalPrice()}
-              onPlaceOrder={placeOrder}
             />
           </div>
         </div>
