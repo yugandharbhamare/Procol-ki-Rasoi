@@ -179,7 +179,7 @@ function MenuPageContent() {
         </div>
       )}
       
-      <div className="container mx-auto px-4 py-8 max-w-md">
+      <div className="container mx-auto px-4 py-8 max-w-md pb-32">
         <div className="w-full">
           {/* Menu Section */}
           <div className="w-full">
