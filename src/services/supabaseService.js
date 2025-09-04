@@ -98,6 +98,28 @@ export const updateUser = async (userId, updates) => {
 
 export const createOrder = async (orderData) => {
   try {
+    // Check for recent duplicate orders (within last 5 minutes)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    
+    const { data: recentOrders, error: checkError } = await supabase
+      .from('orders')
+      .select('id, created_at')
+      .eq('user_id', orderData.user_id)
+      .eq('order_amount', orderData.order_amount)
+      .gte('created_at', fiveMinutesAgo)
+      .limit(1);
+
+    if (checkError) {
+      console.warn('Could not check for duplicates:', checkError);
+    } else if (recentOrders && recentOrders.length > 0) {
+      console.warn('Duplicate order detected within 5 minutes');
+      return { 
+        success: false, 
+        error: 'Duplicate order detected. Please wait before placing another order.',
+        duplicateOrder: recentOrders[0]
+      };
+    }
+
     // First, create the order
     const { data: order, error: orderError } = await supabase
       .from('orders')
