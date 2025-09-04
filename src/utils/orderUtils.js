@@ -113,6 +113,7 @@ export const normalizeOrderForReceipt = (order) => {
     ...order,
     items: normalizedItems,
     user: normalizedUser,
+    customerName: normalizedUser.displayName, // Add this for ReceiptScreen compatibility
     total: order.total || order.order_amount || 0,
     timestamp: order.timestamp || order.created_at || new Date().toISOString()
   };
