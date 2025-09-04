@@ -176,8 +176,31 @@ export const getUserOrders = async (userId) => {
 
     if (ordersError) throw ordersError
 
-    // Get order items for all orders with enhanced data
-    const orderIds = orders.map(order => order.id)
+    // Deduplicate orders based on user_id, order_amount, and created_at (date only)
+    const uniqueOrders = [];
+    const seenOrders = new Set();
+    
+    orders.forEach(order => {
+      // Create a unique key for deduplication
+      const orderKey = `${order.user_id}-${order.order_amount}-${new Date(order.created_at).toDateString()}`;
+      
+      if (!seenOrders.has(orderKey)) {
+        seenOrders.add(orderKey);
+        uniqueOrders.push(order);
+      } else {
+        console.warn('Duplicate order filtered out:', {
+          orderId: order.id,
+          customOrderId: order.custom_order_id,
+          amount: order.order_amount,
+          created: order.created_at
+        });
+      }
+    });
+
+    console.log(`Filtered ${orders.length} orders to ${uniqueOrders.length} unique orders`);
+
+    // Get order items for all unique orders with enhanced data
+    const orderIds = uniqueOrders.map(order => order.id)
     const { data: orderItems, error: itemsError } = await supabase
       .from('order_items')
       .select('*')
@@ -202,7 +225,7 @@ export const getUserOrders = async (userId) => {
     })
 
     // Transform the data to match the expected format
-    const transformedOrders = orders.map(order => ({
+    const transformedOrders = uniqueOrders.map(order => ({
       id: order.custom_order_id || order.id, // Use custom order ID for display, fallback to UUID
       supabase_id: order.id, // Keep the original UUID for internal use
       status: order.status,
@@ -243,8 +266,31 @@ export const getAllOrders = async () => {
 
     if (ordersError) throw ordersError
 
-    // Get order items for all orders with enhanced data
-    const orderIds = orders.map(order => order.id)
+    // Deduplicate orders based on user_id, order_amount, and created_at (date only)
+    const uniqueOrders = [];
+    const seenOrders = new Set();
+    
+    orders.forEach(order => {
+      // Create a unique key for deduplication
+      const orderKey = `${order.user_id}-${order.order_amount}-${new Date(order.created_at).toDateString()}`;
+      
+      if (!seenOrders.has(orderKey)) {
+        seenOrders.add(orderKey);
+        uniqueOrders.push(order);
+      } else {
+        console.warn('Duplicate order filtered out in getAllOrders:', {
+          orderId: order.id,
+          customOrderId: order.custom_order_id,
+          amount: order.order_amount,
+          created: order.created_at
+        });
+      }
+    });
+
+    console.log(`getAllOrders: Filtered ${orders.length} orders to ${uniqueOrders.length} unique orders`);
+
+    // Get order items for all unique orders with enhanced data
+    const orderIds = uniqueOrders.map(order => order.id)
     const { data: orderItems, error: itemsError } = await supabase
       .from('order_items')
       .select('*')
@@ -269,7 +315,7 @@ export const getAllOrders = async () => {
     })
 
     // Transform the data to match the expected format
-    const transformedOrders = orders.map(order => ({
+    const transformedOrders = uniqueOrders.map(order => ({
       id: order.custom_order_id || order.id, // Use custom order ID for display, fallback to UUID
       supabase_id: order.id, // Keep the original UUID for internal use
       status: order.status,
