@@ -1,10 +1,10 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
+import { createOrder, getUserByEmail } from '../services/supabaseService'
 import { addOrderToGoogleSheets, syncOrdersFromGoogleSheets } from '../services/googleSheetsService'
-import { createOrder } from '../services/supabaseService'
 
 const OrderContext = createContext()
 
-const useOrders = () => {
+export const useOrders = () => {
   const context = useContext(OrderContext)
   if (!context) {
     throw new Error('useOrders must be used within an OrderProvider')
@@ -12,153 +12,129 @@ const useOrders = () => {
   return context
 }
 
-export { useOrders };
-
 export const OrderProvider = ({ children }) => {
   const [completedOrders, setCompletedOrders] = useState([])
-  const [supabaseOrderIds, setSupabaseOrderIds] = useState(new Set()) // Track orders created in Supabase
+  const [supabaseOrderIds, setSupabaseOrderIds] = useState(new Set())
 
-  // Load orders from localStorage on mount
+  // Load completed orders from localStorage on component mount
   useEffect(() => {
     const savedOrders = localStorage.getItem('completedOrders')
     if (savedOrders) {
       try {
         setCompletedOrders(JSON.parse(savedOrders))
       } catch (error) {
-        console.error('Error loading orders from localStorage:', error)
+        console.error('Error parsing saved orders:', error)
         setCompletedOrders([])
       }
     }
   }, [])
 
-  // Save orders to localStorage whenever they change
+  // Save completed orders to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('completedOrders', JSON.stringify(completedOrders))
   }, [completedOrders])
 
   const addCompletedOrder = async (order) => {
-    console.log('OrderContext: Adding completed order', order);
+    console.log('OrderContext: addCompletedOrder called with:', order)
     
-    // Check if order already exists to prevent duplicates
-    const existingOrder = completedOrders.find(existing => existing.id === order.id);
-    if (existingOrder) {
-      console.log('OrderContext: Order already exists, skipping duplicate:', order.id);
-      return;
-    }
-    
-    // Check if order is already being processed (prevent race conditions)
+    // Check if order is already being processed
     if (supabaseOrderIds.has(order.id)) {
-      console.log('OrderContext: Order already being processed, skipping:', order.id);
-      return;
+      console.log('OrderContext: Order already being processed:', order.id)
+      return
+    }
+
+    // Check if order already exists
+    if (completedOrders.find(o => o.id === order.id)) {
+      console.log('OrderContext: Order already exists:', order.id)
+      return
+    }
+
+    // Add to processing set
+    setSupabaseOrderIds(prev => new Set(prev).add(order.id))
+
+    // Add to local state immediately for UI responsiveness
+    setCompletedOrders(prev => [...prev, order])
+
+    // Create order in Supabase
+    try {
+      // Get user info from the order
+      const user = order.user || {}
+      const userPhotoURL = user.photoURL || user.photo_url || ''
+      const userEmail = user.email || 'unknown@email.com'
+      
+      console.log('OrderContext: Getting Supabase user ID for email:', userEmail)
+      
+      // Get Supabase user ID by email
+      const userResult = await getUserByEmail(userEmail)
+      let supabaseUserId = null
+      
+      if (userResult.success && userResult.user) {
+        supabaseUserId = userResult.user.id
+        console.log('OrderContext: Found Supabase user ID:', supabaseUserId)
+      } else {
+        console.error('OrderContext: User not found in Supabase for email:', userEmail)
+        console.error('OrderContext: User result:', userResult)
+        throw new Error('User not found in Supabase. Please sign in again.')
+      }
+      
+      // Prepare order items for Supabase
+      const orderItems = Object.values(order.items || {}).map(item => ({
+        item_name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      }))
+
+      // Prepare order data for Supabase
+      const orderData = {
+        user_id: supabaseUserId, // Use Supabase user ID, not Firebase UID
+        user_name: user.displayName || user.firstName + ' ' + user.lastName || 'Unknown User',
+        user_email: userEmail,
+        user_photo_url: userPhotoURL,
+        order_amount: order.total || 0,
+        custom_order_id: order.id, // Use the simplified order ID (e.g., ORD123456)
+        status: 'pending', // Start as pending for staff approval
+        items: orderItems // Include items for order creation
+      }
+      
+      console.log('OrderContext: Order data prepared for Supabase:', orderData)
+      console.log('OrderContext: User name being sent:', orderData.user_name)
+      console.log('OrderContext: User email being sent:', orderData.user_email)
+      console.log('OrderContext: Supabase user ID being sent:', orderData.user_id)
+      
+      const supabaseResult = await createOrder(orderData)
+      
+      if (supabaseResult.success) {
+        console.log('OrderContext: Order successfully created in Supabase:', supabaseResult.order.id)
+        // Order is already tracked as being processed, no need to add again
+      } else {
+        console.error('OrderContext: Failed to create order in Supabase:', supabaseResult.error)
+        // Remove from processing set if failed
+        setSupabaseOrderIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(order.id)
+          return newSet
+        })
+      }
+    } catch (error) {
+      console.error('OrderContext: Error creating order in Supabase:', error)
+      // Remove from processing set if failed
+      setSupabaseOrderIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(order.id)
+        return newSet
+      })
     }
     
-    // Additional check: Look for orders with same transaction ID to prevent duplicates
-    if (order.paymentDetails?.transactionId) {
-      const existingWithSameTxn = completedOrders.find(existing => 
-        existing.paymentDetails?.transactionId === order.paymentDetails.transactionId
-      );
-      if (existingWithSameTxn) {
-        console.log('OrderContext: Order with same transaction ID already exists, skipping:', order.paymentDetails.transactionId);
-        return;
+    // Add order to Google Sheets (existing functionality)
+    try {
+      const result = await addOrderToGoogleSheets(order)
+      if (result.success) {
+        console.log('OrderContext: Order successfully prepared for Google Sheets:', result.message)
+      } else {
+        console.error('OrderContext: Failed to prepare order for Google Sheets:', result.message)
       }
-    }
-    
-    // Only add orders that have been successfully paid
-    if (order.paymentDetails && order.paymentDetails.status === 'success') {
-      console.log('OrderContext: Payment confirmed, adding order to state and Supabase');
-      
-      // Mark this order as being processed immediately to prevent race conditions
-      setSupabaseOrderIds(prev => new Set([...prev, order.id]))
-      
-      setCompletedOrders(prev => [order, ...prev])
-      
-      try {
-        console.log('OrderContext: Creating order in Supabase...');
-        
-        // Get current user from localStorage or context
-        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
-        console.log('OrderContext: Current user from localStorage:', currentUser);
-        console.log('OrderContext: User displayName:', currentUser.displayName);
-        console.log('OrderContext: User name:', currentUser.name);
-        console.log('OrderContext: User email:', currentUser.email);
-        
-        // Get user from Supabase by email to get the correct UUID
-        let supabaseUserId = null;
-        if (currentUser.email) {
-          try {
-            const { getUserByEmail } = await import('../services/supabaseService')
-            const userResult = await getUserByEmail(currentUser.email)
-            if (userResult.success && userResult.user) {
-              supabaseUserId = userResult.user.id
-              console.log('OrderContext: Found Supabase user ID:', supabaseUserId);
-            } else {
-              console.warn('OrderContext: User not found in Supabase, will create order without user_id');
-            }
-          } catch (error) {
-            console.error('OrderContext: Error getting user from Supabase:', error);
-          }
-        }
-        
-        // Convert order items from object to array format for Supabase with null safeguards
-        const orderItems = Object.values(order.items || {}).map(item => ({
-          name: item.name || 'Unknown Item',
-          quantity: item.quantity || 1,
-          price: item.price || 0
-        }));
-        
-        console.log('OrderContext: Converted order items:', orderItems);
-        
-        // Fallback to order.user data if localStorage is empty with null safeguards
-        const userName = currentUser.displayName || currentUser.name || order.user?.displayName || order.user?.name || 'Unknown User';
-        const userEmail = currentUser.email || order.user?.email || 'no-email@example.com';
-        const userPhotoURL = currentUser.photoURL || order.user?.photoURL || null;
-        
-        const orderData = {
-          user_id: supabaseUserId, // Use Supabase UUID instead of Firebase UID
-          user_name: userName, // Use fallback chain for user name
-          user_email: userEmail, // Use fallback chain for user email
-          user_photo_url: userPhotoURL, // Use fallback chain for user photo
-          order_amount: order.total || 0,
-          custom_order_id: order.id, // Use the simplified order ID (e.g., ORD123456)
-          status: 'pending', // Start as pending for staff approval
-          items: orderItems // Include items for order creation
-        };
-        
-        console.log('OrderContext: Order data prepared for Supabase:', orderData);
-        console.log('OrderContext: User name being sent:', orderData.user_name);
-        console.log('OrderContext: User email being sent:', orderData.user_email);
-        
-        const supabaseResult = await createOrder(orderData)
-        
-        if (supabaseResult.success) {
-          console.log('OrderContext: Order successfully created in Supabase:', supabaseResult.order.id)
-          // Order is already tracked as being processed, no need to add again
-        } else {
-          console.error('OrderContext: Failed to create order in Supabase:', supabaseResult.error)
-          // Remove from processing set if failed
-          setSupabaseOrderIds(prev => {
-            const newSet = new Set(prev)
-            newSet.delete(order.id)
-            return newSet
-          })
-        }
-      } catch (error) {
-        console.error('OrderContext: Error creating order in Supabase:', error)
-      }
-      
-      // Add order to Google Sheets (existing functionality)
-      try {
-        const result = await addOrderToGoogleSheets(order)
-        if (result.success) {
-          console.log('OrderContext: Order successfully prepared for Google Sheets:', result.message)
-        } else {
-          console.error('OrderContext: Failed to prepare order for Google Sheets:', result.message)
-        }
-      } catch (error) {
-        console.error('OrderContext: Error adding order to Google Sheets:', error)
-      }
-    } else {
-      console.warn('OrderContext: Order not added - payment not confirmed:', order.id)
+    } catch (error) {
+      console.error('OrderContext: Error adding order to Google Sheets:', error)
     }
   }
 

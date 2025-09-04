@@ -1,22 +1,21 @@
-import { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
-import { useOrders } from './contexts/OrderContext'
+import { OrderProvider, useOrders } from './contexts/OrderContext'
+import Header from './components/Header'
 import Menu from './components/Menu'
 import CartSummary from './components/CartSummary'
-import Header from './components/Header'
 import PaymentScreen from './components/PaymentScreen'
 import ReceiptScreen from './components/ReceiptScreen'
-import LoginScreen from './components/LoginScreen'
 import OrderHistory from './components/OrderHistory'
-import AdminPanel from './components/AdminPanel'
+import UserProfile from './components/UserProfile'
+import LoginScreen from './components/LoginScreen'
 import StaffApp from './StaffApp'
-
-
-import { OrderProvider } from './contexts/OrderContext'
+import SupabaseDebug from './components/SupabaseDebug'
 
 // Main Menu Page Component
 function MenuPage() {
+  console.log('🔧 MenuPage: Component rendering...')
   const { user } = useAuth()
   const { addCompletedOrder } = useOrders()
   const [cart, setCart] = useState({})
@@ -24,6 +23,8 @@ function MenuPage() {
   const [showReceipt, setShowReceipt] = useState(false)
   const [currentOrder, setCurrentOrder] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+
+  console.log('🔧 MenuPage: User state:', user)
 
   const addToCart = (itemId, itemName, price, image) => {
     setCart(prev => {
@@ -118,13 +119,23 @@ function MenuPage() {
     setCurrentOrder(null)
   }
 
-  const handleNewOrder = () => {
+  const handleReceiptBack = () => {
     setShowReceipt(false)
     setCurrentOrder(null)
     setCart({})
   }
 
-  if (showPayment && currentOrder) {
+  const handleSearch = (query) => {
+    setSearchQuery(query)
+  }
+
+  // If user is not authenticated, show login screen
+  if (!user) {
+    return <LoginScreen />
+  }
+
+  // If showing payment screen
+  if (showPayment) {
     return (
       <PaymentScreen
         order={currentOrder}
@@ -134,75 +145,82 @@ function MenuPage() {
     )
   }
 
-  if (showReceipt && currentOrder) {
+  // If showing receipt screen
+  if (showReceipt) {
     return (
       <ReceiptScreen
         order={currentOrder}
-        onNewOrder={handleNewOrder}
+        onBack={handleReceiptBack}
       />
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50">
       <Header 
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        user={user} 
+        cartItemCount={getTotalItems()}
+        onSearch={handleSearch}
       />
-      <div className="container mx-auto px-4 py-6 max-w-md">
-        <Menu 
-          addToCart={addToCart} 
-          cart={cart}
-          updateQuantity={updateQuantity}
-          searchQuery={searchQuery}
-        />
+      
+      {/* Temporary Supabase Debug Component */}
+      <SupabaseDebug />
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Menu Section */}
+          <div className="lg:col-span-3">
+            <Menu 
+              addToCart={addToCart}
+              cart={cart}
+              updateQuantity={updateQuantity}
+              searchQuery={searchQuery}
+            />
+          </div>
+          
+          {/* Cart Summary */}
+          <div className="lg:col-span-1">
+            <CartSummary
+              cart={cart}
+              updateQuantity={updateQuantity}
+              totalItems={getTotalItems()}
+              totalPrice={getTotalPrice()}
+              onPlaceOrder={placeOrder}
+            />
+          </div>
+        </div>
       </div>
-      {/* Extra padding to prevent footer overlap */}
-      <div className="pb-32"></div>
-      {getTotalItems() > 0 && (
-        <CartSummary 
-          cart={cart}
-          totalItems={getTotalItems()}
-          totalPrice={getTotalPrice()}
-          placeOrder={placeOrder}
-        />
-      )}
-      <AdminPanel />
     </div>
   )
 }
 
 function App() {
+  console.log('🔧 App: Component rendering...')
   const { user, loading } = useAuth()
 
-  // Show loading screen while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     )
   }
 
-  // Show login screen if user is not authenticated
-  if (!user) {
-    return <LoginScreen />
-  }
-
   return (
-    <OrderProvider>
-      <Router>
+    <Router>
+      <OrderProvider>
         <Routes>
           <Route path="/" element={<MenuPage />} />
-          <Route path="/order-history" element={<OrderHistory />} />
+          <Route path="/orders" element={<OrderHistory />} />
+          <Route path="/profile" element={<UserProfile />} />
           <Route path="/staff/*" element={<StaffApp />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Router>
-    </OrderProvider>
+      </OrderProvider>
+    </Router>
   )
 }
 

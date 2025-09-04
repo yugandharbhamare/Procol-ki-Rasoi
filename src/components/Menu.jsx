@@ -12,19 +12,24 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
     const fetchMenuItems = async () => {
       try {
         setLoading(true)
+        console.log('Menu: Fetching menu items from Supabase...')
+        
         const result = await menuService.getAvailableMenuItems()
+        console.log('Menu: Supabase response:', result)
         
         if (result.success) {
-          setMenuItems(result.data)
+          console.log('Menu: Successfully loaded', result.data?.length || 0, 'menu items')
+          setMenuItems(result.data || [])
           setError(null)
         } else {
+          console.error('Menu: Failed to fetch menu items:', result.error)
           setError(result.error || 'Failed to fetch menu items')
           // Fallback to empty array
           setMenuItems([])
         }
       } catch (err) {
-        console.error('Error fetching menu items:', err)
-        setError('Failed to fetch menu items')
+        console.error('Menu: Error fetching menu items:', err)
+        setError('Failed to fetch menu items: ' + err.message)
         setMenuItems([])
       } finally {
         setLoading(false)
@@ -86,6 +91,7 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
     'Maggi Varieties',
     'Sandwiches',
     'Main Course',
+    'Street Food',
     'Snacks & Namkeen',
     'Biscuits & Cookies',
     'Fresh Items',
@@ -115,12 +121,20 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
         </div>
         <h3 className="text-xl font-semibold text-gray-900 mb-3">Failed to load menu</h3>
         <p className="text-gray-600 mb-4">{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
-        >
-          Try Again
-        </button>
+        <div className="space-y-3">
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors mr-3"
+          >
+            Try Again
+          </button>
+          <button 
+            onClick={() => console.log('Menu items state:', menuItems, 'Error:', error)} 
+            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+          >
+            Debug Info
+          </button>
+        </div>
       </div>
     )
   }
@@ -138,6 +152,12 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
         <p className="text-gray-600 max-w-md mx-auto">
           {searchQuery ? 'Try searching with different keywords or browse through our categories' : 'No menu items available at the moment'}
         </p>
+        {!searchQuery && (
+          <div className="mt-4 text-sm text-gray-500">
+            <p>Debug: Menu items loaded: {menuItems.length}</p>
+            <p>Categories found: {Object.keys(groupedItems).length}</p>
+          </div>
+        )}
       </div>
     )
   }
@@ -181,8 +201,8 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">No items found</h3>
-          <p className="text-gray-600 max-w-md mx-auto">Try searching with different keywords or browse through our categories</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
+          <p className="text-gray-600">Try searching with different keywords or browse through our categories</p>
         </div>
       )}
     </div>
