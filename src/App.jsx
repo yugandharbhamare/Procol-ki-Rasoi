@@ -11,7 +11,6 @@ import OrderHistory from './components/OrderHistory'
 import UserProfile from './components/UserProfile'
 import LoginScreen from './components/LoginScreen'
 import StaffApp from './StaffApp'
-import SupabaseDebug from './components/SupabaseDebug'
 
 // Main Menu Page Component - Now properly wrapped with OrderProvider
 function MenuPageContent() {
@@ -188,9 +187,6 @@ function MenuPageContent() {
           </div>
         </div>
       )}
-      
-      {/* Temporary Supabase Debug Component */}
-      <SupabaseDebug />
       
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
