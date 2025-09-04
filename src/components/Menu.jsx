@@ -2,6 +2,7 @@ import MenuItem from './MenuItem'
 import { useMemo, useState, useEffect } from 'react'
 import { menuService } from '../services/menuService'
 
+
 const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
   const [menuItems, setMenuItems] = useState([])
   const [loading, setLoading] = useState(true)
