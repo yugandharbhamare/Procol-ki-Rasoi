@@ -7,7 +7,7 @@ import ReceiptModal from './ReceiptModal'
 
 const OrderHistory = () => {
   const { user } = useAuth()
-  const { completedOrders, syncFromGoogleSheets } = useOrders()
+  const { isSupabaseAvailable } = useOrders()
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [userOrders, setUserOrders] = useState([])
@@ -73,41 +73,9 @@ const OrderHistory = () => {
         }
       }
       
-      // Get local completed orders
-      const localOrders = completedOrders.filter(order => 
-        order.user && order.user.email === user.email
-      );
-      console.log('OrderHistory: Local orders:', localOrders.length);
-      console.log('OrderHistory: Local orders details:', localOrders.map(o => ({ id: o.id, supabase_id: o.supabase_id, custom_order_id: o.custom_order_id })));
-      
-      // Combine and deduplicate orders - prefer Supabase orders over local ones
-      const allOrders = [...supabaseOrders, ...localOrders];
-      
-      // Create a map to track unique orders, preferring Supabase versions
-      const orderMap = new Map();
-      
-      // First, add all Supabase orders
-      supabaseOrders.forEach(order => {
-        const key = order.id || order.custom_order_id;
-        if (key) {
-          orderMap.set(key, { ...order, source: 'Supabase' });
-        }
-      });
-      
-      // Then add local orders only if they don't exist in Supabase
-      localOrders.forEach(order => {
-        const key = order.id;
-        if (key && !orderMap.has(key)) {
-          orderMap.set(key, { ...order, source: 'Local' });
-        } else if (key && orderMap.has(key)) {
-          console.log('OrderHistory: Local order skipped - exists in Supabase:', {
-            orderId: order.id,
-            supabaseId: orderMap.get(key).supabase_id
-          });
-        }
-      });
-      
-      const uniqueOrders = Array.from(orderMap.values());
+      // Since we're using Supabase as the single source of truth, 
+      // we don't need to handle local orders anymore
+      const uniqueOrders = supabaseOrders;
       
       console.log('OrderHistory: Total unique orders:', uniqueOrders.length);
       
@@ -121,11 +89,8 @@ const OrderHistory = () => {
       setUserOrders(sortedOrders);
     } catch (error) {
       console.error('Error loading user orders:', error);
-      // Fallback to local orders only
-      const localUserOrders = completedOrders.filter(order => 
-        order.user && order.user.email === user.email
-      );
-      setUserOrders(localUserOrders);
+      // No fallback to local orders - Supabase is the single source of truth
+      setUserOrders([]);
     } finally {
       setIsLoading(false);
     }

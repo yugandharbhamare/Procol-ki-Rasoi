@@ -13,27 +13,10 @@ export const useOrders = () => {
 }
 
 export const OrderProvider = ({ children }) => {
-  const [completedOrders, setCompletedOrders] = useState([])
   const [supabaseOrderIds, setSupabaseOrderIds] = useState(new Set())
   const [isSupabaseAvailable, setIsSupabaseAvailable] = useState(true)
 
-  // Load completed orders from localStorage on component mount
-  useEffect(() => {
-    const savedOrders = localStorage.getItem('completedOrders')
-    if (savedOrders) {
-      try {
-        setCompletedOrders(JSON.parse(savedOrders))
-      } catch (error) {
-        console.error('Error parsing saved orders:', error)
-        setCompletedOrders([])
-      }
-    }
-  }, [])
-
-  // Save completed orders to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('completedOrders', JSON.stringify(completedOrders))
-  }, [completedOrders])
+  // No longer using local storage - Supabase is the single source of truth
 
   const addCompletedOrder = async (order) => {
     console.log('OrderContext: addCompletedOrder called with:', order)
@@ -44,17 +27,13 @@ export const OrderProvider = ({ children }) => {
       return
     }
 
-    // Check if order already exists
-    if (completedOrders.find(o => o.id === order.id)) {
-      console.log('OrderContext: Order already exists:', order.id)
-      return
-    }
+    // No need to check local state since we're not storing orders locally
 
     // Add to processing set
     setSupabaseOrderIds(prev => new Set(prev).add(order.id))
 
-    // Add to local state immediately for UI responsiveness
-    setCompletedOrders(prev => [...prev, order])
+    // Don't add to local state - let Supabase be the single source of truth
+    // The OrderHistory component will fetch from Supabase after creation
 
     // Try to create order in Supabase if available
     try {
@@ -124,7 +103,12 @@ export const OrderProvider = ({ children }) => {
         
         if (supabaseResult.success) {
           console.log('OrderContext: Order successfully created in Supabase:', supabaseResult.order.id)
-          // Order is already tracked as being processed, no need to add again
+          // Remove from processing set since order is now in Supabase
+          setSupabaseOrderIds(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(order.id)
+            return newSet
+          })
         } else {
           console.error('OrderContext: Failed to create order in Supabase:', supabaseResult.error)
           // Remove from processing set if failed
@@ -165,53 +149,8 @@ export const OrderProvider = ({ children }) => {
     }
   }
 
-  const getCompletedOrders = () => {
-    return completedOrders
-  }
-
-  const syncFromGoogleSheets = async () => {
-    try {
-      const result = await syncOrdersFromGoogleSheets()
-      if (result.success) {
-        // Merge Google Sheets orders with local orders
-        const googleSheetsOrders = result.orders || []
-        const allOrders = [...completedOrders, ...googleSheetsOrders]
-        
-        // Remove duplicates based on order ID
-        const uniqueOrders = allOrders.filter((order, index, self) => 
-          index === self.findIndex(o => o.id === order.id)
-        )
-        
-        setCompletedOrders(uniqueOrders)
-        return {
-          success: true,
-          message: 'Orders synced from Google Sheets',
-          newOrders: googleSheetsOrders.length
-        }
-      }
-      return result
-    } catch (error) {
-      console.error('Error syncing from Google Sheets:', error)
-      return {
-        success: false,
-        error: error.message
-      }
-    }
-  }
-
-  const clearOrders = () => {
-    setCompletedOrders([])
-    localStorage.removeItem('completedOrders')
-    localStorage.removeItem('googleSheetsOrders')
-    localStorage.removeItem('googleSheetsOrdersConverted')
-  }
-
   const value = {
-    completedOrders,
     addCompletedOrder,
-    getCompletedOrders,
-    syncFromGoogleSheets,
-    clearOrders,
     isSupabaseAvailable
   }
 
