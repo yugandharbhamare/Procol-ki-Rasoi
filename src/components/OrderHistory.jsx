@@ -67,6 +67,7 @@ const OrderHistory = () => {
         if (supabaseResult.success) {
           supabaseOrders = supabaseResult.orders;
           console.log('OrderHistory: Fetched orders from Supabase:', supabaseOrders.length);
+          console.log('OrderHistory: Supabase orders details:', supabaseOrders.map(o => ({ id: o.id, supabase_id: o.supabase_id, custom_order_id: o.custom_order_id })));
         } else {
           console.error('OrderHistory: Failed to fetch orders from Supabase:', supabaseResult.error);
         }
@@ -77,19 +78,36 @@ const OrderHistory = () => {
         order.user && order.user.email === user.email
       );
       console.log('OrderHistory: Local orders:', localOrders.length);
+      console.log('OrderHistory: Local orders details:', localOrders.map(o => ({ id: o.id, supabase_id: o.supabase_id, custom_order_id: o.custom_order_id })));
       
-      // Combine and deduplicate orders
+      // Combine and deduplicate orders - prefer Supabase orders over local ones
       const allOrders = [...supabaseOrders, ...localOrders];
       
-      // Remove duplicates based on order ID (handle both custom and Supabase IDs)
-      const uniqueOrders = allOrders.filter((order, index, self) => 
-        index === self.findIndex(o => {
-          // Compare by custom order ID first, then by Supabase ID
-          if (o.id === order.id) return true;
-          if (o.supabase_id && order.supabase_id && o.supabase_id === order.supabase_id) return true;
-          return false;
-        })
-      );
+      // Create a map to track unique orders, preferring Supabase versions
+      const orderMap = new Map();
+      
+      // First, add all Supabase orders
+      supabaseOrders.forEach(order => {
+        const key = order.id || order.custom_order_id;
+        if (key) {
+          orderMap.set(key, { ...order, source: 'Supabase' });
+        }
+      });
+      
+      // Then add local orders only if they don't exist in Supabase
+      localOrders.forEach(order => {
+        const key = order.id;
+        if (key && !orderMap.has(key)) {
+          orderMap.set(key, { ...order, source: 'Local' });
+        } else if (key && orderMap.has(key)) {
+          console.log('OrderHistory: Local order skipped - exists in Supabase:', {
+            orderId: order.id,
+            supabaseId: orderMap.get(key).supabase_id
+          });
+        }
+      });
+      
+      const uniqueOrders = Array.from(orderMap.values());
       
       console.log('OrderHistory: Total unique orders:', uniqueOrders.length);
       
@@ -118,7 +136,7 @@ const OrderHistory = () => {
     if (user && user.email) {
       loadUserOrders();
     }
-  }, [user, completedOrders]);
+  }, [user]); // Removed completedOrders dependency to prevent unnecessary reloads
 
   // Check for receipt modal flag after orders are loaded
   useEffect(() => {
@@ -152,7 +170,10 @@ const OrderHistory = () => {
         getUserByEmail(user.email).then(userResult => {
           if (userResult.success && userResult.user && userResult.user.id === payload.new.user_id) {
             console.log('OrderHistory: Order update for current user, refreshing orders');
-            loadUserOrders();
+            // Only reload if this is a new order or status change, not just any update
+            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+              loadUserOrders();
+            }
           }
         });
       }
