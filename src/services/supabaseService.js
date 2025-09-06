@@ -267,6 +267,7 @@ export const getUserOrders = async (userId) => {
       supabase_id: order.id, // Keep the original UUID for internal use
       status: order.status,
       order_amount: order.order_amount,
+      notes: order.notes || null, // Include notes field
       created_at: order.created_at,
       updated_at: order.updated_at,
       user: {
@@ -357,6 +358,7 @@ export const getAllOrders = async () => {
       supabase_id: order.id, // Keep the original UUID for internal use
       status: order.status,
       order_amount: order.order_amount,
+      notes: order.notes || null, // Include notes field
       created_at: order.created_at,
       updated_at: order.updated_at,
       user: {
