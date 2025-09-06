@@ -59,7 +59,7 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
           <div className="relative">
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center space-x-3 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+              className="flex items-center space-x-3 text-sm rounded-full focus:outline-none"
             >
               <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-medium">
