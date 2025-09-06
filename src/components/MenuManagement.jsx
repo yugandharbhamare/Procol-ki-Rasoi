@@ -305,7 +305,7 @@ const MenuManagement = () => {
                   setCategoryFilter(e.target.value)
                   handleFilterChange()
                 }}
-                className="block w-full pl-3 pr-8 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value="">All Categories</option>
                 {categories.map(category => (
@@ -326,7 +326,7 @@ const MenuManagement = () => {
                   setStatusFilter(e.target.value)
                   handleFilterChange()
                 }}
-                className="block w-full pl-3 pr-8 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value="">All Status</option>
                 <option value="available">Available</option>
@@ -346,7 +346,7 @@ const MenuManagement = () => {
                   setItemsPerPage(Number(e.target.value))
                   setCurrentPage(1)
                 }}
-                className="block w-full pl-3 pr-8 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -377,7 +377,7 @@ const MenuManagement = () => {
                   setSortOrder(order)
                   setCurrentPage(1)
                 }}
-                className="pl-2 pr-6 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                className="pl-2 pr-8 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
               >
                 <option value="name-asc">Name (A-Z)</option>
                 <option value="name-desc">Name (Z-A)</option>
