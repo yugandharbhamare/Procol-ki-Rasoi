@@ -98,25 +98,34 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
               </svg>
             </button>
 
-            {showDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                <button
-                  onClick={() => {
-                    setShowDropdown(false);
-                    navigate('/staff/menu');
-                  }}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  Manage Menu
-                </button>
-                <button
-                  onClick={onSignOut}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  Sign out
-                </button>
-              </div>
-            )}
+                    {showDropdown && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        <button
+                          onClick={() => {
+                            setShowDropdown(false);
+                            navigate('/staff/menu');
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Manage Menu
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowDropdown(false);
+                            navigate('/staff/members');
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Staff Members
+                        </button>
+                        <button
+                          onClick={onSignOut}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Sign out
+                        </button>
+                      </div>
+                    )}
           </div>
         </div>
       </div>
