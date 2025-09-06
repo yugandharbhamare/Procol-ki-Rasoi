@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ChefLogo from './ChefLogo';
 
 export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNotifications }) {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -32,8 +31,12 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
         <div className="flex justify-between items-center h-16">
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center p-1">
-              <ChefLogo className="w-8 h-8" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+              <img 
+                src="/Staff portal logo.png" 
+                alt="Staff Portal Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Procol ki Rasoi</h1>
