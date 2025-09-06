@@ -140,7 +140,13 @@ const OrderHistory = () => {
         console.log('OrderHistory: Available order IDs:', userOrders.map(o => o.id));
         
         // Find the order with the matching ID
-        const orderToShow = userOrders.find(order => order.id === orderIdToShow);
+        let orderToShow = userOrders.find(order => order.id === orderIdToShow);
+        
+        // If not found by ID, try by display ID
+        if (!orderToShow) {
+          orderToShow = userOrders.find(order => getDisplayOrderId(order) === orderIdToShow);
+        }
+        
         if (orderToShow) {
           console.log('OrderHistory: ✅ Found order, opening receipt:', orderToShow);
           setSelectedOrder(orderToShow);
@@ -154,7 +160,13 @@ const OrderHistory = () => {
             const retryOrderId = sessionStorage.getItem('showReceiptForOrder');
             if (retryOrderId) {
               console.log('OrderHistory: Retrying to find order:', retryOrderId);
-              const retryOrder = userOrders.find(order => order.id === retryOrderId);
+              let retryOrder = userOrders.find(order => order.id === retryOrderId);
+              
+              // If not found by ID, try by display ID
+              if (!retryOrder) {
+                retryOrder = userOrders.find(order => getDisplayOrderId(order) === retryOrderId);
+              }
+              
               if (retryOrder) {
                 console.log('OrderHistory: ✅ Found order on retry, opening receipt:', retryOrder);
                 setSelectedOrder(retryOrder);
@@ -254,13 +266,24 @@ const OrderHistory = () => {
             <button
               onClick={() => {
                 const orderId = sessionStorage.getItem('showReceiptForOrder');
+                console.log('Manual button clicked, looking for order ID:', orderId);
+                console.log('Available orders:', userOrders.map(o => ({ id: o.id, displayId: getDisplayOrderId(o) })));
+                
                 if (orderId) {
                   const order = userOrders.find(o => o.id === orderId);
                   if (order) {
-                    console.log('Manual receipt opening:', order);
+                    console.log('✅ Manual receipt opening - found order:', order);
                     setSelectedOrder(order);
                   } else {
-                    console.log('Order not found for manual opening');
+                    console.log('❌ Manual receipt opening - order not found');
+                    // Try to find by display ID as fallback
+                    const orderByDisplayId = userOrders.find(o => getDisplayOrderId(o) === orderId);
+                    if (orderByDisplayId) {
+                      console.log('✅ Manual receipt opening - found by display ID:', orderByDisplayId);
+                      setSelectedOrder(orderByDisplayId);
+                    } else {
+                      console.log('❌ Manual receipt opening - not found by display ID either');
+                    }
                   }
                 } else {
                   console.log('No order ID in sessionStorage');
