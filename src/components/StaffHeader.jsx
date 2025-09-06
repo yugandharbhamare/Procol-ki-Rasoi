@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ChefLogo from './ChefLogo';
 
 export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNotifications }) {
   const [showDropdown, setShowDropdown] = useState(false);
+  const navigate = useNavigate();
 
 
 
@@ -77,10 +79,15 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
 
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
-                  <p className="font-medium">{staffUser?.displayName}</p>
-                  <p className="text-gray-500">{staffUser?.email}</p>
-                </div>
+                <button
+                  onClick={() => {
+                    setShowDropdown(false);
+                    navigate('/menu');
+                  }}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Manage Menu
+                </button>
                 <button
                   onClick={onSignOut}
                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
