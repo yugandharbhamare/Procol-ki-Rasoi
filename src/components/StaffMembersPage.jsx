@@ -539,7 +539,6 @@ const StaffMembersPage = () => {
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };
