@@ -39,8 +39,8 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Procol ki Rasoi</h1>
-              <p className="text-sm text-gray-500">Staff Portal</p>
+              <h1 className="text-xl font-bold text-gray-900">Staff Portal</h1>
+              <p className="text-sm text-gray-500">Procol ki Rasoi</p>
             </div>
           </div>
 
