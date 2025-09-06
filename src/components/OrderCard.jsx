@@ -244,6 +244,11 @@ export default function OrderCard({ order, status }) {
 
   // Helper function to get menu item image path
   const getMenuItemImage = (itemName) => {
+    if (!itemName) return null;
+    
+    // Normalize the item name for better matching
+    const normalizedName = itemName.trim();
+    
     const menuItemImages = {
       // Hot Beverages
       'Ginger Chai': '/optimized/Ginger Tea.png',
@@ -279,6 +284,7 @@ export default function OrderCard({ order, status }) {
       'Popcorn': '/optimized/Popcorn.png',
       'Salted Peanuts': '/optimized/Salted Peanuts.png',
       'Aloo Bhujia': '/optimized/Aloo Bhujia.png',
+      'Aloo Bhujiya': '/optimized/Aloo Bhujia.png', // Handle spelling variation
       'Lite Mixture': '/optimized/Lite Mixture.png',
       'Pass Pass': '/optimized/Pass Pass.png',
       
@@ -299,7 +305,26 @@ export default function OrderCard({ order, status }) {
       'Cheese': '/optimized/Cheese.png'
     }
     
-    return menuItemImages[itemName] || null
+    // Try exact match first
+    let imagePath = menuItemImages[normalizedName];
+    
+    // If not found, try case-insensitive match
+    if (!imagePath) {
+      const lowerName = normalizedName.toLowerCase();
+      for (const [key, value] of Object.entries(menuItemImages)) {
+        if (key.toLowerCase() === lowerName) {
+          imagePath = value;
+          break;
+        }
+      }
+    }
+    
+    // Debug logging
+    if (!imagePath) {
+      console.log('OrderCard: No image found for item:', normalizedName);
+    }
+    
+    return imagePath || null
   }
 
   const renderActionButton = () => {
