@@ -31,7 +31,7 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
         <div className="flex justify-between items-center h-16">
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
               <img 
                 src="/Staff portal logo.png" 
                 alt="Staff Portal Logo" 

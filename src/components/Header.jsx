@@ -49,7 +49,7 @@ const Header = ({ user, cartItemCount, onSearch }) => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden">
               <img 
                 src="/Staff portal logo.png" 
                 alt="Procol ki Rasoi Logo" 
