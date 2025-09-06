@@ -58,10 +58,7 @@ const StaffMembersPage = () => {
       let aValue = a[sortBy];
       let bValue = b[sortBy];
 
-      if (sortBy === 'created_at') {
-        aValue = new Date(aValue);
-        bValue = new Date(bValue);
-      } else if (typeof aValue === 'string') {
+      if (typeof aValue === 'string') {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
       }
@@ -236,20 +233,6 @@ const StaffMembersPage = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Role
                   </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('created_at')}
-                  >
-                    <div className="flex items-center">
-                      Joined
-                      {sortBy === 'created_at' && (
-                        <svg className={`ml-1 w-4 h-4 ${sortOrder === 'asc' ? 'transform rotate-180' : ''}`} fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                        </svg>
-                      )}
-                    </div>
-                  </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Action
                   </th>
@@ -330,19 +313,23 @@ const StaffMembersPage = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(member.created_at).toLocaleDateString()}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       {(() => {
-                        console.log('Action cell debug:', {
-                          userIsAdmin,
-                          memberIsAdmin: isAdminSync(member),
-                          canRemove: canRemoveUser(member),
-                          member: member
-                        });
+                        const memberIsAdmin = isAdminSync(member);
+                        const memberIsStaff = member.is_staff;
                         
-                        if (userIsAdmin && canRemoveUser(member)) {
+                        // Only admins can perform actions
+                        if (!userIsAdmin) {
+                          return <span className="text-gray-400 text-xs">-</span>;
+                        }
+                        
+                        // If member is admin, show protected
+                        if (memberIsAdmin) {
+                          return <span className="text-gray-400 text-xs">Protected</span>;
+                        }
+                        
+                        // If member is staff (but not admin), show remove button
+                        if (memberIsStaff) {
                           return (
                             <button
                               onClick={() => setRemoveConfirm(member)}
@@ -351,11 +338,10 @@ const StaffMembersPage = () => {
                               Remove
                             </button>
                           );
-                        } else if (userIsAdmin && !canRemoveUser(member)) {
-                          return <span className="text-gray-400 text-xs">Protected</span>;
-                        } else {
-                          return <span className="text-gray-400 text-xs">-</span>;
                         }
+                        
+                        // Default case
+                        return <span className="text-gray-400 text-xs">-</span>;
                       })()}
                     </td>
                   </tr>
