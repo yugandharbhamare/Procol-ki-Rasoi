@@ -16,6 +16,7 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
   // Initialize form data when item prop changes
   useEffect(() => {
     if (item) {
+      console.log('MenuItemModal: Editing item with image:', item.image);
       setFormData({
         name: item.name || '',
         price: item.price?.toString() || '',
@@ -25,6 +26,7 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
         is_available: item.is_available !== false
       })
     } else {
+      console.log('MenuItemModal: Creating new item');
       setFormData({
         name: '',
         price: '',

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { imageUploadService } from '../services/imageUploadService';
 
 const ImageUpload = ({ 
@@ -14,6 +14,12 @@ const ImageUpload = ({
   const [dragCounter, setDragCounter] = useState(0);
   const [uploadStatus, setUploadStatus] = useState('');
   const fileInputRef = useRef(null);
+
+  // Update preview URL when value prop changes (for editing existing items)
+  useEffect(() => {
+    console.log('ImageUpload: Value prop changed:', value);
+    setPreviewUrl(value || '');
+  }, [value]);
 
   // Handle file selection
   const handleFileSelect = useCallback(async (file) => {
@@ -173,6 +179,8 @@ const ImageUpload = ({
               src={previewUrl}
               alt="Preview"
               className="mx-auto max-h-48 max-w-full rounded-lg object-cover"
+              onLoad={() => console.log('ImageUpload: Image loaded successfully:', previewUrl)}
+              onError={(e) => console.error('ImageUpload: Image failed to load:', previewUrl, e)}
             />
             {!disabled && (
               <button
