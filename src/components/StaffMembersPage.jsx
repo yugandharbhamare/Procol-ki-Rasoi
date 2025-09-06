@@ -201,8 +201,8 @@ const StaffMembersPage = () => {
 
 
         {/* Staff Members Table */}
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="bg-white shadow-sm rounded-lg">
+          <div className="overflow-x-auto overflow-y-visible">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -310,7 +310,7 @@ const StaffMembersPage = () => {
                         </button>
                         
                         {roleDropdownOpen === member.id && (
-                          <div className="absolute top-full left-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                          <div className="absolute top-full left-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-50">
                             <div className="py-1">
                               <button
                                 onClick={() => handleRoleChange(member, 'staff')}
