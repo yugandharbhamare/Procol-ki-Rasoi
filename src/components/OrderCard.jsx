@@ -592,9 +592,9 @@ export default function OrderCard({ order, status }) {
               <svg className="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
-              <span className="text-orange-800 font-medium text-sm">Special Instructions</span>
+              <span className="text-orange-800 font-medium text-sm">Special instructions:</span>
+              <span className="text-xs text-gray-700">{order.notes}</span>
             </div>
-            <p className="text-xs text-gray-700 mt-1 ml-6">{order.notes}</p>
           </div>
         )}
 
