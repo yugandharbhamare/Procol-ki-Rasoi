@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import NotificationSettings from './NotificationSettings';
 
 export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNotifications }) {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
@@ -88,6 +90,15 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
                           Staff Members
                         </button>
                         <button
+                          onClick={() => {
+                            setShowDropdown(false);
+                            setShowNotificationSettings(true);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Notifications
+                        </button>
+                        <button
                           onClick={onSignOut}
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
@@ -98,6 +109,12 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
           </div>
         </div>
       </div>
+      
+      {/* Notification Settings Modal */}
+      <NotificationSettings 
+        isOpen={showNotificationSettings} 
+        onClose={() => setShowNotificationSettings(false)} 
+      />
     </header>
   );
 }

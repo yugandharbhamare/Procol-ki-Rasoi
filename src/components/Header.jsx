@@ -2,12 +2,14 @@ import SearchBar from './SearchBar'
 import { useAuth } from '../contexts/AuthContext'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import NotificationSettings from './NotificationSettings'
 
 const Header = ({ user, cartItemCount, onSearch }) => {
   const { signOutUser } = useAuth()
   const [imageError, setImageError] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false)
   const navigate = useNavigate()
 
   // Debug: Log user data to see what we're getting
@@ -114,6 +116,22 @@ const Header = ({ user, cartItemCount, onSearch }) => {
                     </div>
                   </button>
                   
+                  {/* Notification Settings Option */}
+                  <button
+                    onClick={() => setShowNotificationSettings(true)}
+                    className="w-full flex items-start space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
+                  >
+                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.5 19.5a2.5 2.5 0 01-2.5-2.5V7a2.5 2.5 0 012.5-2.5h15a2.5 2.5 0 012.5 2.5v10a2.5 2.5 0 01-2.5 2.5h-15z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <span className="font-medium text-gray-900">Notifications</span>
+                      <p className="text-xs text-gray-500">Manage notification settings</p>
+                    </div>
+                  </button>
+                  
                   {/* Sign Out Option */}
                   <button
                     onClick={handleSignOut}
@@ -210,6 +228,18 @@ const Header = ({ user, cartItemCount, onSearch }) => {
                 </button>
                 
                 <button
+                  onClick={() => setShowNotificationSettings(true)}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.5 19.5a2.5 2.5 0 01-2.5-2.5V7a2.5 2.5 0 012.5-2.5h15a2.5 2.5 0 012.5 2.5v10a2.5 2.5 0 01-2.5 2.5h-15z" />
+                    </svg>
+                  </div>
+                  <span className="font-medium">Notifications</span>
+                </button>
+                
+                <button
                   onClick={handleSignOut}
                   className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
@@ -225,6 +255,12 @@ const Header = ({ user, cartItemCount, onSearch }) => {
           </div>
         </div>
       )}
+      
+      {/* Notification Settings Modal */}
+      <NotificationSettings 
+        isOpen={showNotificationSettings} 
+        onClose={() => setShowNotificationSettings(false)} 
+      />
     </header>
   )
 }

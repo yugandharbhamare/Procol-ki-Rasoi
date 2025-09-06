@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useOrders } from '../contexts/OrderContext'
 import { getUserByEmail, getUserOrders, subscribeToOrders } from '../services/supabaseService'
 import { getDisplayOrderId, normalizeOrderForReceipt, getOrderStatusDisplay, getStatusBadgeStyle } from '../utils/orderUtils'
+import { useOrderNotifications } from '../hooks/useOrderNotifications'
 import ReceiptModal from './ReceiptModal'
 
 const OrderHistory = () => {
@@ -12,6 +13,9 @@ const OrderHistory = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [userOrders, setUserOrders] = useState([])
   const [pendingReceiptOrderId, setPendingReceiptOrderId] = useState(null)
+
+  // Use the notification hook to monitor order status changes
+  useOrderNotifications(userOrders)
 
 
 

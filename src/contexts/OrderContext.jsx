@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { createOrder, getUserByEmail } from '../services/supabaseService'
 import { addOrderToGoogleSheets, syncOrdersFromGoogleSheets } from '../services/googleSheetsService'
+import notificationService from '../services/notificationService'
 
 const OrderContext = createContext()
 
@@ -157,9 +158,15 @@ export const OrderProvider = ({ children }) => {
     }
   }
 
+  // Function to notify about order status changes
+  const notifyOrderStatusChange = (orderId, status, message) => {
+    notificationService.notifyOrderStatusChange(orderId, status, message);
+  };
+
   const value = {
     addCompletedOrder,
-    isSupabaseAvailable
+    isSupabaseAvailable,
+    notifyOrderStatusChange
   }
 
   return (

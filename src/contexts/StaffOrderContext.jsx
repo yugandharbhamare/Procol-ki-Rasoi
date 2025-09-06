@@ -6,6 +6,7 @@ import {
   deleteOrder as deleteOrderFromDB,
   ORDER_STATUS 
 } from '../services/supabaseService';
+import notificationService from '../services/notificationService';
 
 const StaffOrderContext = createContext();
 
@@ -149,6 +150,24 @@ export const StaffOrderProvider = ({ children }) => {
               completed: completed.length,
               cancelled: cancelled.length
             });
+            
+            // Check for new orders (compare with previous pending count)
+            const previousPendingCount = pendingOrders.length;
+            const newPendingCount = pending.length;
+            
+            if (newPendingCount > previousPendingCount) {
+              // New order detected - find the new order(s)
+              const newOrders = pending.filter(order => 
+                !pendingOrders.some(prevOrder => prevOrder.id === order.id)
+              );
+              
+              // Notify for each new order
+              newOrders.forEach(order => {
+                const orderId = order.id || order.custom_order_id || 'Unknown';
+                const customerName = order.user?.name || order.user?.email || 'Unknown Customer';
+                notificationService.notifyNewOrder(orderId, customerName);
+              });
+            }
             
             setPendingOrders(pending);
             setAcceptedOrders(accepted);
