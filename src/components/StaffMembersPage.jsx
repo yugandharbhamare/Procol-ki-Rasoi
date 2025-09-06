@@ -8,11 +8,14 @@ import {
   isAdminSync 
 } from '../services/staffManagementService';
 import { useStaffAuth } from '../contexts/StaffAuthContext';
+import { useStaffOrders } from '../contexts/StaffOrderContext';
+import StaffHeader from './StaffHeader';
 import AddStaffModal from './AddStaffModal';
 
 const StaffMembersPage = () => {
   const navigate = useNavigate();
-  const { staffUser } = useStaffAuth();
+  const { staffUser, signOutUser } = useStaffAuth();
+  const { getOrderCounts } = useStaffOrders();
   const [staffMembers, setStaffMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -149,9 +152,18 @@ const StaffMembersPage = () => {
     );
   }
 
+  const orderCounts = getOrderCounts();
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      <StaffHeader 
+        staffUser={staffUser} 
+        onSignOut={signOutUser}
+        orderCounts={orderCounts}
+        showNotifications={false}
+      />
+      
+      {/* Page Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
