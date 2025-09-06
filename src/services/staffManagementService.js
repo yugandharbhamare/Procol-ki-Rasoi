@@ -225,3 +225,25 @@ export const promoteUserToStaff = async (userId) => {
     throw error;
   }
 };
+
+// Remove staff access from a user
+export const removeStaffAccess = async (userId) => {
+  try {
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .update({ is_staff: false })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error removing staff access:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in removeStaffAccess:', error);
+    throw error;
+  }
+};

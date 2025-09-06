@@ -2,12 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   getStaffMembers, 
-  updateStaffMember, 
-  deleteStaffMember,
+  removeStaffAccess,
   isAdmin 
 } from '../services/staffManagementService';
 import { useStaffAuth } from '../contexts/StaffAuthContext';
-import StaffMemberModal from './StaffMemberModal';
 import AddStaffModal from './AddStaffModal';
 
 const StaffMembersPage = () => {
@@ -16,10 +14,8 @@ const StaffMembersPage = () => {
   const [staffMembers, setStaffMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingMember, setEditingMember] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [removeConfirm, setRemoveConfirm] = useState(null);
 
   // Simple sorting state
   const [sortBy, setSortBy] = useState('created_at');
@@ -79,36 +75,19 @@ const StaffMembersPage = () => {
     setShowAddModal(true);
   };
 
-  const handleEditMember = (member) => {
-    setEditingMember(member);
-    setShowModal(true);
-  };
-
-  const handleModalSave = async (formData) => {
-    try {
-      await updateStaffMember(editingMember.id, formData);
-      setShowModal(false);
-      setEditingMember(null);
-      await loadStaffMembers();
-    } catch (error) {
-      console.error('Error saving staff member:', error);
-      setError('Failed to save staff member');
-    }
-  };
-
   const handleStaffAdded = async (user) => {
     // Reload staff members to show the newly added staff
     await loadStaffMembers();
   };
 
-  const handleDeleteMember = async (member) => {
+  const handleRemoveStaff = async (member) => {
     try {
-      await deleteStaffMember(member.id);
-      setDeleteConfirm(null);
+      await removeStaffAccess(member.id);
+      setRemoveConfirm(null);
       await loadStaffMembers();
     } catch (error) {
-      console.error('Error deleting staff member:', error);
-      setError('Failed to delete staff member');
+      console.error('Error removing staff access:', error);
+      setError('Failed to remove staff access');
     }
   };
 
@@ -237,7 +216,7 @@ const StaffMembersPage = () => {
                   </th>
                   {userIsAdmin && (
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                      Action
                     </th>
                   )}
                 </tr>
@@ -291,20 +270,12 @@ const StaffMembersPage = () => {
                     </td>
                     {userIsAdmin && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEditMember(member)}
-                            className="text-orange-600 hover:text-orange-900"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(member)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Delete
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => setRemoveConfirm(member)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Remove
+                        </button>
                       </td>
                     )}
                   </tr>
@@ -337,49 +308,36 @@ const StaffMembersPage = () => {
         />
       )}
 
-      {/* Edit Staff Member Modal */}
-      {showModal && (
-        <StaffMemberModal
-          member={editingMember}
-          onSave={handleModalSave}
-          onClose={() => {
-            setShowModal(false);
-            setEditingMember(null);
-          }}
-          isAdmin={userIsAdmin}
-        />
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
+      {/* Remove Staff Confirmation Modal */}
+      {removeConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center mb-4">
                 <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-lg font-medium text-gray-900">Delete Staff Member</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Remove Staff Access</h3>
                 </div>
               </div>
               <p className="text-sm text-gray-500 mb-6">
-                Are you sure you want to delete <strong>{deleteConfirm.name}</strong>? This action cannot be undone and will revoke their access to the staff portal.
+                Are you sure you want to remove staff access for <strong>{removeConfirm.name}</strong>? They will no longer have access to the staff portal but their account will remain active.
               </p>
               <div className="flex justify-end space-x-3">
                 <button
-                  onClick={() => setDeleteConfirm(null)}
+                  onClick={() => setRemoveConfirm(null)}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleDeleteMember(deleteConfirm)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  onClick={() => handleRemoveStaff(removeConfirm)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                 >
-                  Delete
+                  Remove Access
                 </button>
               </div>
             </div>
