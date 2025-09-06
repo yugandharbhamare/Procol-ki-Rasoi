@@ -5,7 +5,6 @@ import StaffLoginScreen from './components/StaffLoginScreen';
 import StaffDashboard from './components/StaffDashboard';
 import MenuManagement from './components/MenuManagement';
 import StaffMembersPage from './components/StaffMembersPage';
-import NotificationTest from './components/NotificationTest';
 
 // Staff Dashboard Page Component
 function StaffDashboardPage() {
@@ -142,9 +141,6 @@ function StaffApp() {
             <Route path="/members" element={<StaffMembersPageWrapper />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-          
-          {/* Notification Test Component - Only show in development */}
-          {process.env.NODE_ENV === 'development' && <NotificationTest />}
         </StaffOrderProvider>
       </StaffAuthProvider>
     </div>

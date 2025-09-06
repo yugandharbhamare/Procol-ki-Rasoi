@@ -10,7 +10,6 @@ import OrderHistory from './components/OrderHistory'
 import UserProfile from './components/UserProfile'
 import LoginScreen from './components/LoginScreen'
 import StaffApp from './StaffApp'
-import NotificationTest from './components/NotificationTest'
 
 // Main Menu Page Component - Now properly wrapped with OrderProvider
 function MenuPageContent() {
@@ -243,9 +242,6 @@ function App() {
           <Route path="/staff/*" element={<StaffApp />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        
-        {/* Notification Test Component - Only show in development */}
-        {process.env.NODE_ENV === 'development' && <NotificationTest />}
       </OrderProvider>
     </Router>
   )
