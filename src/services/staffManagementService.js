@@ -25,7 +25,18 @@ export const isAdmin = async (email) => {
 
 // Check if user is admin (synchronous version for existing code)
 export const isAdminSync = (user) => {
-  return user?.is_admin === true;
+  // Check database is_admin field first
+  if (user?.is_admin === true) {
+    return true;
+  }
+  
+  // Fallback: check if it's the original admin email (in case migration hasn't been run)
+  const originalAdminEmail = 'yugandhar.bhamare@gmail.com';
+  if (user?.emailid?.toLowerCase() === originalAdminEmail.toLowerCase()) {
+    return true;
+  }
+  
+  return false;
 };
 
 // Get all staff members (users with staff access or admin)

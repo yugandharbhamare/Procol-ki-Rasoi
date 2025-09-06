@@ -26,6 +26,8 @@ const StaffMembersPage = () => {
 
   // Check if current user is admin
   const userIsAdmin = useMemo(() => {
+    console.log('Staff user object:', staffUser);
+    console.log('Is admin sync result:', isAdminSync(staffUser));
     return isAdminSync(staffUser);
   }, [staffUser]);
 
@@ -334,18 +336,29 @@ const StaffMembersPage = () => {
                       {new Date(member.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {userIsAdmin && canRemoveUser(member) ? (
-                        <button
-                          onClick={() => setRemoveConfirm(member)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Remove
-                        </button>
-                      ) : userIsAdmin && !canRemoveUser(member) ? (
-                        <span className="text-gray-400 text-xs">Protected</span>
-                      ) : (
-                        <span className="text-gray-400 text-xs">-</span>
-                      )}
+                      {(() => {
+                        console.log('Action cell debug:', {
+                          userIsAdmin,
+                          memberIsAdmin: isAdminSync(member),
+                          canRemove: canRemoveUser(member),
+                          member: member
+                        });
+                        
+                        if (userIsAdmin && canRemoveUser(member)) {
+                          return (
+                            <button
+                              onClick={() => setRemoveConfirm(member)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              Remove
+                            </button>
+                          );
+                        } else if (userIsAdmin && !canRemoveUser(member)) {
+                          return <span className="text-gray-400 text-xs">Protected</span>;
+                        } else {
+                          return <span className="text-gray-400 text-xs">-</span>;
+                        }
+                      })()}
                     </td>
                   </tr>
                 ))}
