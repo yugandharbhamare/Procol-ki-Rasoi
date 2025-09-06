@@ -250,11 +250,9 @@ const StaffMembersPage = () => {
                       )}
                     </div>
                   </th>
-                  {userIsAdmin && (
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
-                    </th>
-                  )}
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -335,21 +333,20 @@ const StaffMembersPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(member.created_at).toLocaleDateString()}
                     </td>
-                    {userIsAdmin && canRemoveUser(member) && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      {userIsAdmin && canRemoveUser(member) ? (
                         <button
                           onClick={() => setRemoveConfirm(member)}
                           className="text-red-600 hover:text-red-900"
                         >
                           Remove
                         </button>
-                      </td>
-                    )}
-                    {userIsAdmin && !canRemoveUser(member) && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      ) : userIsAdmin && !canRemoveUser(member) ? (
                         <span className="text-gray-400 text-xs">Protected</span>
-                      </td>
-                    )}
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
