@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   getStaffMembers, 
   removeStaffAccess,
+  changeUserRole,
+  canRemoveUser,
   isAdmin 
 } from '../services/staffManagementService';
 import { useStaffAuth } from '../contexts/StaffAuthContext';
@@ -16,6 +18,7 @@ const StaffMembersPage = () => {
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [removeConfirm, setRemoveConfirm] = useState(null);
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(null);
 
   // Simple sorting state
   const [sortBy, setSortBy] = useState('created_at');
@@ -99,6 +102,40 @@ const StaffMembersPage = () => {
       setSortOrder('asc');
     }
   };
+
+  const handleRoleChange = async (member, newRole) => {
+    try {
+      await changeUserRole(member.id, newRole);
+      setRoleDropdownOpen(null);
+      await loadStaffMembers();
+    } catch (error) {
+      console.error('Error changing user role:', error);
+      setError('Failed to change user role');
+    }
+  };
+
+  const toggleRoleDropdown = (memberId) => {
+    setRoleDropdownOpen(roleDropdownOpen === memberId ? null : memberId);
+  };
+
+  const getUserRole = (member) => {
+    const email = member.emailid?.toLowerCase();
+    return isAdmin(email) ? 'admin' : 'staff';
+  };
+
+  // Close role dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (roleDropdownOpen && !event.target.closest('.role-dropdown-container')) {
+        setRoleDropdownOpen(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [roleDropdownOpen]);
 
   if (loading) {
     return (
@@ -257,18 +294,49 @@ const StaffMembersPage = () => {
                       <div className="text-sm text-gray-900">{member.emailid}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        isAdmin(member.emailid)
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-green-100 text-green-800'
-                      }`}>
-                        {isAdmin(member.emailid) ? 'Admin' : 'Staff'}
-                      </span>
+                      <div className="relative role-dropdown-container">
+                        <button
+                          onClick={() => toggleRoleDropdown(member.id)}
+                          className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
+                            isAdmin(member.emailid)
+                              ? 'bg-purple-100 text-purple-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}
+                        >
+                          {isAdmin(member.emailid) ? 'Admin' : 'Staff'}
+                          <svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                        
+                        {roleDropdownOpen === member.id && (
+                          <div className="absolute top-full left-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                            <div className="py-1">
+                              <button
+                                onClick={() => handleRoleChange(member, 'staff')}
+                                className={`block w-full text-left px-3 py-2 text-xs hover:bg-gray-100 ${
+                                  !isAdmin(member.emailid) ? 'bg-green-50 text-green-800' : 'text-gray-700'
+                                }`}
+                              >
+                                Staff
+                              </button>
+                              <button
+                                onClick={() => handleRoleChange(member, 'admin')}
+                                className={`block w-full text-left px-3 py-2 text-xs hover:bg-gray-100 ${
+                                  isAdmin(member.emailid) ? 'bg-purple-50 text-purple-800' : 'text-gray-700'
+                                }`}
+                              >
+                                Admin
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(member.created_at).toLocaleDateString()}
                     </td>
-                    {userIsAdmin && (
+                    {userIsAdmin && canRemoveUser(member.emailid) && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => setRemoveConfirm(member)}
@@ -276,6 +344,11 @@ const StaffMembersPage = () => {
                         >
                           Remove
                         </button>
+                      </td>
+                    )}
+                    {userIsAdmin && !canRemoveUser(member.emailid) && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <span className="text-gray-400 text-xs">Protected</span>
                       </td>
                     )}
                   </tr>

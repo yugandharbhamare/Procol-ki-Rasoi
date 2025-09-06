@@ -253,3 +253,34 @@ export const removeStaffAccess = async (userId) => {
     throw error;
   }
 };
+
+// Change user role (promote to admin or downgrade to staff)
+export const changeUserRole = async (userId, newRole) => {
+  try {
+    // For admin role, we don't need to set is_staff since admins are determined by email
+    // For staff role, we set is_staff = true
+    const updates = newRole === 'admin' ? {} : { is_staff: true };
+    
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error changing user role:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in changeUserRole:', error);
+    throw error;
+  }
+};
+
+// Check if user can be removed (not an admin)
+export const canRemoveUser = (userEmail) => {
+  return !isAdmin(userEmail?.toLowerCase());
+};
