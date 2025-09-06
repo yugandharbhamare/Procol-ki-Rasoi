@@ -97,21 +97,63 @@ export const StaffAuthProvider = ({ children }) => {
         const { auth } = await import('../firebase/config');
         const { onAuthStateChanged, signOut } = await import('firebase/auth');
 
-        unsubscribe = onAuthStateChanged(auth, (user) => {
+        unsubscribe = onAuthStateChanged(auth, async (user) => {
           console.log('StaffAuthProvider: Auth state changed', user);
           
           if (user && AUTHORIZED_STAFF_EMAILS.includes(user.email)) {
             // User is signed in and is authorized staff
             console.log('StaffAuthProvider: Authorized user found', user.email);
-            setStaffUser({
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName,
-              firstName: user.displayName?.split(' ')[0] || '',
-              lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
-              photoURL: user.photoURL,
-              role: 'staff'
-            });
+            
+            // Sync with Supabase to get user role information
+            try {
+              const { supabase } = await import('../services/supabaseService');
+              const { data: supabaseUser, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('emailid', user.email)
+                .single();
+              
+              if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+                console.error('Error fetching user from Supabase:', error);
+              }
+              
+              console.log('Supabase user data:', supabaseUser);
+              
+              setStaffUser({
+                uid: user.uid,
+                email: user.email,
+                emailid: user.email, // Add emailid for compatibility
+                displayName: user.displayName,
+                name: user.displayName, // Add name for compatibility
+                firstName: user.displayName?.split(' ')[0] || '',
+                lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+                photoURL: user.photoURL,
+                photo_url: user.photoURL, // Add photo_url for compatibility
+                role: 'staff',
+                // Add Supabase fields
+                id: supabaseUser?.id,
+                is_admin: supabaseUser?.is_admin || false,
+                is_staff: supabaseUser?.is_staff || true, // Default to true for authorized staff
+                created_at: supabaseUser?.created_at
+              });
+            } catch (syncError) {
+              console.error('Error syncing with Supabase:', syncError);
+              // Fallback to basic user data
+              setStaffUser({
+                uid: user.uid,
+                email: user.email,
+                emailid: user.email,
+                displayName: user.displayName,
+                name: user.displayName,
+                firstName: user.displayName?.split(' ')[0] || '',
+                lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+                photoURL: user.photoURL,
+                photo_url: user.photoURL,
+                role: 'staff',
+                is_admin: false,
+                is_staff: true
+              });
+            }
             setError(null);
           } else if (user && !AUTHORIZED_STAFF_EMAILS.includes(user.email)) {
             // User is signed in but not authorized staff
