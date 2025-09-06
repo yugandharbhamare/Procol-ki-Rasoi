@@ -11,6 +11,7 @@ const OrderHistory = () => {
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [userOrders, setUserOrders] = useState([])
+  const [pendingReceiptOrderId, setPendingReceiptOrderId] = useState(null)
 
 
 
@@ -40,6 +41,27 @@ const OrderHistory = () => {
   const handleCloseReceipt = () => {
     setSelectedOrder(null)
   }
+
+  // Check for order ID in sessionStorage to auto-open receipt
+  useEffect(() => {
+    const orderIdToShow = sessionStorage.getItem('showReceiptForOrder');
+    if (orderIdToShow) {
+      console.log('OrderHistory: Found order ID in sessionStorage:', orderIdToShow);
+      // Clear the sessionStorage item
+      sessionStorage.removeItem('showReceiptForOrder');
+      
+      // Find the order and open receipt
+      const orderToShow = userOrders.find(order => order.id === orderIdToShow);
+      if (orderToShow) {
+        console.log('OrderHistory: Opening receipt for order:', orderToShow);
+        setSelectedOrder(orderToShow);
+      } else {
+        console.log('OrderHistory: Order not found in current orders, will check after loading');
+        // Store the order ID to check after orders are loaded
+        setPendingReceiptOrderId(orderIdToShow);
+      }
+    }
+  }, [userOrders]);
 
   // Load and filter orders for the current user
   const loadUserOrders = async () => {
@@ -117,8 +139,18 @@ const OrderHistory = () => {
         // Clear the flag
         sessionStorage.removeItem('showReceiptForOrder');
       }
+      
+      // Also check for pending receipt order ID
+      if (pendingReceiptOrderId) {
+        const orderToShow = userOrders.find(order => order.id === pendingReceiptOrderId);
+        if (orderToShow) {
+          console.log('OrderHistory: Auto-opening receipt for pending order:', pendingReceiptOrderId);
+          setSelectedOrder(orderToShow);
+          setPendingReceiptOrderId(null); // Clear the pending ID
+        }
+      }
     }
-  }, [userOrders]);
+  }, [userOrders, pendingReceiptOrderId]);
 
   // Real-time subscription for order updates
   useEffect(() => {
