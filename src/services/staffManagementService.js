@@ -2,14 +2,30 @@ import { supabase } from './supabaseService';
 
 const USERS_TABLE = 'users';
 
-// Admin emails - can be expanded
-const ADMIN_EMAILS = [
-  'yugandhar.bhamare@gmail.com'
-];
+// Check if user is admin (from database)
+export const isAdmin = async (email) => {
+  try {
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .select('is_admin')
+      .eq('emailid', email?.toLowerCase())
+      .single();
 
-// Check if user is admin
-export const isAdmin = (email) => {
-  return ADMIN_EMAILS.includes(email?.toLowerCase());
+    if (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+
+    return data?.is_admin === true;
+  } catch (error) {
+    console.error('Error in isAdmin:', error);
+    return false;
+  }
+};
+
+// Check if user is admin (synchronous version for existing code)
+export const isAdminSync = (user) => {
+  return user?.is_admin === true;
 };
 
 // Get all staff members (users with staff access or admin)
@@ -27,8 +43,7 @@ export const getStaffMembers = async () => {
 
     // Filter to only show staff members and admins
     const staffMembers = (data || []).filter(user => {
-      const email = user.emailid?.toLowerCase();
-      return user.is_staff === true || isAdmin(email);
+      return user.is_staff === true || user.is_admin === true;
     });
 
     return staffMembers;
@@ -257,9 +272,9 @@ export const removeStaffAccess = async (userId) => {
 // Change user role (promote to admin or downgrade to staff)
 export const changeUserRole = async (userId, newRole) => {
   try {
-    // For admin role, we don't need to set is_staff since admins are determined by email
-    // For staff role, we set is_staff = true
-    const updates = newRole === 'admin' ? {} : { is_staff: true };
+    const updates = newRole === 'admin' 
+      ? { is_admin: true, is_staff: true }  // Admins are also staff
+      : { is_admin: false, is_staff: true }; // Staff members
     
     const { data, error } = await supabase
       .from(USERS_TABLE)
@@ -281,6 +296,6 @@ export const changeUserRole = async (userId, newRole) => {
 };
 
 // Check if user can be removed (not an admin)
-export const canRemoveUser = (userEmail) => {
-  return !isAdmin(userEmail?.toLowerCase());
+export const canRemoveUser = (user) => {
+  return !user?.is_admin;
 };

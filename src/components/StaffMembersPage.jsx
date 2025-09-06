@@ -5,7 +5,7 @@ import {
   removeStaffAccess,
   changeUserRole,
   canRemoveUser,
-  isAdmin 
+  isAdminSync 
 } from '../services/staffManagementService';
 import { useStaffAuth } from '../contexts/StaffAuthContext';
 import AddStaffModal from './AddStaffModal';
@@ -26,8 +26,8 @@ const StaffMembersPage = () => {
 
   // Check if current user is admin
   const userIsAdmin = useMemo(() => {
-    return isAdmin(staffUser?.email);
-  }, [staffUser?.email]);
+    return isAdminSync(staffUser);
+  }, [staffUser]);
 
   const loadStaffMembers = async () => {
     try {
@@ -119,8 +119,7 @@ const StaffMembersPage = () => {
   };
 
   const getUserRole = (member) => {
-    const email = member.emailid?.toLowerCase();
-    return isAdmin(email) ? 'admin' : 'staff';
+    return isAdminSync(member) ? 'admin' : 'staff';
   };
 
   // Close role dropdown when clicking outside
@@ -298,12 +297,12 @@ const StaffMembersPage = () => {
                         <button
                           onClick={() => toggleRoleDropdown(member.id)}
                           className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full cursor-pointer hover:opacity-80 transition-opacity ${
-                            isAdmin(member.emailid)
+                            isAdminSync(member)
                               ? 'bg-purple-100 text-purple-800'
                               : 'bg-green-100 text-green-800'
                           }`}
                         >
-                          {isAdmin(member.emailid) ? 'Admin' : 'Staff'}
+                          {isAdminSync(member) ? 'Admin' : 'Staff'}
                           <svg className="ml-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
@@ -315,7 +314,7 @@ const StaffMembersPage = () => {
                               <button
                                 onClick={() => handleRoleChange(member, 'staff')}
                                 className={`block w-full text-left px-3 py-2 text-xs hover:bg-gray-100 ${
-                                  !isAdmin(member.emailid) ? 'bg-green-50 text-green-800' : 'text-gray-700'
+                                  !isAdminSync(member) ? 'bg-green-50 text-green-800' : 'text-gray-700'
                                 }`}
                               >
                                 Staff
@@ -323,7 +322,7 @@ const StaffMembersPage = () => {
                               <button
                                 onClick={() => handleRoleChange(member, 'admin')}
                                 className={`block w-full text-left px-3 py-2 text-xs hover:bg-gray-100 ${
-                                  isAdmin(member.emailid) ? 'bg-purple-50 text-purple-800' : 'text-gray-700'
+                                  isAdminSync(member) ? 'bg-purple-50 text-purple-800' : 'text-gray-700'
                                 }`}
                               >
                                 Admin
@@ -336,7 +335,7 @@ const StaffMembersPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(member.created_at).toLocaleDateString()}
                     </td>
-                    {userIsAdmin && canRemoveUser(member.emailid) && (
+                    {userIsAdmin && canRemoveUser(member) && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => setRemoveConfirm(member)}
@@ -346,7 +345,7 @@ const StaffMembersPage = () => {
                         </button>
                       </td>
                     )}
-                    {userIsAdmin && !canRemoveUser(member.emailid) && (
+                    {userIsAdmin && !canRemoveUser(member) && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <span className="text-gray-400 text-xs">Protected</span>
                       </td>
