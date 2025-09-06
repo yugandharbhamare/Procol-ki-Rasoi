@@ -117,11 +117,13 @@ function MenuPageContent() {
       
       console.log('🔧 MenuPageContent: Completed order with payment:', completedOrder);
       try {
-        await addCompletedOrder(completedOrder);
-        console.log('🔧 MenuPageContent: Order successfully added to context');
+        const result = await addCompletedOrder(completedOrder);
+        console.log('🔧 MenuPageContent: Order successfully added to context:', result);
         
         // Store the order ID in sessionStorage to open receipt modal on order history page
+        // Use the custom_order_id that will be used in the database
         sessionStorage.setItem('showReceiptForOrder', completedOrder.id);
+        console.log('🔧 MenuPageContent: Stored order ID in sessionStorage:', completedOrder.id);
         
         // Clear cart and redirect to order history
         setCart({});

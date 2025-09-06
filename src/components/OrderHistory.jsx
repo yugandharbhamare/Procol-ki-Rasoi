@@ -47,6 +47,7 @@ const OrderHistory = () => {
     const orderIdToShow = sessionStorage.getItem('showReceiptForOrder');
     if (orderIdToShow) {
       console.log('OrderHistory: Found order ID in sessionStorage:', orderIdToShow);
+      console.log('OrderHistory: Available orders:', userOrders.map(o => ({ id: o.id, supabase_id: o.supabase_id })));
       // Clear the sessionStorage item
       sessionStorage.removeItem('showReceiptForOrder');
       
@@ -57,6 +58,8 @@ const OrderHistory = () => {
         setSelectedOrder(orderToShow);
       } else {
         console.log('OrderHistory: Order not found in current orders, will check after loading');
+        console.log('OrderHistory: Looking for order ID:', orderIdToShow);
+        console.log('OrderHistory: Available order IDs:', userOrders.map(o => o.id));
         // Store the order ID to check after orders are loaded
         setPendingReceiptOrderId(orderIdToShow);
       }
