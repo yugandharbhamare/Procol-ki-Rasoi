@@ -25,17 +25,22 @@ export const isAdmin = async (email) => {
 
 // Check if user is admin (synchronous version for existing code)
 export const isAdminSync = (user) => {
+  console.log('isAdminSync called with user:', user);
+  
   // Check database is_admin field first
   if (user?.is_admin === true) {
+    console.log('User is admin via is_admin field');
     return true;
   }
   
   // Fallback: check if it's the original admin email (in case migration hasn't been run)
   const originalAdminEmail = 'yugandhar.bhamare@gmail.com';
   if (user?.emailid?.toLowerCase() === originalAdminEmail.toLowerCase()) {
+    console.log('User is admin via email fallback');
     return true;
   }
   
+  console.log('User is not admin');
   return false;
 };
 
@@ -54,9 +59,13 @@ export const getStaffMembers = async () => {
 
     // Filter to only show staff members and admins
     const staffMembers = (data || []).filter(user => {
-      return user.is_staff === true || user.is_admin === true;
+      const isStaff = user.is_staff === true;
+      const isAdmin = user.is_admin === true;
+      console.log(`User ${user.emailid}: is_staff=${user.is_staff}, is_admin=${user.is_admin}, filtered=${isStaff || isAdmin}`);
+      return isStaff || isAdmin;
     });
 
+    console.log('Filtered staff members:', staffMembers);
     return staffMembers;
   } catch (error) {
     console.error('Error in getStaffMembers:', error);
