@@ -96,7 +96,7 @@ function StaffApp() {
           <Routes>
             <Route path="/" element={<StaffDashboardPage />} />
             <Route path="/menu" element={<MenuManagementPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/staff/" replace />} />
           </Routes>
         </StaffOrderProvider>
       </StaffAuthProvider>
