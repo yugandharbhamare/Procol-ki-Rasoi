@@ -150,6 +150,21 @@ export class ImageUploadService {
         const base64Url = await this.blobToBase64(optimizedBlob);
         const fallbackUrl = `data:image/jpeg;base64,${base64Url}`;
         
+        // Check if base64 URL is too long for database
+        if (fallbackUrl.length > 10000) { // Conservative limit
+          console.warn('Base64 image too large, using placeholder');
+          const placeholderUrl = '/placeholder-image.svg';
+          
+          return {
+            success: true,
+            fileName: fileName,
+            url: placeholderUrl,
+            optimizedUrl: placeholderUrl,
+            isFallback: true,
+            isPlaceholder: true
+          };
+        }
+        
         // Store in localStorage with a unique key
         const storageKey = `temp_image_${fileName}`;
         localStorage.setItem(storageKey, fallbackUrl);

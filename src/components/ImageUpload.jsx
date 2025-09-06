@@ -40,8 +40,13 @@ const ImageUpload = ({
         
         // Show success message
         if (result.isFallback) {
-          setUploadStatus('Image uploaded (using fallback method)');
-          console.warn('Image uploaded using fallback method (base64). Server upload failed.');
+          if (result.isPlaceholder) {
+            setUploadStatus('Image too large, using placeholder');
+            console.warn('Image too large for base64 storage, using placeholder.');
+          } else {
+            setUploadStatus('Image uploaded (using fallback method)');
+            console.warn('Image uploaded using fallback method (base64). Server upload failed.');
+          }
         } else {
           setUploadStatus('Image uploaded successfully');
         }
