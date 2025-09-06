@@ -21,6 +21,7 @@ function MenuPageContent() {
   const [showPayment, setShowPayment] = useState(false)
   const [currentOrder, setCurrentOrder] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [orderNotes, setOrderNotes] = useState('')
 
   console.log('🔧 MenuPageContent: User state:', user)
   console.log('🔧 MenuPageContent: Supabase available:', isSupabaseAvailable)
@@ -74,6 +75,7 @@ function MenuPageContent() {
     console.log('🔧 MenuPageContent: placeOrder called')
     console.log('🔧 MenuPageContent: Cart contents:', cart)
     console.log('🔧 MenuPageContent: User:', user)
+    console.log('🔧 MenuPageContent: Order notes:', orderNotes)
     
     // Generate a simpler order ID: ORD + 6-digit number
     const orderNumber = Math.floor(Math.random() * 900000) + 100000; // 6-digit number
@@ -81,6 +83,7 @@ function MenuPageContent() {
       id: `ORD${orderNumber}`,
       items: cart,
       total: getTotalPrice(),
+      notes: orderNotes || null,
       timestamp: new Date().toISOString(),
       user: {
         uid: user.uid,
@@ -200,6 +203,8 @@ function MenuPageContent() {
         totalItems={getTotalItems()}
         totalPrice={getTotalPrice()}
         onPlaceOrder={placeOrder}
+        orderNotes={orderNotes}
+        onNotesChange={setOrderNotes}
       />
     </div>
   )

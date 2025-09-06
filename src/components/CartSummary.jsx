@@ -1,5 +1,5 @@
-const CartSummary = ({ cart, updateQuantity, totalItems, totalPrice, onPlaceOrder }) => {
-  console.log('🔧 CartSummary: Rendering with props:', { cart, totalItems, totalPrice, onPlaceOrder })
+const CartSummary = ({ cart, updateQuantity, totalItems, totalPrice, onPlaceOrder, orderNotes, onNotesChange }) => {
+  console.log('🔧 CartSummary: Rendering with props:', { cart, totalItems, totalPrice, onPlaceOrder, orderNotes })
   
   // Don't render anything if cart is empty
   if (totalItems === 0) {
@@ -60,7 +60,7 @@ const CartSummary = ({ cart, updateQuantity, totalItems, totalPrice, onPlaceOrde
         
         {/* Cart Items Preview */}
         <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-3">
             {Object.entries(cart).map(([itemId, item]) => (
               <div
                 key={itemId}
@@ -75,6 +75,25 @@ const CartSummary = ({ cart, updateQuantity, totalItems, totalPrice, onPlaceOrde
                 </button>
               </div>
             ))}
+          </div>
+          
+          {/* Notes Input */}
+          <div className="mb-2">
+            <label htmlFor="order-notes" className="block text-sm font-medium text-gray-700 mb-1">
+              Special Instructions for Chef (Optional)
+            </label>
+            <textarea
+              id="order-notes"
+              value={orderNotes || ''}
+              onChange={(e) => onNotesChange && onNotesChange(e.target.value)}
+              placeholder="e.g., Extra spicy, No onions, Well done..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm resize-none"
+              rows={2}
+              maxLength={200}
+            />
+            <div className="text-xs text-gray-500 mt-1">
+              {orderNotes ? orderNotes.length : 0}/200 characters
+            </div>
           </div>
         </div>
       </div>

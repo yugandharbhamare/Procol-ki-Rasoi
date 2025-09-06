@@ -91,6 +91,7 @@ export const OrderProvider = ({ children }) => {
           order_amount: order.total || 0,
           custom_order_id: order.id, // Use the simplified order ID (e.g., ORD123456)
           status: 'pending', // Start as pending for staff approval
+          notes: order.notes || null, // Include order notes for chef
           items: orderItems // Include items for order creation
         }
         
