@@ -53,6 +53,10 @@ app.get('/api/menu', (req, res) => {
   });
 });
 
+// Image upload routes
+const imageUploadRoutes = require('./routes/imageUpload');
+app.use('/api', imageUploadRoutes);
+
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({

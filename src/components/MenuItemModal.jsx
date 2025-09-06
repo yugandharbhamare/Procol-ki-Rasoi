@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import ImageUpload from './ImageUpload'
 
 const MenuItemModal = ({ item, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -217,36 +218,22 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
               </select>
             </div>
 
-            {/* Image URL */}
+            {/* Image Upload */}
             <div>
-              <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
-                Image URL
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Item Image
               </label>
-              <input
-                type="url"
-                id="image"
-                name="image"
+              <ImageUpload
                 value={formData.image}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                  errors.image ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="https://example.com/image.jpg"
+                onChange={(imageUrl) => setFormData(prev => ({ ...prev, image: imageUrl }))}
+                onError={(error) => {
+                  setErrors(prev => ({ ...prev, image: error }))
+                }}
+                disabled={saving}
+                className="w-full"
               />
               {errors.image && (
                 <p className="mt-1 text-sm text-red-600">{errors.image}</p>
-              )}
-              {formData.image && (
-                <div className="mt-2">
-                  <img
-                    src={formData.image}
-                    alt="Preview"
-                    className="w-20 h-20 object-cover rounded-lg border"
-                    onError={(e) => {
-                      e.target.style.display = 'none'
-                    }}
-                  />
-                </div>
               )}
             </div>
 
