@@ -12,7 +12,7 @@ export const isAdmin = (email) => {
   return ADMIN_EMAILS.includes(email?.toLowerCase());
 };
 
-// Get all staff members (users)
+// Get all staff members (users with staff access or admin)
 export const getStaffMembers = async () => {
   try {
     const { data, error } = await supabase
@@ -25,7 +25,13 @@ export const getStaffMembers = async () => {
       throw error;
     }
 
-    return data || [];
+    // Filter to only show staff members and admins
+    const staffMembers = (data || []).filter(user => {
+      const email = user.emailid?.toLowerCase();
+      return user.is_staff === true || isAdmin(email);
+    });
+
+    return staffMembers;
   } catch (error) {
     console.error('Error in getStaffMembers:', error);
     throw error;
