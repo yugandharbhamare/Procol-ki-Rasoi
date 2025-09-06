@@ -31,6 +31,7 @@ const StaffMembersPage = () => {
     console.log('Staff user email:', staffUser?.emailid);
     console.log('Staff user is_admin:', staffUser?.is_admin);
     console.log('Staff user is_staff:', staffUser?.is_staff);
+    console.log('Staff user keys:', staffUser ? Object.keys(staffUser) : 'No staffUser');
     const adminResult = isAdminSync(staffUser);
     console.log('Is admin sync result:', adminResult);
     console.log('=== END ADMIN DETECTION DEBUG ===');
@@ -171,6 +172,14 @@ const StaffMembersPage = () => {
                 <p className="text-sm text-gray-500">Manage staff members and their access to the portal</p>
               </div>
             </div>
+            {/* Temporary debug button - always show for testing */}
+            <button
+              onClick={handleAddMember}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors mr-2"
+            >
+              DEBUG: Add Staff (Always Visible)
+            </button>
+            
             {userIsAdmin && (
               <button
                 onClick={handleAddMember}

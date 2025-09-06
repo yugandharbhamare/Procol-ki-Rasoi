@@ -27,16 +27,16 @@ export const isAdmin = async (email) => {
 export const isAdminSync = (user) => {
   console.log('isAdminSync called with user:', user);
   
-  // Check database is_admin field first
-  if (user?.is_admin === true) {
-    console.log('User is admin via is_admin field');
+  // Always treat yugandhar.bhamare@gmail.com as admin (hardcoded fallback)
+  const originalAdminEmail = 'yugandhar.bhamare@gmail.com';
+  if (user?.emailid?.toLowerCase() === originalAdminEmail.toLowerCase()) {
+    console.log('User is admin via hardcoded email check');
     return true;
   }
   
-  // Fallback: check if it's the original admin email (in case migration hasn't been run)
-  const originalAdminEmail = 'yugandhar.bhamare@gmail.com';
-  if (user?.emailid?.toLowerCase() === originalAdminEmail.toLowerCase()) {
-    console.log('User is admin via email fallback');
+  // Check database is_admin field
+  if (user?.is_admin === true) {
+    console.log('User is admin via is_admin field');
     return true;
   }
   
@@ -61,8 +61,10 @@ export const getStaffMembers = async () => {
     const staffMembers = (data || []).filter(user => {
       const isStaff = user.is_staff === true;
       const isAdmin = user.is_admin === true;
-      console.log(`User ${user.emailid}: is_staff=${user.is_staff}, is_admin=${user.is_admin}, filtered=${isStaff || isAdmin}`);
-      return isStaff || isAdmin;
+      const isHardcodedAdmin = user?.emailid?.toLowerCase() === 'yugandhar.bhamare@gmail.com';
+      const shouldInclude = isStaff || isAdmin || isHardcodedAdmin;
+      console.log(`User ${user.emailid}: is_staff=${user.is_staff}, is_admin=${user.is_admin}, isHardcodedAdmin=${isHardcodedAdmin}, filtered=${shouldInclude}`);
+      return shouldInclude;
     });
 
     console.log('Filtered staff members:', staffMembers);
