@@ -63,11 +63,11 @@ class NotificationService {
       switch (type) {
         case 'new_order':
           // Double beep for new orders
-          this.playBeepPattern(oscillator, gainNode, [800, 0.1, 1000, 0.1]);
+          this.playBeepPattern(oscillator, gainNode, [800, 0.15, 0, 0.05, 1000, 0.15]);
           break;
         case 'order_accepted':
           // Rising tone for order accepted
-          this.playBeepPattern(oscillator, gainNode, [600, 0.2, 800, 0.2]);
+          this.playBeepPattern(oscillator, gainNode, [600, 0.2, 0, 0.05, 800, 0.2]);
           break;
         case 'order_ready':
           // Triple beep for order ready
@@ -75,7 +75,7 @@ class NotificationService {
           break;
         case 'order_cancelled':
           // Low descending tone for cancellation
-          this.playBeepPattern(oscillator, gainNode, [400, 0.3, 300, 0.3]);
+          this.playBeepPattern(oscillator, gainNode, [400, 0.2, 0, 0.05, 300, 0.2]);
           break;
         default:
           // Single beep for default
@@ -90,22 +90,42 @@ class NotificationService {
    * Play a beep pattern with specified frequencies and durations
    */
   playBeepPattern(oscillator, gainNode, pattern) {
-    let currentTime = this.audioContext.currentTime;
+    const startTime = this.audioContext.currentTime;
+    let currentTime = startTime;
+    let totalDuration = 0;
     
-    pattern.forEach((value, index) => {
-      if (index % 2 === 0) {
-        // Frequency
-        oscillator.frequency.setValueAtTime(value, currentTime);
+    // Calculate total duration first
+    for (let i = 1; i < pattern.length; i += 2) {
+      totalDuration += pattern[i];
+    }
+    
+    // Set up the pattern
+    for (let i = 0; i < pattern.length; i += 2) {
+      const frequency = pattern[i];
+      const duration = pattern[i + 1];
+      
+      if (frequency > 0) {
+        // Only set frequency and gain for non-zero frequencies
+        oscillator.frequency.setValueAtTime(frequency, currentTime);
         gainNode.gain.setValueAtTime(0.3, currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + pattern[index + 1]);
-      } else {
-        // Duration
-        currentTime += value;
+        gainNode.gain.exponentialRampToValueAtTime(0.01, currentTime + duration);
+      }
+      
+      currentTime += duration;
+    }
+
+    // Start and stop the oscillator
+    oscillator.start(startTime);
+    oscillator.stop(startTime + totalDuration);
+    
+    // Clean up the oscillator after it stops
+    oscillator.addEventListener('ended', () => {
+      try {
+        oscillator.disconnect();
+      } catch (error) {
+        // Oscillator might already be disconnected
       }
     });
-
-    oscillator.start(this.audioContext.currentTime);
-    oscillator.stop(this.audioContext.currentTime + currentTime);
   }
 
   /**
