@@ -1,10 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ChefLogo from './ChefLogo';
 
 export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNotifications }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
 
 
 
@@ -56,7 +74,7 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
           </div>
 
           {/* User Menu */}
-          <div className="relative">
+          <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
               className="flex items-center space-x-3 text-sm rounded-full focus:outline-none"
