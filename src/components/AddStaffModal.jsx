@@ -12,13 +12,10 @@ const AddStaffModal = ({ onClose, onStaffAdded }) => {
     try {
       setLoading(true);
       setError(null);
-      console.log('AddStaffModal: Loading non-staff users...');
       const nonStaffUsers = await getNonStaffUsers();
-      console.log('AddStaffModal: Received non-staff users:', nonStaffUsers);
       
       // If no non-staff users found, show a message
       if (nonStaffUsers.length === 0) {
-        console.log('AddStaffModal: No non-staff users found');
         setError('No regular users found to add as staff. All users might already be staff or admin.');
       }
       
@@ -76,18 +73,6 @@ const AddStaffModal = ({ onClose, onStaffAdded }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-          </div>
-
-          {/* Debug Info */}
-          <div className="mb-4 p-3 bg-gray-100 rounded-md">
-            <p className="text-sm text-gray-600">
-              <strong>Debug Info:</strong> Found {users.length} non-staff users
-              {users.length > 0 && (
-                <span className="ml-2">
-                  (First user: {users[0]?.emailid} - is_staff: {users[0]?.is_staff}, is_admin: {users[0]?.is_admin})
-                </span>
-              )}
-            </p>
           </div>
 
           {/* Search */}

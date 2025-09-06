@@ -26,16 +26,7 @@ const StaffMembersPage = () => {
 
   // Check if current user is admin
   const userIsAdmin = useMemo(() => {
-    console.log('=== ADMIN DETECTION DEBUG ===');
-    console.log('Staff user object:', staffUser);
-    console.log('Staff user email:', staffUser?.emailid);
-    console.log('Staff user is_admin:', staffUser?.is_admin);
-    console.log('Staff user is_staff:', staffUser?.is_staff);
-    console.log('Staff user keys:', staffUser ? Object.keys(staffUser) : 'No staffUser');
-    const adminResult = isAdminSync(staffUser);
-    console.log('Is admin sync result:', adminResult);
-    console.log('=== END ADMIN DETECTION DEBUG ===');
-    return adminResult;
+    return isAdminSync(staffUser);
   }, [staffUser]);
 
   const loadStaffMembers = async () => {
@@ -172,14 +163,6 @@ const StaffMembersPage = () => {
                 <p className="text-sm text-gray-500">Manage staff members and their access to the portal</p>
               </div>
             </div>
-            {/* Temporary debug button - always show for testing */}
-            <button
-              onClick={handleAddMember}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors mr-2"
-            >
-              DEBUG: Add Staff (Always Visible)
-            </button>
-            
             {userIsAdmin && (
               <button
                 onClick={handleAddMember}
@@ -333,27 +316,18 @@ const StaffMembersPage = () => {
                         const memberIsAdmin = isAdminSync(member);
                         const memberIsStaff = member.is_staff;
                         
-                        console.log(`=== ACTION COLUMN DEBUG for ${member.emailid} ===`);
-                        console.log('userIsAdmin:', userIsAdmin);
-                        console.log('memberIsAdmin:', memberIsAdmin);
-                        console.log('memberIsStaff:', memberIsStaff);
-                        console.log('member object:', member);
-                        
                         // Only admins can perform actions
                         if (!userIsAdmin) {
-                          console.log('Action: - (user not admin)');
                           return <span className="text-gray-400 text-xs">-</span>;
                         }
                         
                         // If member is admin, show protected
                         if (memberIsAdmin) {
-                          console.log('Action: Protected (member is admin)');
                           return <span className="text-gray-400 text-xs">Protected</span>;
                         }
                         
                         // If member is staff (but not admin), show remove button
                         if (memberIsStaff) {
-                          console.log('Action: Remove (member is staff)');
                           return (
                             <button
                               onClick={() => setRemoveConfirm(member)}
@@ -365,7 +339,6 @@ const StaffMembersPage = () => {
                         }
                         
                         // Default case
-                        console.log('Action: - (default case)');
                         return <span className="text-gray-400 text-xs">-</span>;
                       })()}
                     </td>

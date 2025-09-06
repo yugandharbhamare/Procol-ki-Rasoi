@@ -25,22 +25,17 @@ export const isAdmin = async (email) => {
 
 // Check if user is admin (synchronous version for existing code)
 export const isAdminSync = (user) => {
-  console.log('isAdminSync called with user:', user);
-  
   // Always treat yugandhar.bhamare@gmail.com as admin (hardcoded fallback)
   const originalAdminEmail = 'yugandhar.bhamare@gmail.com';
   if (user?.emailid?.toLowerCase() === originalAdminEmail.toLowerCase()) {
-    console.log('User is admin via hardcoded email check');
     return true;
   }
   
   // Check database is_admin field
   if (user?.is_admin === true) {
-    console.log('User is admin via is_admin field');
     return true;
   }
   
-  console.log('User is not admin');
   return false;
 };
 
@@ -63,11 +58,8 @@ export const getStaffMembers = async () => {
       const isAdmin = user.is_admin === true;
       const isHardcodedAdmin = user?.emailid?.toLowerCase() === 'yugandhar.bhamare@gmail.com';
       const shouldInclude = isStaff || isAdmin || isHardcodedAdmin;
-      console.log(`User ${user.emailid}: is_staff=${user.is_staff}, is_admin=${user.is_admin}, isHardcodedAdmin=${isHardcodedAdmin}, filtered=${shouldInclude}`);
       return shouldInclude;
     });
-
-    console.log('Filtered staff members:', staffMembers);
     return staffMembers;
   } catch (error) {
     console.error('Error in getStaffMembers:', error);
@@ -234,8 +226,6 @@ export const getNonStaffUsers = async () => {
       throw error;
     }
 
-    console.log('All users fetched:', data);
-
     // Filter out users who are already staff or admin
     const nonStaffUsers = (data || []).filter(user => {
       const isStaff = user.is_staff === true;
@@ -244,12 +234,8 @@ export const getNonStaffUsers = async () => {
       
       const shouldExclude = isStaff || isAdminUser || isHardcodedAdmin;
       
-      console.log(`User ${user.emailid}: is_staff=${user.is_staff}, is_admin=${user.is_admin}, isHardcodedAdmin=${isHardcodedAdmin}, excluded=${shouldExclude}`);
-      
       return !shouldExclude;
     });
-
-    console.log('Filtered non-staff users:', nonStaffUsers);
     return nonStaffUsers;
   } catch (error) {
     console.error('Error in getNonStaffUsers:', error);
