@@ -234,12 +234,22 @@ export const getNonStaffUsers = async () => {
       throw error;
     }
 
+    console.log('All users fetched:', data);
+
     // Filter out users who are already staff or admin
     const nonStaffUsers = (data || []).filter(user => {
-      const email = user.emailid?.toLowerCase();
-      return !isAdmin(email) && !user.is_staff; // Assuming we'll add is_staff field
+      const isStaff = user.is_staff === true;
+      const isAdminUser = user.is_admin === true;
+      const isHardcodedAdmin = user?.emailid?.toLowerCase() === 'yugandhar.bhamare@gmail.com';
+      
+      const shouldExclude = isStaff || isAdminUser || isHardcodedAdmin;
+      
+      console.log(`User ${user.emailid}: is_staff=${user.is_staff}, is_admin=${user.is_admin}, isHardcodedAdmin=${isHardcodedAdmin}, excluded=${shouldExclude}`);
+      
+      return !shouldExclude;
     });
 
+    console.log('Filtered non-staff users:', nonStaffUsers);
     return nonStaffUsers;
   } catch (error) {
     console.error('Error in getNonStaffUsers:', error);
