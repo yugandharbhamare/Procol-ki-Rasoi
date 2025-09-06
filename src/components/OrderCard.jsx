@@ -358,11 +358,11 @@ export default function OrderCard({ order, status }) {
     <>
       <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
         {/* Compact Header - Customer Name First */}
-        <div className={`px-3 sm:px-4 py-3 border-b ${status === 'accepted' ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200' : 'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200'}`}>
+        <div className="px-3 sm:px-4 py-3 border-b bg-white border-gray-200">
           <div className="flex justify-between items-start">
             <div className="flex items-start gap-2 sm:gap-3">
               {/* User Profile Photo or Initials */}
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 flex items-center justify-center flex-shrink-0 ${status === 'accepted' ? 'bg-blue-100 border-blue-200' : 'bg-orange-100 border-orange-200'}`}>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 flex items-center justify-center flex-shrink-0 bg-gray-100 border-gray-200">
                 {order.user?.photoURL ? (
                   <img 
                     src={order.user.photoURL} 
