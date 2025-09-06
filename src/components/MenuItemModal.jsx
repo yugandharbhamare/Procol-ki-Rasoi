@@ -53,9 +53,8 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
       }
     }
 
-    if (formData.image && !isValidUrl(formData.image)) {
-      newErrors.image = 'Please enter a valid image URL'
-    }
+    // Image validation is now handled by the ImageUpload component
+    // No need to validate image URL here since it's either a valid URL or base64 data
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -73,15 +72,20 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    console.log('MenuItemModal: Form submitted with data:', formData)
+    
     if (!validateForm()) {
+      console.log('MenuItemModal: Form validation failed:', errors)
       return
     }
 
+    console.log('MenuItemModal: Form validation passed, calling onSave')
     setSaving(true)
     try {
       await onSave(formData)
+      console.log('MenuItemModal: onSave completed successfully')
     } catch (error) {
-      console.error('Error saving menu item:', error)
+      console.error('MenuItemModal: Error saving menu item:', error)
     } finally {
       setSaving(false)
     }

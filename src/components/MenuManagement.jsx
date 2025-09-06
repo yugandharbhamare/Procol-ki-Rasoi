@@ -159,10 +159,12 @@ const MenuManagement = () => {
 
   const handleModalSave = async (itemData) => {
     try {
+      console.log('MenuManagement: handleModalSave called with data:', itemData)
       let result
       
       if (editingItem) {
         // Update existing item
+        console.log('MenuManagement: Updating existing item:', editingItem.id)
         result = await menuManagementService.updateMenuItem(editingItem.id, itemData)
         if (result.success) {
           setMenuItems(prev => prev.map(item => 
@@ -171,19 +173,24 @@ const MenuManagement = () => {
         }
       } else {
         // Add new item
+        console.log('MenuManagement: Adding new item')
         result = await menuManagementService.addMenuItem(itemData)
+        console.log('MenuManagement: Add result:', result)
         if (result.success) {
           setMenuItems(prev => [result.menuItem, ...prev])
         }
       }
 
       if (result.success) {
+        console.log('MenuManagement: Operation successful, closing modal')
         setShowModal(false)
         setEditingItem(null)
       } else {
+        console.error('MenuManagement: Operation failed:', result.error)
         setError(result.error)
       }
     } catch (err) {
+      console.error('MenuManagement: Exception in handleModalSave:', err)
       setError(err.message)
     }
   }

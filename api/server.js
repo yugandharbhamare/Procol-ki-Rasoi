@@ -58,14 +58,26 @@ app.get('/api/menu', (req, res) => {
 });
 
 // Image upload routes
-const imageUploadRoutes = require('./routes/imageUpload');
-app.use('/api', imageUploadRoutes);
+try {
+  const imageUploadRoutes = require('./routes/imageUpload');
+  app.use('/api', imageUploadRoutes);
+  console.log('✅ Image upload routes loaded successfully');
+} catch (error) {
+  console.error('❌ Failed to load image upload routes:', error);
+}
 
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     error: 'Endpoint not found',
-    availableEndpoints: ['/health', '/api/orders', '/api/menu']
+    availableEndpoints: [
+      '/health', 
+      '/api/orders', 
+      '/api/menu',
+      '/api/upload-image',
+      '/api/delete-image',
+      '/api/image-info/:fileName'
+    ]
   });
 });
 
