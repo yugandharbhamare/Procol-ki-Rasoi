@@ -2,13 +2,13 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   getStaffMembers, 
-  addStaffMember, 
   updateStaffMember, 
   deleteStaffMember,
   isAdmin 
 } from '../services/staffManagementService';
 import { useStaffAuth } from '../contexts/StaffAuthContext';
 import StaffMemberModal from './StaffMemberModal';
+import AddStaffModal from './AddStaffModal';
 
 const StaffMembersPage = () => {
   const navigate = useNavigate();
@@ -17,6 +17,7 @@ const StaffMembersPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
@@ -98,8 +99,7 @@ const StaffMembersPage = () => {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handleAddMember = () => {
-    setEditingMember(null);
-    setShowModal(true);
+    setShowAddModal(true);
   };
 
   const handleEditMember = (member) => {
@@ -109,11 +109,7 @@ const StaffMembersPage = () => {
 
   const handleModalSave = async (formData) => {
     try {
-      if (editingMember) {
-        await updateStaffMember(editingMember.id, formData);
-      } else {
-        await addStaffMember(formData);
-      }
+      await updateStaffMember(editingMember.id, formData);
       setShowModal(false);
       setEditingMember(null);
       await loadStaffMembers();
@@ -121,6 +117,11 @@ const StaffMembersPage = () => {
       console.error('Error saving staff member:', error);
       setError('Failed to save staff member');
     }
+  };
+
+  const handleStaffAdded = async (user) => {
+    // Reload staff members to show the newly added staff
+    await loadStaffMembers();
   };
 
   const handleDeleteMember = async (member) => {
@@ -490,7 +491,15 @@ const StaffMembersPage = () => {
         )}
       </div>
 
-      {/* Staff Member Modal */}
+      {/* Add Staff Modal */}
+      {showAddModal && (
+        <AddStaffModal
+          onClose={() => setShowAddModal(false)}
+          onStaffAdded={handleStaffAdded}
+        />
+      )}
+
+      {/* Edit Staff Member Modal */}
       {showModal && (
         <StaffMemberModal
           member={editingMember}

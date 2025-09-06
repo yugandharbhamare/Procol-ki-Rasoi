@@ -177,3 +177,51 @@ export const removeAdminEmail = (email) => {
 export const getAdminEmails = () => {
   return [...ADMIN_EMAILS];
 };
+
+// Get users who are not staff or admin (regular customers)
+export const getNonStaffUsers = async () => {
+  try {
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+
+    // Filter out users who are already staff or admin
+    const nonStaffUsers = (data || []).filter(user => {
+      const email = user.emailid?.toLowerCase();
+      return !isAdmin(email) && !user.is_staff; // Assuming we'll add is_staff field
+    });
+
+    return nonStaffUsers;
+  } catch (error) {
+    console.error('Error in getNonStaffUsers:', error);
+    throw error;
+  }
+};
+
+// Promote a user to staff
+export const promoteUserToStaff = async (userId) => {
+  try {
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .update({ is_staff: true })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error promoting user to staff:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in promoteUserToStaff:', error);
+    throw error;
+  }
+};
