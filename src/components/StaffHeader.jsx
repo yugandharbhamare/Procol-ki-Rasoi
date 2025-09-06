@@ -44,37 +44,6 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
             </div>
           </div>
 
-          {/* Status Indicators */}
-          <div className="hidden md:flex items-center space-x-6">
-            <div className="flex items-center space-x-4">
-              {orderCounts.pending > 0 && (
-                <div className="flex items-center space-x-2 bg-orange-100 px-3 py-1 rounded-full">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-orange-700">
-                    {orderCounts.pending} Pending
-                  </span>
-                </div>
-              )}
-              {orderCounts.accepted > 0 && (
-                <div className="flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-full">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-blue-700">
-                    {orderCounts.accepted} Preparing
-                  </span>
-                </div>
-              )}
-              {orderCounts.ready > 0 && (
-                <div className="flex items-center space-x-2 bg-green-100 px-3 py-1 rounded-full">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-700">
-                    {orderCounts.ready} Ready
-                  </span>
-                </div>
-              )}
-            </div>
-
-
-          </div>
 
           {/* User Menu */}
           <div className="relative" ref={dropdownRef}>
