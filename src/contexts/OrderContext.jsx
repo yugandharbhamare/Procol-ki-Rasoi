@@ -100,7 +100,13 @@ export const OrderProvider = ({ children }) => {
         console.log('OrderContext: User email being sent:', orderData.user_email)
         console.log('OrderContext: Supabase user ID being sent:', orderData.user_id)
         
-        const supabaseResult = await createOrder(orderData)
+        let supabaseResult
+        try {
+          supabaseResult = await createOrder(orderData)
+        } catch (createError) {
+          console.error('OrderContext: createOrder threw an error:', createError)
+          supabaseResult = { success: false, error: createError.message }
+        }
         
         if (supabaseResult.success) {
           console.log('OrderContext: Order successfully created in Supabase:', supabaseResult.order.id)
@@ -112,6 +118,7 @@ export const OrderProvider = ({ children }) => {
           })
         } else {
           console.error('OrderContext: Failed to create order in Supabase:', supabaseResult.error)
+          console.error('OrderContext: Order data that failed:', orderData)
           // Remove from processing set if failed
           setSupabaseOrderIds(prev => {
             const newSet = new Set(prev)
