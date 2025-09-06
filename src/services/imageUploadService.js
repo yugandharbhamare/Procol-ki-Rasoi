@@ -121,29 +121,47 @@ export class ImageUploadService {
       // Generate filename
       const fileName = this.generateFileName(file.name);
       
-      // Create FormData for upload
-      const formData = new FormData();
-      formData.append('image', optimizedBlob, fileName);
-      formData.append('folder', 'optimized');
+      // Try to upload to server first
+      try {
+        const formData = new FormData();
+        formData.append('image', optimizedBlob, fileName);
+        formData.append('folder', 'optimized');
 
-      // Upload to server
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData,
-      });
+        const response = await fetch('/api/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to upload image');
+        if (response.ok) {
+          const result = await response.json();
+          return {
+            success: true,
+            fileName: result.fileName,
+            url: result.url,
+            optimizedUrl: result.optimizedUrl
+          };
+        } else {
+          throw new Error(`Server upload failed: ${response.status}`);
+        }
+      } catch (serverError) {
+        console.warn('Server upload failed, using fallback:', serverError.message);
+        
+        // Fallback: Convert to base64 and store in localStorage
+        const base64Url = await this.blobToBase64(optimizedBlob);
+        const fallbackUrl = `data:image/jpeg;base64,${base64Url}`;
+        
+        // Store in localStorage with a unique key
+        const storageKey = `temp_image_${fileName}`;
+        localStorage.setItem(storageKey, fallbackUrl);
+        
+        return {
+          success: true,
+          fileName: fileName,
+          url: fallbackUrl,
+          optimizedUrl: fallbackUrl,
+          isFallback: true
+        };
       }
-
-      const result = await response.json();
-      
-      return {
-        success: true,
-        fileName: result.fileName,
-        url: result.url,
-        optimizedUrl: result.optimizedUrl
-      };
 
     } catch (error) {
       console.error('Image upload error:', error);
@@ -152,6 +170,19 @@ export class ImageUploadService {
         error: error.message
       };
     }
+  }
+
+  // Convert blob to base64
+  async blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   // Delete image from server

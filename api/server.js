@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,6 +15,9 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan('combined'));
 app.use(express.json());
+
+// Serve static files from public directory
+app.use('/optimized', express.static(path.join(__dirname, '../public/optimized')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {

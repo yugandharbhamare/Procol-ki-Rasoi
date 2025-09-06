@@ -12,6 +12,7 @@ const ImageUpload = ({
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(value || '');
   const [dragCounter, setDragCounter] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState('');
   const fileInputRef = useRef(null);
 
   // Handle file selection
@@ -19,6 +20,7 @@ const ImageUpload = ({
     if (!file) return;
 
     setIsUploading(true);
+    setUploadStatus('Uploading and optimizing image...');
     
     try {
       // Create preview URL
@@ -35,17 +37,36 @@ const ImageUpload = ({
         // Clean up preview URL
         imageUploadService.revokePreviewUrl(preview);
         setPreviewUrl(result.optimizedUrl);
+        
+        // Show success message
+        if (result.isFallback) {
+          setUploadStatus('Image uploaded (using fallback method)');
+          console.warn('Image uploaded using fallback method (base64). Server upload failed.');
+        } else {
+          setUploadStatus('Image uploaded successfully');
+        }
+        
+        // Clear status after 3 seconds
+        setTimeout(() => setUploadStatus(''), 3000);
       } else {
         // Handle upload error
+        setUploadStatus('Upload failed');
         onError?.(result.error);
         
         // Clean up preview URL
         imageUploadService.revokePreviewUrl(preview);
         setPreviewUrl('');
+        
+        // Clear error status after 5 seconds
+        setTimeout(() => setUploadStatus(''), 5000);
       }
     } catch (error) {
+      setUploadStatus('Upload failed');
       onError?.(error.message);
       setPreviewUrl('');
+      
+      // Clear error status after 5 seconds
+      setTimeout(() => setUploadStatus(''), 5000);
     } finally {
       setIsUploading(false);
     }
@@ -195,6 +216,19 @@ const ImageUpload = ({
           <div className="bg-gray-200 rounded-full h-2">
             <div className="bg-orange-500 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
           </div>
+        </div>
+      )}
+
+      {/* Upload status */}
+      {uploadStatus && (
+        <div className={`mt-2 text-sm ${
+          uploadStatus.includes('successfully') 
+            ? 'text-green-600' 
+            : uploadStatus.includes('failed') 
+            ? 'text-red-600' 
+            : 'text-blue-600'
+        }`}>
+          {uploadStatus}
         </div>
       )}
     </div>
