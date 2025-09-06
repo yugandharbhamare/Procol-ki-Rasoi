@@ -12,11 +12,6 @@ const MenuManagement = () => {
   const [editingItem, setEditingItem] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
-  // Load menu items on component mount
-  useEffect(() => {
-    loadMenuItems()
-  }, [])
-
   const loadMenuItems = async () => {
     try {
       setLoading(true)
@@ -35,6 +30,11 @@ const MenuManagement = () => {
       setLoading(false)
     }
   }
+
+  // Load menu items on component mount
+  useEffect(() => {
+    loadMenuItems()
+  }, [])
 
   const handleAddItem = () => {
     setEditingItem(null)

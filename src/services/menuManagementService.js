@@ -1,4 +1,4 @@
-import { supabase } from '../firebase/config'
+import { supabase } from './supabaseService'
 
 // Menu Management Service for Staff Portal
 export const menuManagementService = {
