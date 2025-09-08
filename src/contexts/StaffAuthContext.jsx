@@ -47,11 +47,35 @@ export const StaffAuthProvider = ({ children }) => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       
-      // Check if the user is authorized staff
-      if (!AUTHORIZED_STAFF_EMAILS.includes(user.email)) {
-        const { signOut } = await import('firebase/auth');
-        await signOut(auth);
-        throw new Error('Unauthorized access. Only staff members can access this interface.');
+      // Check if the user is authorized staff by querying the database
+      try {
+        const { supabase } = await import('../services/supabaseService');
+        const { data: supabaseUser, error } = await supabase
+          .from('users')
+          .select('is_staff, is_admin')
+          .eq('emailid', user.email)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+          console.error('Error checking staff status:', error);
+        }
+        
+        // Check if user is staff or admin, or if they're in the hardcoded list (fallback)
+        const isStaff = supabaseUser?.is_staff || supabaseUser?.is_admin || AUTHORIZED_STAFF_EMAILS.includes(user.email);
+        
+        if (!isStaff) {
+          const { signOut } = await import('firebase/auth');
+          await signOut(auth);
+          throw new Error('Unauthorized access. Only staff members can access this interface.');
+        }
+      } catch (dbError) {
+        console.error('Error checking staff status in database:', dbError);
+        // Fallback to hardcoded list if database check fails
+        if (!AUTHORIZED_STAFF_EMAILS.includes(user.email)) {
+          const { signOut } = await import('firebase/auth');
+          await signOut(auth);
+          throw new Error('Unauthorized access. Only staff members can access this interface.');
+        }
       }
       
       return user;
@@ -100,9 +124,33 @@ export const StaffAuthProvider = ({ children }) => {
         unsubscribe = onAuthStateChanged(auth, async (user) => {
           console.log('StaffAuthProvider: Auth state changed', user);
           
-          if (user && AUTHORIZED_STAFF_EMAILS.includes(user.email)) {
-            // User is signed in and is authorized staff
-            console.log('StaffAuthProvider: Authorized user found', user.email);
+          if (user) {
+            // Check if user is authorized staff by querying the database
+            let isAuthorized = false;
+            
+            try {
+              const { supabase } = await import('../services/supabaseService');
+              const { data: supabaseUser, error } = await supabase
+                .from('users')
+                .select('is_staff, is_admin')
+                .eq('emailid', user.email)
+                .single();
+              
+              if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+                console.error('Error checking staff status:', error);
+              }
+              
+              // Check if user is staff or admin, or if they're in the hardcoded list (fallback)
+              isAuthorized = supabaseUser?.is_staff || supabaseUser?.is_admin || AUTHORIZED_STAFF_EMAILS.includes(user.email);
+            } catch (dbError) {
+              console.error('Error checking staff status in database:', dbError);
+              // Fallback to hardcoded list if database check fails
+              isAuthorized = AUTHORIZED_STAFF_EMAILS.includes(user.email);
+            }
+            
+            if (isAuthorized) {
+              // User is signed in and is authorized staff
+              console.log('StaffAuthProvider: Authorized user found', user.email);
             
             // Sync with Supabase to get user role information
             try {
@@ -155,12 +203,13 @@ export const StaffAuthProvider = ({ children }) => {
               });
             }
             setError(null);
-          } else if (user && !AUTHORIZED_STAFF_EMAILS.includes(user.email)) {
-            // User is signed in but not authorized staff
-            console.log('StaffAuthProvider: Unauthorized user', user.email);
-            setStaffUser(null);
-            setError('Unauthorized access. Only staff members can access this interface.');
-            signOut(auth);
+            } else {
+              // User is signed in but not authorized staff
+              console.log('StaffAuthProvider: Unauthorized user', user.email);
+              setStaffUser(null);
+              setError('Unauthorized access. Only staff members can access this interface.');
+              signOut(auth);
+            }
           } else {
             // User is signed out
             console.log('StaffAuthProvider: No user signed in');
