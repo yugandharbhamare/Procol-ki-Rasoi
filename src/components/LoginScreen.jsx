@@ -24,15 +24,14 @@ const LoginScreen = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <div className="mx-auto h-48 w-48 bg-amber-50 rounded-full flex items-center justify-center overflow-hidden">
+          <div className="mx-auto h-40 w-40 bg-amber-50 rounded-full flex items-center justify-center overflow-hidden">
             <img 
               src="/Staff portal logo.png" 
               alt="Procol ki Rasoi Logo" 
               className="w-full h-full object-contain"
               style={{
                 backgroundColor: 'transparent',
-                mixBlendMode: 'multiply',
-                filter: 'sepia(100%) hue-rotate(200deg) saturate(0%) brightness(0.2)'
+                mixBlendMode: 'multiply'
               }}
             />
           </div>
