@@ -1,3 +1,5 @@
+import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline'
+
 const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
   const isInCart = cartItem && cartItem.quantity > 0
 
@@ -60,9 +62,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
                   onClick={() => updateQuantity(item.id, cartItem.quantity - 1)}
                   className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-orange-600 border border-orange-200 shadow-sm"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                  </svg>
+                  <MinusIcon className="w-4 h-4" />
                 </button>
                 
                 <span className="text-lg font-bold text-gray-900 px-4">
@@ -74,9 +74,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
                   className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-orange-600 border border-orange-200 shadow-sm"
                   disabled={cartItem.quantity >= 10}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
+                  <PlusIcon className="w-4 h-4" />
                 </button>
               </div>
             )}

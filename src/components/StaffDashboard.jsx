@@ -5,6 +5,7 @@ import OrderCard from './OrderCard';
 import StaffHeader from './StaffHeader';
 import NotificationSound from './NotificationSound';
 import CompletedOrdersTable from './CompletedOrdersTable';
+import { DocumentTextIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function StaffDashboard() {
   const { staffUser, signOutUser } = useStaffAuth();
@@ -74,9 +75,7 @@ export default function StaffDashboard() {
       return (
         <div className="text-center py-12">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <DocumentTextIcon className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No {status} orders</h3>
           <p className="text-gray-500">All caught up! Check back later for new orders.</p>
@@ -113,9 +112,7 @@ export default function StaffDashboard() {
         <div className="bg-orange-500 text-white px-4 py-3">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center space-x-2">
-              <svg className="w-5 h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
+              <ExclamationTriangleIcon className="w-5 h-5 animate-pulse" />
               <span className="font-semibold">
                 {orderCounts.pending} new order{orderCounts.pending > 1 ? 's' : ''} awaiting confirmation
               </span>
@@ -124,9 +121,7 @@ export default function StaffDashboard() {
               onClick={() => setShowNotifications(false)}
               className="text-white hover:text-orange-100"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
         </div>

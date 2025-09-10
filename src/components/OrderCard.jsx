@@ -3,6 +3,16 @@ import { useStaffOrders } from '../contexts/StaffOrderContext';
 import { getDisplayOrderId, getDatabaseOrderId } from '../utils/orderUtils';
 import { updateOrderStatus } from '../services/supabaseService';
 import DeleteOrderModal from './DeleteOrderModal';
+import { 
+  CheckIcon, 
+  XMarkIcon, 
+  ExclamationTriangleIcon,
+  EllipsisVerticalIcon,
+  ClockIcon,
+  TrashIcon,
+  InboxIcon,
+  InformationCircleIcon
+} from '@heroicons/react/24/outline';
 
 export default function OrderCard({ order, status }) {
   const { acceptOrder, completeOrder, cancelOrder, deleteOrder } = useStaffOrders();
@@ -338,9 +348,7 @@ export default function OrderCard({ order, status }) {
             className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg text-sm sm:text-base"
           >
             <div className="flex items-center justify-center">
-              <svg className="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+              <CheckIcon className="w-4 h-4 mr-1 sm:mr-2" />
               Accept Order
             </div>
           </button>
@@ -349,9 +357,7 @@ export default function OrderCard({ order, status }) {
             className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg text-sm sm:text-base"
           >
             <div className="flex items-center justify-center">
-              <svg className="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <XMarkIcon className="w-4 h-4 mr-1 sm:mr-2" />
               Reject Order
             </div>
           </button>
@@ -367,9 +373,7 @@ export default function OrderCard({ order, status }) {
           className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.01] shadow-md hover:shadow-lg text-sm sm:text-base"
         >
           <div className="flex items-center justify-center">
-            <svg className="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <CheckIcon className="w-4 h-4 mr-1 sm:mr-2" />
             Complete Order
           </div>
         </button>
@@ -445,9 +449,7 @@ export default function OrderCard({ order, status }) {
                       onClick={() => setShowDropdown(!showDropdown)}
                       className="p-1 rounded-full hover:bg-gray-100 transition-colors"
                     >
-                      <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                      </svg>
+                      <EllipsisVerticalIcon className="w-4 h-4 text-gray-600" />
                     </button>
                     
                     {showDropdown && (
@@ -462,9 +464,7 @@ export default function OrderCard({ order, status }) {
                                 }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
+                                <CheckIcon className="w-4 h-4 mr-2" />
                                 Accept Order
                               </button>
                               <button
@@ -474,9 +474,7 @@ export default function OrderCard({ order, status }) {
                                 }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <XMarkIcon className="w-4 h-4 mr-2" />
                                 Cancel Order
                               </button>
                             </>
@@ -491,9 +489,7 @@ export default function OrderCard({ order, status }) {
                                 }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                                <ClockIcon className="w-4 h-4 mr-2" />
                                 Mark as Pending
                               </button>
                               <button
@@ -503,9 +499,7 @@ export default function OrderCard({ order, status }) {
                                 }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <XMarkIcon className="w-4 h-4 mr-2" />
                                 Cancel Order
                               </button>
                             </>
@@ -520,9 +514,7 @@ export default function OrderCard({ order, status }) {
                                 }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
+                                <CheckIcon className="w-4 h-4 mr-2" />
                                 Accept Order
                               </button>
                               <button
@@ -532,9 +524,7 @@ export default function OrderCard({ order, status }) {
                                 }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
+                                <TrashIcon className="w-4 h-4 mr-2" />
                                 Delete Order
                               </button>
                             </>
@@ -601,9 +591,7 @@ export default function OrderCard({ order, status }) {
               ))
             ) : (
               <div className="text-center py-4 text-gray-500">
-                <svg className="w-6 h-6 mx-auto mb-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
+                <InboxIcon className="w-6 h-6 mx-auto mb-1 text-gray-300" />
                 <p className="text-xs">No items available</p>
               </div>
             )}
@@ -614,9 +602,7 @@ export default function OrderCard({ order, status }) {
         {order.notes && (
           <div className="px-3 sm:px-4 py-2 bg-white border-t border-gray-200">
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
+              <InformationCircleIcon className="w-4 h-4 text-orange-600" />
               <span className="text-orange-800 font-medium text-sm">Special instructions:</span>
               <span className="text-xs text-gray-700">{order.notes}</span>
             </div>
