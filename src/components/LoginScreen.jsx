@@ -29,6 +29,10 @@ const LoginScreen = () => {
               src="/Staff portal logo.png" 
               alt="Procol ki Rasoi Logo" 
               className="w-full h-full object-contain"
+              style={{
+                backgroundColor: 'transparent',
+                mixBlendMode: 'multiply'
+              }}
             />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
