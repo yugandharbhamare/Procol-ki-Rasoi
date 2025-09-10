@@ -14,6 +14,9 @@ const Header = ({ user, cartItemCount, onSearch }) => {
 
   // Debug: Log user data to see what we're getting
   console.log('Header: User data:', user)
+  console.log('Header: User photoURL:', user?.photoURL)
+  console.log('Header: User displayName:', user?.displayName)
+  console.log('Header: User email:', user?.email)
   console.log('Header: Cart item count:', cartItemCount)
   console.log('Header: onSearch function:', onSearch)
 

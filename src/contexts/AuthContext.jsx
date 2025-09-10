@@ -37,6 +37,8 @@ export const AuthProvider = ({ children }) => {
       console.log('🔐 Calling Firebase signInWithPopup...');
       const result = await signInWithPopup(auth, provider);
       console.log('✅ Firebase sign-in successful:', result.user.email);
+      console.log('📸 User photoURL from Firebase:', result.user.photoURL);
+      console.log('👤 User displayName from Firebase:', result.user.displayName);
       
       // Try to sync user to Supabase, but don't fail if it doesn't work
       try {
@@ -165,6 +167,8 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         console.log('👤 User signed in:', user.email);
+        console.log('📸 Firebase user photoURL:', user.photoURL);
+        console.log('👤 Firebase user displayName:', user.displayName);
         // User is signed in
         const userData = {
           uid: user.uid,
@@ -174,6 +178,7 @@ export const AuthProvider = ({ children }) => {
           lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
           photoURL: user.photoURL
         };
+        console.log('📝 Constructed userData:', userData);
         
         setUser(userData);
         
