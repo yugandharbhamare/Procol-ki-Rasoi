@@ -31,7 +31,8 @@ const LoginScreen = () => {
               className="w-full h-full object-contain"
               style={{
                 backgroundColor: 'transparent',
-                mixBlendMode: 'multiply'
+                mixBlendMode: 'multiply',
+                filter: 'sepia(100%) hue-rotate(200deg) saturate(0%) brightness(0.2)'
               }}
             />
           </div>
