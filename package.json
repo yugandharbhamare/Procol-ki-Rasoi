@@ -20,6 +20,7 @@
     "update-paths": "node update_image_paths.js"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@supabase/supabase-js": "^2.55.0",
     "dotenv": "^17.2.1",
     "firebase": "^12.2.1",

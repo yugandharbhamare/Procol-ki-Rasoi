@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NotificationSettings from './NotificationSettings';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNotifications }) {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -64,9 +65,7 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
                 </p>
                 <p className="text-xs text-gray-500">{staffUser?.email}</p>
               </div>
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <ChevronDownIcon className="w-4 h-4 text-gray-400" />
             </button>
 
                     {showDropdown && (

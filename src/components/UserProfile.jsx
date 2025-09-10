@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { UserIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 
 const UserProfile = () => {
   const { user, signOutUser } = useAuth();
@@ -26,9 +27,7 @@ const UserProfile = () => {
             />
           ) : (
             <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
+              <UserIcon className="w-6 h-6 text-primary-600" />
             </div>
           )}
           <div>
@@ -42,9 +41,7 @@ const UserProfile = () => {
           onClick={handleSignOut}
           className="text-sm text-gray-500 hover:text-gray-700 flex items-center space-x-1"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
+          <ArrowRightOnRectangleIcon className="w-4 h-4" />
           <span>Sign Out</span>
         </button>
       </div>

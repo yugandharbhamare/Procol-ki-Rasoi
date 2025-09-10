@@ -3,6 +3,13 @@ import { useAuth } from '../contexts/AuthContext'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NotificationSettings from './NotificationSettings'
+import { 
+  ClockIcon, 
+  BellIcon, 
+  ArrowRightOnRectangleIcon,
+  ChevronDownIcon,
+  XMarkIcon
+} from '@heroicons/react/24/outline'
 
 const Header = ({ user, cartItemCount, onSearch }) => {
   const { signOutUser } = useAuth()
@@ -109,9 +116,7 @@ const Header = ({ user, cartItemCount, onSearch }) => {
                     className="w-full flex items-start space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-t-lg transition-colors border-b border-gray-100"
                   >
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <ClockIcon className="w-4 h-4 text-blue-600" />
                     </div>
                     <div className="flex-1">
                       <span className="font-medium text-gray-900">My Orders</span>
@@ -125,9 +130,7 @@ const Header = ({ user, cartItemCount, onSearch }) => {
                     className="w-full flex items-start space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
                   >
                     <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.5 19.5a2.5 2.5 0 01-2.5-2.5V7a2.5 2.5 0 012.5-2.5h15a2.5 2.5 0 012.5 2.5v10a2.5 2.5 0 01-2.5 2.5h-15z" />
-                      </svg>
+                      <BellIcon className="w-4 h-4 text-orange-600" />
                     </div>
                     <div className="flex-1">
                       <span className="font-medium text-gray-900">Notifications</span>
@@ -141,9 +144,7 @@ const Header = ({ user, cartItemCount, onSearch }) => {
                     className="w-full flex items-start space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-b-lg transition-colors"
                   >
                     <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
+                      <ArrowRightOnRectangleIcon className="w-4 h-4 text-red-600" />
                     </div>
                     <div className="flex-1">
                       <span className="font-medium text-gray-900">Sign Out</span>
@@ -181,9 +182,7 @@ const Header = ({ user, cartItemCount, onSearch }) => {
                   onClick={toggleDrawer}
                   className="text-gray-400 hover:text-gray-600"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
               
@@ -223,9 +222,7 @@ const Header = ({ user, cartItemCount, onSearch }) => {
                   className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <ClockIcon className="w-4 h-4 text-blue-600" />
                   </div>
                   <span className="font-medium">My Orders</span>
                 </button>
@@ -235,9 +232,7 @@ const Header = ({ user, cartItemCount, onSearch }) => {
                   className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.5 19.5a2.5 2.5 0 01-2.5-2.5V7a2.5 2.5 0 012.5-2.5h15a2.5 2.5 0 012.5 2.5v10a2.5 2.5 0 01-2.5 2.5h-15z" />
-                    </svg>
+                    <BellIcon className="w-4 h-4 text-orange-600" />
                   </div>
                   <span className="font-medium">Notifications</span>
                 </button>
@@ -247,9 +242,7 @@ const Header = ({ user, cartItemCount, onSearch }) => {
                   className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
+                    <ArrowRightOnRectangleIcon className="w-4 h-4 text-red-600" />
                   </div>
                   <span className="font-medium">Sign Out</span>
                 </button>
