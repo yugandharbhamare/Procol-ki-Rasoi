@@ -21,19 +21,15 @@ const LoginScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Food Pattern Background */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="food-pattern"></div>
-      </div>
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50/80 via-gray-50/90 to-gray-50/80"></div>
-      <div className="max-w-md w-full space-y-8 relative z-10">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
         <div>
-          <div className="mx-auto h-12 w-12 bg-primary-100 rounded-full flex items-center justify-center">
-            <svg className="h-8 w-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+          <div className="mx-auto h-12 w-12 rounded-lg flex items-center justify-center overflow-hidden">
+            <img 
+              src="/Staff portal logo.png" 
+              alt="Procol ki Rasoi Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Welcome to Procol ki Rasoi
