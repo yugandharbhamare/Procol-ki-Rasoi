@@ -503,7 +503,7 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {selectedPaymentMethod ? 'Open Payment App' : 'Select a payment method'}
+              Open Payment App
             </button>
           </div>
         )}
