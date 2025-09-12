@@ -490,7 +490,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       </div>
 
       {/* Table Card */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="sm:bg-white sm:rounded-lg sm:shadow-sm sm:border sm:border-gray-200 overflow-hidden">
         {/* Date Range Selector - Hidden on Mobile */}
         <div className="hidden sm:block border-b border-gray-200 p-3 sm:p-4">
           <DateRangeSelector
