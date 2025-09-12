@@ -47,11 +47,15 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Check if the click is inside any dropdown
       const isClickInside = Object.values(dropdownRefs.current).some(ref => 
         ref && ref.contains(event.target)
       );
       
-      if (!isClickInside) {
+      // Also check if the click is on a dropdown action button
+      const isDropdownAction = event.target.closest('[data-dropdown-action]');
+      
+      if (!isClickInside && !isDropdownAction) {
         setShowDropdown(null);
       }
     };
@@ -68,6 +72,9 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
     console.log('CompletedOrdersTable: handleAction called with:', { orderId, action });
     console.log('CompletedOrdersTable: Order ID type:', typeof orderId);
     console.log('CompletedOrdersTable: Order ID value:', orderId);
+    
+    // Close dropdown immediately to prevent interference
+    setShowDropdown(null);
     
     try {
       let result;
@@ -103,7 +110,6 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       console.error('CompletedOrdersTable: Error moving order:', error);
       alert('An error occurred while moving the order.');
     }
-    setShowDropdown(null);
   };
 
   const filterOrders = () => {
@@ -565,6 +571,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                           <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
                             <div className="py-1">
                               <button
+                                data-dropdown-action
                                 onClick={() => handleAction(order.supabase_id || order.id, 'pending')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
                               >
@@ -572,6 +579,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                                 Mark as Pending
                               </button>
                               <button
+                                data-dropdown-action
                                 onClick={() => handleAction(order.supabase_id || order.id, 'accepted')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
                               >
@@ -579,6 +587,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                                 Mark as Accepted
                               </button>
                               <button
+                                data-dropdown-action
                                 onClick={() => handleAction(order.supabase_id || order.id, 'cancelled')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
                               >
@@ -757,6 +766,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                           <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
                             <div className="py-1">
                               <button
+                                data-dropdown-action
                                 onClick={() => handleAction(order.supabase_id || order.id, 'pending')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
                               >
@@ -764,6 +774,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                                 Mark as Pending
                               </button>
                               <button
+                                data-dropdown-action
                                 onClick={() => handleAction(order.supabase_id || order.id, 'accepted')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
                               >
@@ -771,6 +782,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                                 Mark as Accepted
                               </button>
                               <button
+                                data-dropdown-action
                                 onClick={() => handleAction(order.supabase_id || order.id, 'cancelled')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
                               >
