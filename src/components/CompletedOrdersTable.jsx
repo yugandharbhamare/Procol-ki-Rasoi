@@ -523,7 +523,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
             <div className="block sm:hidden">
               <div className="space-y-4">
                 {currentOrders.map((order) => (
-                  <div key={order.id} className="p-4 relative">
+                  <div key={order.id} className="p-4 relative bg-white rounded-lg border border-gray-200">
                     {/* Card Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div>
