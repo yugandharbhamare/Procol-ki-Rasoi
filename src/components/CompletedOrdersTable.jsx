@@ -565,21 +565,21 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                           <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
                             <div className="py-1">
                               <button
-                                onClick={() => handleAction(order.id, 'pending')}
+                                onClick={() => handleAction(order.supabase_id || order.id, 'pending')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
                               >
                                 <ClockIcon className="w-4 h-4 mr-2" />
                                 Mark as Pending
                               </button>
                               <button
-                                onClick={() => handleAction(order.id, 'accepted')}
+                                onClick={() => handleAction(order.supabase_id || order.id, 'accepted')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
                               >
                                 <CheckIcon className="w-4 h-4 mr-2" />
                                 Mark as Accepted
                               </button>
                               <button
-                                onClick={() => handleAction(order.id, 'cancelled')}
+                                onClick={() => handleAction(order.supabase_id || order.id, 'cancelled')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
                               >
                                 <XMarkIcon className="w-4 h-4 mr-2" />
@@ -757,21 +757,21 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                           <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
                             <div className="py-1">
                               <button
-                                onClick={() => handleAction(order.id, 'pending')}
+                                onClick={() => handleAction(order.supabase_id || order.id, 'pending')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
                               >
                                 <ClockIcon className="w-4 h-4 mr-2" />
                                 Mark as Pending
                               </button>
                               <button
-                                onClick={() => handleAction(order.id, 'accepted')}
+                                onClick={() => handleAction(order.supabase_id || order.id, 'accepted')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
                               >
                                 <CheckIcon className="w-4 h-4 mr-2" />
                                 Mark as Accepted
                               </button>
                               <button
-                                onClick={() => handleAction(order.id, 'cancelled')}
+                                onClick={() => handleAction(order.supabase_id || order.id, 'cancelled')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
                               >
                                 <XMarkIcon className="w-4 h-4 mr-2" />
