@@ -424,7 +424,7 @@ export default function OrderCard({ order, status }) {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
                   <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">{order.user?.name || 'Unknown User'}</h3>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(status)}`}>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full border w-fit ${getStatusColor(status)}`}>
                     {getStatusText(status)}
                   </span>
                 </div>
