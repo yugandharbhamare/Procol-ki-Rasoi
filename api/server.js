@@ -7,14 +7,46 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 
+// Import security middleware
+const { generalLimiter, orderCreationLimiter, orderUpdateLimiter, adminLimiter, imageUploadLimiter } = require('./middleware/rateLimit');
+const { sanitizeRequest } = require('./middleware/validation');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
-app.use(helmet());
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false
+}));
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
+}));
+
+// Rate limiting
+app.use(generalLimiter);
+
+// Request sanitization
+app.use(sanitizeRequest);
+
+// Logging
 app.use(morgan('combined'));
-app.use(express.json());
+
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files from public directory
 app.use('/optimized', express.static(path.join(__dirname, '../public/optimized')));
@@ -57,13 +89,22 @@ app.get('/api/menu', (req, res) => {
   });
 });
 
-// Image upload routes
+// Image upload routes (with rate limiting)
 try {
   const imageUploadRoutes = require('./routes/imageUpload');
-  app.use('/api', imageUploadRoutes);
+  app.use('/api', imageUploadLimiter, imageUploadRoutes);
   console.log('✅ Image upload routes loaded successfully');
 } catch (error) {
   console.error('❌ Failed to load image upload routes:', error);
+}
+
+// Secure order management routes
+try {
+  const secureOrderRoutes = require('./routes/secureOrderManagement');
+  app.use('/api/secure/orders', secureOrderRoutes);
+  console.log('✅ Secure order management routes loaded successfully');
+} catch (error) {
+  console.error('❌ Failed to load secure order management routes:', error);
 }
 
 // 404 handler
