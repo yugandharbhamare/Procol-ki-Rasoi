@@ -36,53 +36,53 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
     setSelectedPaymentMethod(app)
   }
 
-  const handlePayNow = () => {
-    if (!selectedPaymentMethod) return
-    
+  const openPaymentApp = (app) => {
     const amount = getTotalPrice() > 0 ? getTotalPrice() : 0
     const upiId = 'Q629741098@ybl'
     const orderId = order.id
     
-    let deepLink = ''
+    let appUrl = ''
     
-    if (selectedPaymentMethod === 'gpay') {
-      // Google Pay specific deep link
-      const gpayUrl = `gpay://upi/pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
-      
-      // Try to open Google Pay directly
-      window.location.href = gpayUrl
-      
-      // Set processing status and fallback (QR code only on desktop)
-      setPaymentStatus('processing')
-      // Only show QR code on desktop devices
-      if (window.innerWidth >= 768) {
-        setTimeout(() => {
-          setIsQRVisible(true)
-        }, 2000)
-      }
-      return
-    } else if (selectedPaymentMethod === 'phonepe') {
-      // PhonePe deep link
-      deepLink = `phonepe://pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
-    } else if (selectedPaymentMethod === 'paytm') {
-      // Paytm deep link
-      deepLink = `paytmmp://pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
-    } else if (selectedPaymentMethod === 'bhim') {
-      // BHIM deep link
-      deepLink = `bhim://upi/pay?pa=${upiId}&pn=Procol%20ki%20Rasoi&am=${amount}&tn=Order%20${orderId}&cu=INR`
+    switch (app) {
+      case 'gpay':
+        // Open Google Pay with QR scanner
+        appUrl = 'gpay://'
+        break
+      case 'phonepe':
+        // Open PhonePe with QR scanner
+        appUrl = 'phonepe://'
+        break
+      case 'paytm':
+        // Open Paytm with QR scanner
+        appUrl = 'paytmmp://'
+        break
+      case 'bhim':
+        // Open BHIM with QR scanner
+        appUrl = 'bhim://'
+        break
+      default:
+        return
     }
     
-    if (deepLink) {
+    // Try to open the app
+    window.location.href = appUrl
+    
+    // Set processing status
+    setPaymentStatus('processing')
+  }
+
+  const handlePayNow = () => {
+    if (!selectedPaymentMethod) return
+    
+    // For mobile: Open the payment app for QR scanning
+    if (isMobile) {
+      openPaymentApp(selectedPaymentMethod)
+    } else {
+      // For desktop: Show QR code
       setPaymentStatus('processing')
-      // Try to open the app
-      window.location.href = deepLink
-      
-      // Fallback: If app doesn't open, show QR code after a delay (desktop only)
-      if (window.innerWidth >= 768) {
-        setTimeout(() => {
-          setIsQRVisible(true)
-        }, 2000)
-      }
+      setTimeout(() => {
+        setIsQRVisible(true)
+      }, 1000)
     }
   }
 
@@ -91,6 +91,17 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
     setPaymentStatus('success')
     
     // Automatically redirect to receipt page after payment success
+    setTimeout(() => {
+      console.log('PaymentScreen: Calling onPaymentComplete callback');
+      onPaymentComplete()
+    }, 1500)
+  }
+
+  const handlePaymentCompleted = () => {
+    console.log('PaymentScreen: User confirmed payment completion');
+    setPaymentStatus('success')
+    
+    // Automatically redirect to receipt page after payment confirmation
     setTimeout(() => {
       console.log('PaymentScreen: Calling onPaymentComplete callback');
       onPaymentComplete()
@@ -222,6 +233,28 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                 </div>
               )}
               
+              {/* Payment Instructions */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">How to Pay</h4>
+                    <p className="text-sm text-blue-800">
+                      1. Select your payment app below<br/>
+                      2. Open the app and use QR scanner<br/>
+                      3. Scan the QR code at the payment counter<br/>
+                      4. Complete payment and return here
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* UPI ID Display */}
               <div className="bg-gray-50 rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between">
@@ -470,7 +503,40 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {selectedPaymentMethod ? 'Pay Now' : 'Select a payment method'}
+              {selectedPaymentMethod ? 'Open Payment App' : 'Select a payment method'}
+            </button>
+          </div>
+        )}
+
+        {/* Payment Completion Button */}
+        {paymentStatus === 'processing' && isMobile && (
+          <div className="space-y-3">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-green-900">Payment App Opened</h4>
+                  <p className="text-sm text-green-800">Complete your payment and return here</p>
+                </div>
+              </div>
+            </div>
+            
+            <button
+              onClick={handlePaymentCompleted}
+              className="w-full py-4 text-lg font-semibold rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+            >
+              I have completed the payment
+            </button>
+            
+            <button
+              onClick={() => setPaymentStatus('pending')}
+              className="w-full py-3 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+            >
+              Cancel Payment
             </button>
           </div>
         )}
