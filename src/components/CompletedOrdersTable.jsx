@@ -1,6 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import DateRangeSelector from './DateRangeSelector';
 import { useStaffOrders } from '../contexts/StaffOrderContext';
+import { 
+  ChevronUpDownIcon, 
+  ChevronUpIcon, 
+  ChevronDownIcon,
+  CurrencyDollarIcon,
+  CheckCircleIcon,
+  UserIcon,
+  DocumentTextIcon,
+  EllipsisVerticalIcon,
+  ClockIcon,
+  CheckIcon,
+  XMarkIcon
+} from '@heroicons/react/24/outline';
 
 export default function CompletedOrdersTable({ orders, loading, error }) {
   // Note: Only orders with status 'completed' are passed to this component
@@ -279,20 +292,14 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
   const getSortIcon = (key) => {
     if (sortConfig.key !== key) {
       return (
-        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-        </svg>
+        <ChevronUpDownIcon className="w-4 h-4 text-gray-400" />
       );
     }
     
     return sortConfig.direction === 'asc' ? (
-      <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-      </svg>
+      <ChevronUpIcon className="w-4 h-4 text-orange-500" />
     ) : (
-      <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
+      <ChevronDownIcon className="w-4 h-4 text-orange-500" />
     );
   };
 
@@ -437,9 +444,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/>
-                  </svg>
+                  <CurrencyDollarIcon className="w-5 h-5 text-green-600" />
                 </div>
               </div>
               <div className="ml-3">
@@ -454,9 +459,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
+                  <CheckCircleIcon className="w-5 h-5 text-blue-600" />
                 </div>
               </div>
               <div className="ml-3">
@@ -473,9 +476,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                  </svg>
+                  <UserIcon className="w-5 h-5 text-purple-600" />
                 </div>
               </div>
               <div className="ml-3">
@@ -509,9 +510,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
+              <DocumentTextIcon className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No completed orders</h3>
             <p className="text-gray-500">
@@ -559,9 +558,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                           }}
                           className="p-2 rounded-full hover:bg-gray-200 transition-colors"
                         >
-                          <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                          </svg>
+                          <EllipsisVerticalIcon className="w-4 h-4 text-gray-600" />
                         </button>
                         
                         {showDropdown === order.id && (
@@ -571,27 +568,21 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                                 onClick={() => handleAction(order.id, 'pending')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                                <ClockIcon className="w-4 h-4 mr-2" />
                                 Mark as Pending
                               </button>
                               <button
                                 onClick={() => handleAction(order.id, 'accepted')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
+                                <CheckIcon className="w-4 h-4 mr-2" />
                                 Mark as Accepted
                               </button>
                               <button
                                 onClick={() => handleAction(order.id, 'cancelled')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <XMarkIcon className="w-4 h-4 mr-2" />
                                 Mark as Cancelled
                               </button>
                             </div>
@@ -759,9 +750,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                           onClick={() => setShowDropdown(showDropdown === order.id ? null : order.id)}
                           className="p-1 rounded-full hover:bg-gray-100 transition-colors"
                         >
-                          <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                          </svg>
+                          <EllipsisVerticalIcon className="w-4 h-4 text-gray-600" />
                         </button>
                         
                         {showDropdown === order.id && (
@@ -771,27 +760,21 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                                 onClick={() => handleAction(order.id, 'pending')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                                <ClockIcon className="w-4 h-4 mr-2" />
                                 Mark as Pending
                               </button>
                               <button
                                 onClick={() => handleAction(order.id, 'accepted')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
+                                <CheckIcon className="w-4 h-4 mr-2" />
                                 Mark as Accepted
                               </button>
                               <button
                                 onClick={() => handleAction(order.id, 'cancelled')}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <XMarkIcon className="w-4 h-4 mr-2" />
                                 Mark as Cancelled
                               </button>
                             </div>
