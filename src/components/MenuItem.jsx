@@ -4,7 +4,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
   const isInCart = cartItem && cartItem.quantity > 0
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 transform transition-all duration-200 hover:scale-[1.01] hover:shadow-lg">
       <div className="flex items-start space-x-5">
         {/* Enhanced Image Container */}
         <div className="flex-shrink-0">

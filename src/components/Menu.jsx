@@ -183,7 +183,7 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
               {/* Items Grid with proximity-based spacing */}
               <div className="grid gap-4">
                 {groupedItems[category].map((item, itemIndex) => (
-                  <div key={item.id} className="transform transition-all duration-200 hover:scale-[1.01] hover:shadow-lg">
+                  <div key={item.id}>
                     <MenuItem
                       item={item}
                       addToCart={addToCart}
