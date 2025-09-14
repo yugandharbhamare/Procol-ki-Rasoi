@@ -3,9 +3,9 @@ export class ImageUploadService {
   constructor() {
     this.maxFileSize = 5 * 1024 * 1024; // 5MB
     this.allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    this.optimizedWidth = 400;
-    this.optimizedHeight = 400;
-    this.quality = 0.8;
+    this.optimizedWidth = 300; // Reduced from 400 to 300
+    this.optimizedHeight = 300; // Reduced from 400 to 300
+    this.quality = 0.7; // Reduced from 0.8 to 0.7 for smaller file size
   }
 
   // Validate file before upload
@@ -33,6 +33,11 @@ export class ImageUploadService {
 
   // Optimize image using canvas
   async optimizeImage(file) {
+    return this.optimizeImageWithSettings(file, this.optimizedWidth, this.optimizedHeight, this.quality);
+  }
+
+  // Optimize image with custom settings
+  async optimizeImageWithSettings(file, maxWidth, maxHeight, quality) {
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -43,8 +48,8 @@ export class ImageUploadService {
         let { width, height } = this.calculateDimensions(
           img.width, 
           img.height, 
-          this.optimizedWidth, 
-          this.optimizedHeight
+          maxWidth, 
+          maxHeight
         );
 
         canvas.width = width;
@@ -65,7 +70,7 @@ export class ImageUploadService {
             }
           },
           'image/jpeg',
-          this.quality
+          quality
         );
       };
 
@@ -109,17 +114,23 @@ export class ImageUploadService {
   // Upload optimized image to public/optimized folder
   async uploadImage(file) {
     try {
+      console.log('ImageUploadService: Starting image upload for:', file.name, file.type, file.size);
+      
       // Validate file
       const validation = this.validateFile(file);
       if (!validation.isValid) {
+        console.log('ImageUploadService: File validation failed:', validation.errors);
         throw new Error(validation.errors.join(', '));
       }
 
       // Optimize image
+      console.log('ImageUploadService: Optimizing image...');
       const optimizedBlob = await this.optimizeImage(file);
+      console.log('ImageUploadService: Image optimized, new size:', optimizedBlob.size);
       
       // Generate filename
       const fileName = this.generateFileName(file.name);
+      console.log('ImageUploadService: Generated filename:', fileName);
       
       // Try to upload to server first
       try {
@@ -127,6 +138,7 @@ export class ImageUploadService {
         formData.append('image', optimizedBlob, fileName);
         formData.append('folder', 'optimized');
 
+        console.log('ImageUploadService: Attempting server upload...');
         const response = await fetch('/api/upload-image', {
           method: 'POST',
           body: formData,
@@ -134,6 +146,7 @@ export class ImageUploadService {
 
         if (response.ok) {
           const result = await response.json();
+          console.log('ImageUploadService: Server upload successful:', result);
           return {
             success: true,
             fileName: result.fileName,
@@ -144,16 +157,28 @@ export class ImageUploadService {
           throw new Error(`Server upload failed: ${response.status}`);
         }
       } catch (serverError) {
-        console.warn('Server upload failed, using fallback:', serverError.message);
+        console.warn('ImageUploadService: Server upload failed, using fallback:', serverError.message);
         
         // Fallback: Convert to base64 and store in localStorage
-        const base64Url = await this.blobToBase64(optimizedBlob);
-        const fallbackUrl = `data:image/jpeg;base64,${base64Url}`;
+        console.log('ImageUploadService: Converting to base64...');
+        let base64Url = await this.blobToBase64(optimizedBlob);
+        let fallbackUrl = `data:image/jpeg;base64,${base64Url}`;
+        console.log('ImageUploadService: Base64 URL length:', fallbackUrl.length);
         
-        // Check if base64 URL is too long for database
-        if (fallbackUrl.length > 10000) { // Conservative limit
-          console.warn('Base64 image too large, using placeholder');
-          const placeholderUrl = '/placeholder-image.svg';
+        // If still too large, try with even smaller dimensions and lower quality
+        if (fallbackUrl.length > 50000) {
+          console.log('ImageUploadService: First optimization too large, trying smaller size...');
+          const smallerBlob = await this.optimizeImageWithSettings(file, 200, 200, 0.5);
+          base64Url = await this.blobToBase64(smallerBlob);
+          fallbackUrl = `data:image/jpeg;base64,${base64Url}`;
+          console.log('ImageUploadService: Smaller base64 URL length:', fallbackUrl.length);
+        }
+        
+        // Check if base64 URL is still too long for database
+        if (fallbackUrl.length > 50000) {
+          console.warn('ImageUploadService: Base64 image still too large, using placeholder');
+          // Use a data URI for a simple placeholder instead of a file that might not exist
+          const placeholderUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzZiNzI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIFRvbyBMYXJnZTwvdGV4dD48L3N2Zz4=';
           
           return {
             success: true,
@@ -168,6 +193,7 @@ export class ImageUploadService {
         // Store in localStorage with a unique key
         const storageKey = `temp_image_${fileName}`;
         localStorage.setItem(storageKey, fallbackUrl);
+        console.log('ImageUploadService: Stored in localStorage with key:', storageKey);
         
         return {
           success: true,
@@ -179,7 +205,7 @@ export class ImageUploadService {
       }
 
     } catch (error) {
-      console.error('Image upload error:', error);
+      console.error('ImageUploadService: Image upload error:', error);
       return {
         success: false,
         error: error.message

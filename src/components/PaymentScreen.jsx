@@ -224,6 +224,17 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
           {/* Payment Section */}
           {!isQRVisible && isMobile && (
             <div>
+              {/* Payment Instructions */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h4 className="text-sm font-bold text-blue-900 mb-2">How to Pay</h4>
+                <p className="text-sm text-blue-800">
+                  1. Select your payment app below<br/>
+                  2. Open the app and use QR scanner<br/>
+                  3. Scan the QR code at the payment counter<br/>
+                  4. Complete payment and return here
+                </p>
+              </div>
+
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Method</h3>
               {paymentStatus === 'processing' && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
@@ -232,44 +243,7 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                   </p>
                 </div>
               )}
-              
-              {/* Payment Instructions */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-medium text-blue-900 mb-1">How to Pay</h4>
-                    <p className="text-sm text-blue-800">
-                      1. Select your payment app below<br/>
-                      2. Open the app and use QR scanner<br/>
-                      3. Scan the QR code at the payment counter<br/>
-                      4. Complete payment and return here
-                    </p>
-                  </div>
-                </div>
-              </div>
 
-              {/* UPI ID Display */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">UPI ID</p>
-                    <p className="text-lg font-bold text-gray-900">Q629741098@ybl</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">Amount</p>
-                    <p className="text-lg font-bold text-primary-600">
-                      ₹{getTotalPrice() > 0 ? getTotalPrice() : 'MRP'}
-                    </p>
-                  </div>
-                </div>
-              </div>
               
               <div className="space-y-3">
                 {/* GPay */}

@@ -54,7 +54,29 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
               onClick={() => setShowDropdown(!showDropdown)}
               className="flex items-center space-x-3 text-sm rounded-full focus:outline-none"
             >
-              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+              {staffUser?.photoURL ? (
+                <img
+                  src={staffUser.photoURL}
+                  alt={staffUser.displayName || 'Staff Member'}
+                  className="w-8 h-8 rounded-full object-cover border-2 border-orange-200"
+                  onError={(e) => {
+                    // Hide the image and show initials when photo fails to load
+                    e.target.style.display = 'none';
+                    const initialsDiv = e.target.nextElementSibling;
+                    if (initialsDiv) {
+                      initialsDiv.style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : null}
+              <div 
+                className={`w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center ${
+                  staffUser?.photoURL ? 'hidden' : 'flex'
+                }`}
+                style={{ 
+                  display: staffUser?.photoURL ? 'none' : 'flex' 
+                }}
+              >
                 <span className="text-white font-medium">
                   {staffUser?.displayName?.charAt(0) || staffUser?.email?.charAt(0) || 'S'}
                 </span>

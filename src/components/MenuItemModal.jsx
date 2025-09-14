@@ -231,9 +231,11 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
               </label>
               <ImageUpload
                 value={formData.image}
-                onChange={(imageUrl) => setFormData(prev => ({ ...prev, image: imageUrl }))}
+                onChange={(imageUrl) => {
+                  setFormData(prev => ({ ...prev, image: imageUrl }));
+                }}
                 onError={(error) => {
-                  setErrors(prev => ({ ...prev, image: error }))
+                  setErrors(prev => ({ ...prev, image: error }));
                 }}
                 disabled={saving}
                 className="w-full"

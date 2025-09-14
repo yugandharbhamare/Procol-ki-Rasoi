@@ -47,6 +47,18 @@ export const AuthProvider = ({ children }) => {
         
         if (supabaseUser) {
           console.log('✅ User synced to Supabase successfully');
+          // Update the user state with the latest photoURL from Supabase
+          const userData = {
+            uid: result.user.uid,
+            email: result.user.email,
+            displayName: result.user.displayName,
+            firstName: result.user.displayName?.split(' ')[0] || '',
+            lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
+            photoURL: supabaseUser.photo_url || result.user.photoURL // Use Supabase photo_url if available
+          };
+          console.log('📝 Updated userData with Supabase photoURL:', userData);
+          setUser(userData);
+          localStorage.setItem('currentUser', JSON.stringify(userData));
         } else {
           console.warn('⚠️ User sync to Supabase failed, but sign-in continues');
           console.warn('⚠️ Some features may not work properly');
@@ -98,6 +110,18 @@ export const AuthProvider = ({ children }) => {
       
       if (existingUser.success && existingUser.user) {
         console.log('✅ User already exists in Supabase:', existingUser.user);
+        
+        // Update the user's photo_url in Supabase if it's different from Firebase
+        if (existingUser.user.photo_url !== firebaseUser.photoURL) {
+          console.log('🔄 Updating user photo_url in Supabase...');
+          const { updateUser } = await import('../services/supabaseService');
+          await updateUser(existingUser.user.id, {
+            photo_url: firebaseUser.photoURL
+          });
+          // Update the returned user object with the new photo_url
+          existingUser.user.photo_url = firebaseUser.photoURL;
+        }
+        
         return existingUser.user;
       }
       
@@ -187,7 +211,17 @@ export const AuthProvider = ({ children }) => {
         
         // Sync user to Supabase on auth state change
         try {
-          await syncUserToSupabase(user);
+          const supabaseUser = await syncUserToSupabase(user);
+          if (supabaseUser) {
+            // Update userData with the latest photoURL from Supabase
+            const updatedUserData = {
+              ...userData,
+              photoURL: supabaseUser.photo_url || user.photoURL
+            };
+            console.log('📝 Updated userData with Supabase photoURL on auth state change:', updatedUserData);
+            setUser(updatedUserData);
+            localStorage.setItem('currentUser', JSON.stringify(updatedUserData));
+          }
         } catch (error) {
           console.error('❌ Error syncing user on auth state change:', error);
         }

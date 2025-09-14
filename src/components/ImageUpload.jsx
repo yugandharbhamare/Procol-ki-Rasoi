@@ -25,24 +25,30 @@ const ImageUpload = ({
   const handleFileSelect = useCallback(async (file) => {
     if (!file) return;
 
+    console.log('ImageUpload: Starting file upload for:', file.name, file.type, file.size);
     setIsUploading(true);
     setUploadStatus('Uploading and optimizing image...');
     
     try {
       // Create preview URL
       const preview = imageUploadService.createPreviewUrl(file);
+      console.log('ImageUpload: Created preview URL:', preview);
       setPreviewUrl(preview);
 
       // Upload and optimize image
+      console.log('ImageUpload: Calling uploadImage service...');
       const result = await imageUploadService.uploadImage(file);
+      console.log('ImageUpload: Upload result:', result);
       
       if (result.success) {
+        console.log('ImageUpload: Upload successful, optimizedUrl:', result.optimizedUrl);
         // Update parent component with the optimized image URL
         onChange(result.optimizedUrl);
         
         // Clean up preview URL
         imageUploadService.revokePreviewUrl(preview);
         setPreviewUrl(result.optimizedUrl);
+        console.log('ImageUpload: Set preview URL to:', result.optimizedUrl);
         
         // Show success message
         if (result.isFallback) {
@@ -60,6 +66,7 @@ const ImageUpload = ({
         // Clear status after 3 seconds
         setTimeout(() => setUploadStatus(''), 3000);
       } else {
+        console.error('ImageUpload: Upload failed:', result.error);
         // Handle upload error
         setUploadStatus('Upload failed');
         onError?.(result.error);
@@ -72,6 +79,7 @@ const ImageUpload = ({
         setTimeout(() => setUploadStatus(''), 5000);
       }
     } catch (error) {
+      console.error('ImageUpload: Upload exception:', error);
       setUploadStatus('Upload failed');
       onError?.(error.message);
       setPreviewUrl('');
@@ -175,13 +183,29 @@ const ImageUpload = ({
         {previewUrl ? (
           // Image preview
           <div className="relative">
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="mx-auto max-h-48 max-w-full rounded-lg object-cover"
-              onLoad={() => console.log('ImageUpload: Image loaded successfully:', previewUrl)}
-              onError={(e) => console.error('ImageUpload: Image failed to load:', previewUrl, e)}
-            />
+            <div className="mx-auto max-h-48 max-w-full rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="max-h-48 max-w-full rounded-lg object-cover"
+                onLoad={() => console.log('ImageUpload: Image loaded successfully:', previewUrl)}
+                onError={(e) => {
+                  console.error('ImageUpload: Image failed to load:', previewUrl, e);
+                  // Hide the image and show error state
+                  e.target.style.display = 'none';
+                  const errorDiv = e.target.nextElementSibling;
+                  if (errorDiv) {
+                    errorDiv.style.display = 'flex';
+                  }
+                }}
+              />
+              <div className="hidden flex-col items-center justify-center text-gray-500 p-4">
+                <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p className="text-sm">Image preview unavailable</p>
+              </div>
+            </div>
             {!disabled && (
               <button
                 type="button"

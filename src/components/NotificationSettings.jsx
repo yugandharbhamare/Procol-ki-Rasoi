@@ -39,9 +39,6 @@ const NotificationSettings = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleTestNotification = () => {
-    notificationService.testNotification();
-  };
 
   if (!isOpen) return null;
 
@@ -123,46 +120,15 @@ const NotificationSettings = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          {/* Device Support Info */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">Device Support</h4>
-            <div className="space-y-1 text-sm text-gray-600">
-              <div className="flex items-center">
-                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                Sound: {notificationService.audioContext ? 'Supported' : 'Not supported'}
-              </div>
-              <div className="flex items-center">
-                <span className={`w-2 h-2 rounded-full mr-2 ${notificationService.vibrationSupported ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                Vibration: {notificationService.vibrationSupported ? 'Supported' : 'Not supported'}
-              </div>
-              <div className="flex items-center">
-                <span className={`w-2 h-2 rounded-full mr-2 ${'Notification' in window ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                Browser Notifications: {'Notification' in window ? 'Supported' : 'Not supported'}
-              </div>
-            </div>
-          </div>
-
-          {/* Test Button */}
-          <button
-            onClick={handleTestNotification}
-            disabled={!settings.isEnabled}
-            className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-              settings.isEnabled
-                ? 'bg-orange-500 text-white hover:bg-orange-600'
-                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Test Notification
-          </button>
         </div>
 
         {/* Footer */}
         <div className="flex justify-end p-6 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-6 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors"
           >
-            Done
+            Save settings
           </button>
         </div>
       </div>
