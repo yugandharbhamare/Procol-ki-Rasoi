@@ -42,8 +42,8 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
   }, [amount, orderId, upiId])
 
   const startPaymentMonitoring = () => {
-    // Set initial status message
-    setStatusMessage('Scan QR code with any UPI app to pay ₹' + amount)
+    // Set initial status message (removed QR scan message)
+    setStatusMessage('')
     
     // Check payment status every 3 seconds
     statusCheckInterval.current = setInterval(async () => {
@@ -136,7 +136,7 @@ const UPIQRCode = ({ amount, orderId, upiId = "Q629741098@ybl", onPaymentSuccess
           <div className="mt-4 text-sm text-gray-600 space-y-2">
             <p>1. Scan QR code and pay with any UPI app</p>
             <p>2. Click "I have completed the payment" to confirm</p>
-            <p>3. Order will be accepted after kitchen staff confirmation</p>
+            <p>3. Show the UPI payment receipt to the kitchen staff. Order will be accepted after kitchen staff confirmation</p>
           </div>
           
           {/* Payment Status Display */}
