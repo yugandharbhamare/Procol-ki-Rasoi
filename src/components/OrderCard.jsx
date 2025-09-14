@@ -391,7 +391,7 @@ export default function OrderCard({ order, status }) {
     <>
       <div className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200">
         {/* Compact Header - Customer Name First */}
-        <div className="px-3 sm:px-4 py-3 border-b bg-white border-gray-200">
+        <div className="px-3 sm:px-4 py-3 border-b border-gray-200">
           {/* Mobile Layout */}
           <div className="block sm:hidden">
             {/* Main Row */}
@@ -712,7 +712,7 @@ export default function OrderCard({ order, status }) {
 
         {/* Compact Order Notes */}
         {order.notes && (
-          <div className="px-3 sm:px-4 py-1.5 bg-white border-t border-gray-200">
+          <div className="px-3 sm:px-4 py-1.5 border-t border-gray-200">
             <div className="flex items-center gap-2">
               <InformationCircleIcon className="w-4 h-4 text-orange-600" />
               <span className="text-orange-800 font-medium text-sm">Special instructions:</span>
@@ -722,7 +722,7 @@ export default function OrderCard({ order, status }) {
         )}
 
         {/* Compact Action Button */}
-        <div className="px-3 sm:px-4 py-3 bg-white">
+        <div className="px-3 sm:px-4 py-3">
           {renderActionButton()}
         </div>
       </div>
