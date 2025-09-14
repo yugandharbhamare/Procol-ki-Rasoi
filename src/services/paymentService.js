@@ -272,20 +272,11 @@ const addToOrderContext = async (order) => {
   try {
     console.log('PaymentService: addToOrderContext called with order:', order);
     
-    // Get existing orders from localStorage
-    const existingOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]')
-    console.log('PaymentService: Existing orders from localStorage:', existingOrders);
-    
-    // Add new order to the beginning
-    const updatedOrders = [order, ...existingOrders]
-    console.log('PaymentService: Updated orders array:', updatedOrders);
-    
-    // Save back to localStorage
-    localStorage.setItem('completedOrders', JSON.stringify(updatedOrders))
-    console.log('PaymentService: Order saved to localStorage');
+    // No longer storing orders in localStorage - Supabase is the single source of truth
+    console.log('PaymentService: Order will be created in Supabase via OrderContext');
     
     // Note: OrderContext will handle creating the order in Supabase
-    // This prevents duplicate order creation
+    // This prevents duplicate order creation and localStorage pollution
     
     console.log('PaymentService: Order added to context successfully:', order.id)
     return { success: true }

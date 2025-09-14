@@ -11,7 +11,7 @@ export default function NotificationSound({ play, onPlayComplete }) {
         if (error.name === 'NotAllowedError') {
           playFallbackSound();
         }
-        console.warn('Could not play notification sound:', error);
+        console.debug('Could not play notification sound:', error.message);
       });
       
       // Call the callback when sound finishes
@@ -31,8 +31,23 @@ export default function NotificationSound({ play, onPlayComplete }) {
 
   const playFallbackSound = () => {
     try {
+      // Check if AudioContext is allowed (requires user interaction)
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) {
+        console.debug('Web Audio API not supported');
+        return;
+      }
+
       // Create a simple beep sound using Web Audio API
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new AudioContext();
+      
+      // Check if context is suspended (requires user interaction)
+      if (audioContext.state === 'suspended') {
+        console.debug('AudioContext suspended - requires user interaction');
+        audioContext.close();
+        return;
+      }
+
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -48,7 +63,7 @@ export default function NotificationSound({ play, onPlayComplete }) {
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.5);
     } catch (error) {
-      console.warn('Could not play fallback sound:', error);
+      console.debug('Could not play fallback sound:', error.message);
     }
   };
 

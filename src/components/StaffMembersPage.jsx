@@ -160,7 +160,7 @@ const StaffMembersPage = () => {
               </button>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Staff Members</h1>
-                <p className="text-sm text-gray-500">Manage staff members and their access to the portal</p>
+                <p className="hidden sm:block text-sm text-gray-500">Manage staff members and their access to the portal</p>
               </div>
             </div>
             {userIsAdmin && (
@@ -168,7 +168,8 @@ const StaffMembersPage = () => {
                 onClick={handleAddMember}
                 className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
-                Add Staff Member
+                <span className="block sm:hidden">Add Staff</span>
+                <span className="hidden sm:block">Add Staff Member</span>
               </button>
             )}
         </div>

@@ -19,6 +19,7 @@ export default function OrderCard({ order, status }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const dropdownRef = useRef(null);
+  const mobileDropdownRef = useRef(null);
 
   // Debug: Log order object structure
   useEffect(() => {
@@ -42,7 +43,10 @@ export default function OrderCard({ order, status }) {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      const isDesktopDropdown = dropdownRef.current && dropdownRef.current.contains(event.target);
+      const isMobileDropdown = mobileDropdownRef.current && mobileDropdownRef.current.contains(event.target);
+      
+      if (!isDesktopDropdown && !isMobileDropdown) {
         setShowDropdown(false);
       }
     };
@@ -108,20 +112,20 @@ export default function OrderCard({ order, status }) {
       
       switch (action) {
         case 'accept':
-          console.log(`OrderCard: Calling acceptOrder for order ${orderIdForUpdate}`);
-          result = await acceptOrder(orderIdForUpdate);
-          console.log(`OrderCard: acceptOrder result:`, result);
+          console.log(`OrderCard: Calling updateOrderStatus to accepted for order ${orderIdForUpdate}`);
+          result = await updateOrderStatus(orderIdForUpdate, 'accepted');
+          console.log(`OrderCard: updateOrderStatus to accepted result:`, result);
           break;
 
         case 'complete':
-          console.log(`OrderCard: Calling completeOrder for order ${orderIdForUpdate}`);
-          result = await completeOrder(orderIdForUpdate);
-          console.log(`OrderCard: completeOrder result:`, result);
+          console.log(`OrderCard: Calling updateOrderStatus to completed for order ${orderIdForUpdate}`);
+          result = await updateOrderStatus(orderIdForUpdate, 'completed');
+          console.log(`OrderCard: updateOrderStatus to completed result:`, result);
           break;
         case 'cancel':
-          console.log(`OrderCard: Calling cancelOrder for order ${orderIdForUpdate}`);
-          result = await cancelOrder(orderIdForUpdate);
-          console.log(`OrderCard: cancelOrder result:`, result);
+          console.log(`OrderCard: Calling updateOrderStatus to cancelled for order ${orderIdForUpdate}`);
+          result = await updateOrderStatus(orderIdForUpdate, 'cancelled');
+          console.log(`OrderCard: updateOrderStatus to cancelled result:`, result);
           break;
         case 'pending':
           console.log(`OrderCard: Calling updateOrderStatus to pending for order ${orderIdForUpdate}`);
@@ -385,13 +389,142 @@ export default function OrderCard({ order, status }) {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-200">
         {/* Compact Header - Customer Name First */}
         <div className="px-3 sm:px-4 py-3 border-b bg-white border-gray-200">
-          <div className="flex justify-between items-start">
-            <div className="flex items-start gap-2 sm:gap-3">
+          {/* Mobile Layout */}
+          <div className="block sm:hidden">
+            {/* Main Row */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {/* Profile Picture */}
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 flex items-center justify-center flex-shrink-0 bg-gray-100 border-gray-200">
+                  {order.user?.photoURL ? (
+                    <img 
+                      src={order.user.photoURL} 
+                      alt={order.user?.name || 'User'} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        const initialsDiv = e.target.nextElementSibling;
+                        if (initialsDiv) {
+                          initialsDiv.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className={`w-full h-full flex items-center justify-center text-sm font-semibold ${
+                      order.user?.photoURL ? 'hidden' : 'flex'
+                    }`}
+                    style={{ 
+                      backgroundColor: getInitialsColor(order.user?.name || 'Unknown'),
+                      color: 'white'
+                    }}
+                  >
+                    {getInitials(order.user?.name || 'Unknown')}
+                  </div>
+                </div>
+                
+                {/* Customer Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-bold text-gray-900 truncate">{order.user?.name || 'Unknown User'}</h3>
+                  <div className="text-xs text-gray-500 truncate">{order.user?.email || 'No email'}</div>
+                </div>
+              </div>
+              
+              {/* Amount and Menu */}
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-bold text-gray-900">₹{order.order_amount || order.total || 0}</p>
+                {/* Three-dot menu for status changes - hidden for pending orders */}
+                {status !== 'pending' && (
+                  <div className="relative" ref={mobileDropdownRef}>
+                    <button
+                      onClick={() => setShowDropdown(!showDropdown)}
+                      className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    >
+                      <EllipsisVerticalIcon className="w-4 h-4 text-gray-600" />
+                    </button>
+                    
+                    {showDropdown && (
+                      <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                        <div className="py-1">
+                          
+                          {status === 'accepted' && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAction('pending');
+                                  setShowDropdown(false);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center"
+                              >
+                                <ClockIcon className="w-4 h-4 mr-2" />
+                                Mark as Pending
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAction('cancel');
+                                  setShowDropdown(false);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
+                              >
+                                <XMarkIcon className="w-4 h-4 mr-2" />
+                                Cancel Order
+                              </button>
+                            </>
+                          )}
+                          
+                          {status === 'cancelled' && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAction('accept');
+                                  setShowDropdown(false);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
+                              >
+                                <CheckIcon className="w-4 h-4 mr-2" />
+                                Accept Order
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAction('delete');
+                                  setShowDropdown(false);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
+                              >
+                                <TrashIcon className="w-4 h-4 mr-2" />
+                                Delete Order
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Status Row */}
+            <div className="flex items-center justify-between mt-2">
+              <div className="text-xs text-gray-500">#{getDisplayOrderId(order)} • {formatDateTime(order.created_at || order.timestamp)}</div>
+              <div className={`px-2 py-0.5 text-xs font-semibold rounded-full border w-fit ${getStatusColor(status)}`}>
+                {getStatusText(status)}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:flex justify-between items-center">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               {/* User Profile Photo or Initials */}
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 flex items-center justify-center flex-shrink-0 bg-gray-100 border-gray-200">
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 flex items-center justify-center flex-shrink-0 bg-gray-100 border-gray-200">
                 {order.user?.photoURL ? (
                   <img 
                     src={order.user.photoURL} 
@@ -422,9 +555,9 @@ export default function OrderCard({ order, status }) {
               
               {/* Customer Info with Subtext */}
               <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">{order.user?.name || 'Unknown User'}</h3>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full border w-fit ${getStatusColor(status)}`}>
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="text-lg font-bold text-gray-900 truncate">{order.user?.name || 'Unknown User'}</h3>
+                  <span className={`px-2 text-xs font-semibold rounded-full border w-fit ${getStatusColor(status)}`}>
                     {getStatusText(status)}
                   </span>
                 </div>
@@ -436,14 +569,14 @@ export default function OrderCard({ order, status }) {
               </div>
             </div>
             
-            <div className="text-right flex-shrink-0">
+            <div className="text-right flex-shrink-0 ml-3">
               <div className="flex items-center justify-end gap-2">
-                <div>
-                  <p className="text-lg sm:text-xl font-bold text-gray-900">₹{order.order_amount || order.total || 0}</p>
+                <div className="text-right">
+                  <p className="text-xl font-bold text-gray-900">₹{order.order_amount || order.total || 0}</p>
                   <p className="text-xs text-gray-500">{formatDateTime(order.created_at || order.timestamp)}</p>
                 </div>
-                {/* Three-dot menu for status changes */}
-                {(status === 'accepted' || status === 'cancelled') && (
+                {/* Three-dot menu for status changes - hidden for pending orders */}
+                {status !== 'pending' && (
                   <div className="relative" ref={dropdownRef}>
                     <button
                       onClick={() => setShowDropdown(!showDropdown)}
@@ -453,37 +586,14 @@ export default function OrderCard({ order, status }) {
                     </button>
                     
                     {showDropdown && (
-                      <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                      <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
                         <div className="py-1">
-                          {status === 'pending' && (
-                            <>
-                              <button
-                                onClick={() => {
-                                  handleAction('accept');
-                                  setShowDropdown(false);
-                                }}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center"
-                              >
-                                <CheckIcon className="w-4 h-4 mr-2" />
-                                Accept Order
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleAction('cancel');
-                                  setShowDropdown(false);
-                                }}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center"
-                              >
-                                <XMarkIcon className="w-4 h-4 mr-2" />
-                                Cancel Order
-                              </button>
-                            </>
-                          )}
                           
                           {status === 'accepted' && (
                             <>
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   handleAction('pending');
                                   setShowDropdown(false);
                                 }}
@@ -493,7 +603,8 @@ export default function OrderCard({ order, status }) {
                                 Mark as Pending
                               </button>
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   handleAction('cancel');
                                   setShowDropdown(false);
                                 }}
@@ -508,7 +619,8 @@ export default function OrderCard({ order, status }) {
                           {status === 'cancelled' && (
                             <>
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   handleAction('accept');
                                   setShowDropdown(false);
                                 }}
@@ -518,7 +630,8 @@ export default function OrderCard({ order, status }) {
                                 Accept Order
                               </button>
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   handleAction('delete');
                                   setShowDropdown(false);
                                 }}
@@ -540,11 +653,11 @@ export default function OrderCard({ order, status }) {
         </div>
 
         {/* Order Items - Matching User Side Style */}
-        <div className="px-3 sm:px-4 py-3">
-          <div className="space-y-3">
+        <div className="px-3 sm:px-4 py-2">
+          <div className="space-y-2">
             {Array.isArray(order.items) && order.items.length > 0 ? (
               order.items.map((item, index) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                <div key={index} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-b-0">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 sm:space-x-3">
                       {/* Item Image */}
@@ -554,7 +667,7 @@ export default function OrderCard({ order, status }) {
                           <img 
                             src={imagePath} 
                             alt={item.name || item.item_name}
-                            className="w-6 h-6 sm:w-8 sm:h-8 rounded object-cover"
+                            className="w-7 h-7 rounded object-cover"
                             onError={(e) => {
                               e.target.style.display = 'none'
                               e.target.nextSibling.style.display = 'block'
@@ -574,24 +687,23 @@ export default function OrderCard({ order, status }) {
                       
                       {/* Item Details */}
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 text-xs sm:text-sm truncate">{item.name || item.item_name}</p>
+                        <p className="font-bold text-gray-900 text-sm truncate">{item.name || item.item_name}</p>
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                          <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
-                          <p className="text-xs text-gray-500">₹{item.price} each</p>
+                          <p className="text-xs text-gray-600">Qty: {item.quantity} • ₹{item.price} each</p>
                         </div>
                       </div>
                     </div>
                   </div>
                   
                   {/* Item Total Price */}
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-semibold text-gray-900 text-xs sm:text-sm">₹{item.item_amount || (item.price * item.quantity)}</p>
+                  <div className="text-right flex-shrink-0 flex items-start">
+                    <p className="font-semibold text-gray-900 text-sm">₹{item.item_amount || (item.price * item.quantity)}</p>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center py-4 text-gray-500">
-                <InboxIcon className="w-6 h-6 mx-auto mb-1 text-gray-300" />
+              <div className="text-center py-2 text-gray-500">
+                <InboxIcon className="w-5 h-5 mx-auto mb-1 text-gray-300" />
                 <p className="text-xs">No items available</p>
               </div>
             )}
@@ -600,7 +712,7 @@ export default function OrderCard({ order, status }) {
 
         {/* Compact Order Notes */}
         {order.notes && (
-          <div className="px-3 sm:px-4 py-2 bg-white border-t border-gray-200">
+          <div className="px-3 sm:px-4 py-1.5 bg-white border-t border-gray-200">
             <div className="flex items-center gap-2">
               <InformationCircleIcon className="w-4 h-4 text-orange-600" />
               <span className="text-orange-800 font-medium text-sm">Special instructions:</span>

@@ -316,7 +316,7 @@ export const getAllOrders = async () => {
         seenOrders.add(orderKey);
         uniqueOrders.push(order);
       } else {
-        console.warn('Duplicate order filtered out in getAllOrders:', {
+        console.debug('Duplicate order filtered out in getAllOrders:', {
           orderId: order.id,
           customOrderId: order.custom_order_id,
           amount: order.order_amount,
@@ -408,16 +408,6 @@ export const updateOrderStatus = async (orderId, status) => {
       .single()
 
     if (error) throw error
-
-    // Also update order_status in order_items table
-    const { error: itemsUpdateError } = await supabase
-      .from('order_items')
-      .update({ order_status: status })
-      .eq('order_id', supabaseOrderId)
-
-    if (itemsUpdateError) {
-      console.warn('Warning: Failed to update order_items status:', itemsUpdateError)
-    }
 
     return { success: true, order: data }
   } catch (error) {
@@ -637,6 +627,25 @@ export const deleteOrder = async (orderId) => {
   try {
     console.log(`supabaseService: Deleting order ${orderId} permanently`);
     console.log(`supabaseService: orderId type: ${typeof orderId}, value: ${orderId}`);
+    
+    // First, verify the order exists
+    const { data: existingOrder, error: fetchError } = await supabase
+      .from('orders')
+      .select('id, custom_order_id')
+      .eq('id', orderId)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('supabaseService: Error fetching order for deletion:', fetchError);
+      throw fetchError;
+    }
+
+    if (!existingOrder) {
+      console.log(`supabaseService: Order ${orderId} not found, may already be deleted`);
+      return { success: true, message: 'Order not found (may already be deleted)' };
+    }
+
+    console.log(`supabaseService: Found order to delete:`, existingOrder);
     
     // First delete order items (due to foreign key constraint)
     console.log(`supabaseService: Deleting order items for order ${orderId}`);

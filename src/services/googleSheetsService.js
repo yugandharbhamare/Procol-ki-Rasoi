@@ -41,16 +41,9 @@ export const addOrderToGoogleSheets = async (order) => {
     
     console.log('Order data formatted for Google Sheets:', formattedData)
     
-    // Store the data locally for now (this would be replaced with actual API call)
-    const ordersToSync = JSON.parse(localStorage.getItem('ordersToSync') || '[]')
-    ordersToSync.push({
-      orderId: order.id,
-      data: formattedData,
-      timestamp: new Date().toISOString()
-    })
-    localStorage.setItem('ordersToSync', JSON.stringify(ordersToSync))
-    
-    console.log('Order stored in localStorage for Google Sheets sync. Total pending orders:', ordersToSync.length)
+    // No longer storing orders in localStorage - this was causing duplicate orders
+    // Google Sheets integration should be handled directly without local storage
+    console.log('Order data formatted for Google Sheets (not stored locally):', formattedData)
     
     return {
       success: true,

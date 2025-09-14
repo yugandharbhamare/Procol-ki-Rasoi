@@ -1,4 +1,4 @@
-import { supabase } from '../supabase/config';
+import { supabase } from './supabaseService';
 
 export const menuService = {
   // Get all menu items (authenticated users only)

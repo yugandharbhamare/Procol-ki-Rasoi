@@ -235,14 +235,15 @@ const MenuManagement = () => {
               </button>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Menu Management</h1>
-                <p className="text-sm text-gray-500">Manage your restaurant menu items</p>
+                <p className="hidden sm:block text-sm text-gray-500">Manage your restaurant menu items</p>
               </div>
             </div>
             <button
               onClick={handleAddItem}
               className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
-              Add New Item
+              <span className="block sm:hidden">Add Item</span>
+              <span className="hidden sm:block">Add New Item</span>
             </button>
         </div>
       </div>

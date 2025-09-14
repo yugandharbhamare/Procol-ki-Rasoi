@@ -44,24 +44,8 @@ export const StaffOrderProvider = ({ children }) => {
         setCompletedOrders([]);
         setCancelledOrders([]);
         
-        // Clear any localStorage data that might be interfering
-        console.log('StaffOrderProvider: Clearing localStorage data');
-        localStorage.removeItem('ordersToSync');
-        localStorage.removeItem('googleSheetsOrders');
-        localStorage.removeItem('googleSheetsOrdersConverted');
-        
-        // Clear ALL localStorage keys that might contain order data
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && (key.includes('order') || key.includes('Order') || key.includes('ORD'))) {
-            keysToRemove.push(key);
-          }
-        }
-        keysToRemove.forEach(key => {
-          console.log('StaffOrderProvider: Removing localStorage key:', key);
-          localStorage.removeItem(key);
-        });
+        // No longer using localStorage for orders - Supabase is the single source of truth
+        console.log('StaffOrderProvider: Using Supabase as single source of truth');
         
         const result = await getAllOrders();
         console.log('StaffOrderProvider: Initial orders loaded:', result);
@@ -133,6 +117,10 @@ export const StaffOrderProvider = ({ children }) => {
       // This is simpler and more reliable than trying to sync individual changes
       const refreshOrders = async () => {
         console.log('StaffOrderProvider: Refreshing orders after real-time update');
+        
+        // Add a small delay to ensure database operations are complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         try {
           const result = await getAllOrders();
           if (result.success) {
@@ -229,6 +217,7 @@ export const StaffOrderProvider = ({ children }) => {
   const deleteOrder = async (orderId) => {
     console.log(`StaffOrderContext: deleteOrder called for order ${orderId}`);
     console.log(`StaffOrderContext: orderId type: ${typeof orderId}, value: ${orderId}`);
+    console.log(`StaffOrderContext: Current cancelled orders before deletion:`, cancelledOrders.length);
     
     try {
       const result = await deleteOrderFromDB(orderId);
@@ -263,6 +252,79 @@ export const StaffOrderProvider = ({ children }) => {
         });
         
         console.log(`StaffOrderContext: Order ${orderId} removed from all state arrays`);
+        
+        // Force a manual refresh after deletion to ensure UI is accurate
+        // Use a longer delay to account for database replication
+        setTimeout(async () => {
+          console.log(`StaffOrderContext: Performing manual refresh after deletion of order ${orderId}`);
+          try {
+            const refreshResult = await getAllOrders();
+            if (refreshResult.success) {
+              const orders = refreshResult.orders || [];
+              const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
+              const accepted = orders.filter(order => order.status === ORDER_STATUS.ACCEPTED);
+              const completed = orders.filter(order => order.status === ORDER_STATUS.COMPLETED);
+              const cancelled = orders.filter(order => order.status === ORDER_STATUS.CANCELLED);
+              
+              console.log(`StaffOrderContext: Manual refresh results:`, {
+                pending: pending.length,
+                accepted: accepted.length,
+                completed: completed.length,
+                cancelled: cancelled.length
+              });
+              
+              setPendingOrders(pending);
+              setAcceptedOrders(accepted);
+              setCompletedOrders(completed);
+              setCancelledOrders(cancelled);
+              
+              // Check if the deleted order still exists
+              const stillExists = orders.some(order => {
+                // Check both possible ID formats
+                return order.id === orderId || 
+                       order.supabase_id === orderId ||
+                       order.custom_order_id === orderId;
+              });
+              
+              if (stillExists) {
+                const matchingOrder = orders.find(order => 
+                  order.id === orderId || order.supabase_id === orderId || order.custom_order_id === orderId
+                );
+                
+                console.warn(`StaffOrderContext: Order ${orderId} still exists in database after deletion!`);
+                console.warn('StaffOrderContext: Found matching order:', matchingOrder);
+                console.warn('StaffOrderContext: Order details:', {
+                  searchingFor: orderId,
+                  foundOrderId: matchingOrder?.id,
+                  foundSupabaseId: matchingOrder?.supabase_id,
+                  foundCustomOrderId: matchingOrder?.custom_order_id,
+                  foundStatus: matchingOrder?.status
+                });
+                
+                // Only retry deletion if the order is actually the same one we're trying to delete
+                if (matchingOrder && (matchingOrder.id === orderId || matchingOrder.supabase_id === orderId)) {
+                  console.log(`StaffOrderContext: Attempting to delete order ${orderId} again...`);
+                  try {
+                    const retryResult = await deleteOrderFromDB(orderId);
+                    if (retryResult.success) {
+                      console.log(`StaffOrderContext: Successfully deleted order ${orderId} on retry`);
+                    } else {
+                      console.error(`StaffOrderContext: Failed to delete order ${orderId} on retry:`, retryResult.error);
+                    }
+                  } catch (retryError) {
+                    console.error(`StaffOrderContext: Error retrying deletion of order ${orderId}:`, retryError);
+                  }
+                } else {
+                  console.log(`StaffOrderContext: Found order with similar ID but different details - likely a different order`);
+                }
+              } else {
+                console.log(`StaffOrderContext: Order ${orderId} successfully deleted from database`);
+              }
+            }
+          } catch (error) {
+            console.error('StaffOrderContext: Error in manual refresh after deletion:', error);
+          }
+        }, 3000); // Increased from 2000ms to 3000ms
       }
       
       return result;

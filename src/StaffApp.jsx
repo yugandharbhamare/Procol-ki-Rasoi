@@ -44,7 +44,11 @@ function StaffDashboardPage() {
     return <StaffLoginScreen />;
   }
 
-  return <StaffDashboard />;
+  return (
+    <StaffOrderProvider>
+      <StaffDashboard />
+    </StaffOrderProvider>
+  );
 }
 
 // Menu Management Page Component
@@ -85,7 +89,11 @@ function MenuManagementPage() {
     return <StaffLoginScreen />;
   }
 
-  return <MenuManagement />;
+  return (
+    <StaffOrderProvider>
+      <MenuManagement />
+    </StaffOrderProvider>
+  );
 }
 
 // Staff Members Page Component
@@ -126,7 +134,11 @@ function StaffMembersPageWrapper() {
     return <StaffLoginScreen />;
   }
 
-  return <StaffMembersPage />;
+  return (
+    <StaffOrderProvider>
+      <StaffMembersPage />
+    </StaffOrderProvider>
+  );
 }
 
 // Main Staff App Component
@@ -134,14 +146,12 @@ function StaffApp() {
   return (
     <div className="min-h-screen bg-gray-50">
       <StaffAuthProvider>
-        <StaffOrderProvider>
-          <Routes>
-            <Route path="/" element={<StaffDashboardPage />} />
-            <Route path="/menu" element={<MenuManagementPage />} />
-            <Route path="/members" element={<StaffMembersPageWrapper />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </StaffOrderProvider>
+        <Routes>
+          <Route path="/" element={<StaffDashboardPage />} />
+          <Route path="/menu" element={<MenuManagementPage />} />
+          <Route path="/members" element={<StaffMembersPageWrapper />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </StaffAuthProvider>
     </div>
   );
