@@ -7,10 +7,6 @@ const AddStaffModal = ({ onClose, onStaffAdded }) => {
   const [error, setError] = useState(null);
   const [promotingUser, setPromotingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
 
   const loadUsers = async () => {
     try {
@@ -57,33 +53,10 @@ const AddStaffModal = ({ onClose, onStaffAdded }) => {
     user.emailid?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentUsers = filteredUsers.slice(startIndex, endIndex);
-
-  // Reset to first page when search term changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
-
-  const goToPage = (page) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  };
-
-  const goToPreviousPage = () => {
-    goToPage(currentPage - 1);
-  };
-
-  const goToNextPage = () => {
-    goToPage(currentPage + 1);
-  };
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-        <div className="p-6 flex-shrink-0">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+        <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -138,11 +111,11 @@ const AddStaffModal = ({ onClose, onStaffAdded }) => {
               </div>
             </div>
           ) : (
-            <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="overflow-hidden">
               {/* Users Table */}
-              <div className="flex-1 overflow-auto">
+              <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50 sticky top-0 z-10">
+                  <thead className="bg-gray-50">
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         User
@@ -159,7 +132,7 @@ const AddStaffModal = ({ onClose, onStaffAdded }) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {currentUsers.map((user) => (
+                    {filteredUsers.map((user) => (
                       <tr key={user.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -224,74 +197,10 @@ const AddStaffModal = ({ onClose, onStaffAdded }) => {
                 </div>
               )}
             </div>
-            
-            {/* Pagination Controls */}
-            {filteredUsers.length > 0 && totalPages > 1 && (
-              <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-6 py-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">
-                      Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={goToPreviousPage}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                    >
-                      Previous
-                    </button>
-                    
-                    {/* Page Numbers */}
-                    <div className="flex items-center space-x-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
-                        }
-                        
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => goToPage(pageNum)}
-                            className={`px-3 py-1 text-sm border rounded-md ${
-                              currentPage === pageNum
-                                ? 'bg-orange-500 text-white border-orange-500'
-                                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    
-                    <button
-                      onClick={goToNextPage}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           )}
 
-        </div>
-        
-        {/* Footer */}
-        <div className="flex-shrink-0 p-6 border-t border-gray-200">
-          <div className="flex justify-end">
+          {/* Footer */}
+          <div className="flex justify-end pt-6 border-t border-gray-200 mt-6">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
