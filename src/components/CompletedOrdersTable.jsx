@@ -402,21 +402,29 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
         return b.totalAmount - a.totalAmount;
       })[0];
 
-    // Find top customer
+    // Find top customer by total order amount
     const customerOrders = {};
     dateFilteredOrders.forEach(order => {
       const customerName = order.user?.name || 'Unknown';
-      customerOrders[customerName] = (customerOrders[customerName] || 0) + 1;
+      if (!customerOrders[customerName]) {
+        customerOrders[customerName] = { totalAmount: 0, orderCount: 0 };
+      }
+      customerOrders[customerName].totalAmount += (order.order_amount || 0);
+      customerOrders[customerName].orderCount += 1;
     });
 
     const topCustomer = Object.entries(customerOrders)
-      .sort(([,a], [,b]) => b - a)[0];
+      .sort(([,a], [,b]) => b.totalAmount - a.totalAmount)[0];
 
     return {
       totalSales,
       totalOrders,
       mostOrderedItem: mostOrderedItem ? { name: mostOrderedItem[0], count: mostOrderedItem[1].count } : null,
-      topCustomer: topCustomer ? { name: topCustomer[0], orders: topCustomer[1] } : null
+      topCustomer: topCustomer ? { 
+        name: topCustomer[0], 
+        totalAmount: topCustomer[1].totalAmount,
+        orderCount: topCustomer[1].orderCount 
+      } : null
     };
   };
 
@@ -488,7 +496,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
               <div className="ml-3">
                 <p className="text-xs sm:text-sm font-medium text-gray-500">Top Customer</p>
                 <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                  {stats.topCustomer ? `${stats.topCustomer.name} (${stats.topCustomer.orders} orders)` : 'N/A'}
+                  {stats.topCustomer ? `${stats.topCustomer.name} (${formatCurrency(stats.topCustomer.totalAmount)})` : 'N/A'}
                 </p>
               </div>
             </div>
