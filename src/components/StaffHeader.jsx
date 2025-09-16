@@ -92,24 +92,30 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
 
                     {showDropdown && (
                       <div className="absolute right-0 mt-4 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                        <button
-                          onClick={() => {
-                            setShowDropdown(false);
-                            navigate('/staff/menu');
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Manage Menu
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowDropdown(false);
-                            navigate('/staff/members');
-                          }}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Staff Members
-                        </button>
+                        {/* Admin-only options */}
+                        {staffUser?.is_admin && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setShowDropdown(false);
+                                navigate('/staff/menu');
+                              }}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Manage Menu
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowDropdown(false);
+                                navigate('/staff/members');
+                              }}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Staff Members
+                            </button>
+                          </>
+                        )}
+                        {/* Available to all staff */}
                         <button
                           onClick={() => {
                             setShowDropdown(false);

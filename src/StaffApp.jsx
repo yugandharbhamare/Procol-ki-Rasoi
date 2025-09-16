@@ -89,6 +89,26 @@ function MenuManagementPage() {
     return <StaffLoginScreen />;
   }
 
+  // Check if user is admin for menu management
+  if (!staffUser.is_admin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h2>
+            <p className="text-red-600">Only administrators can access menu management.</p>
+            <button
+              onClick={() => window.history.back()}
+              className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <StaffOrderProvider>
       <MenuManagement />
@@ -132,6 +152,26 @@ function StaffMembersPageWrapper() {
   // Show login screen if user is not authenticated
   if (!staffUser) {
     return <StaffLoginScreen />;
+  }
+
+  // Check if user is admin for staff members management
+  if (!staffUser.is_admin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h2>
+            <p className="text-red-600">Only administrators can access staff member management.</p>
+            <button
+              onClick={() => window.history.back()}
+              className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
