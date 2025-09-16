@@ -290,6 +290,46 @@ export const removeStaffAccess = async (userId) => {
 // Change user role (promote to admin or downgrade to staff)
 export const changeUserRole = async (userId, newRole) => {
   try {
+    // If trying to downgrade from admin to staff, check if this is the last admin
+    if (newRole === 'staff') {
+      // Get current user to check if they are admin
+      const { data: currentUser, error: userError } = await supabase
+        .from(USERS_TABLE)
+        .select('is_admin, emailid')
+        .eq('id', userId)
+        .single();
+
+      if (userError) {
+        console.error('Error fetching current user:', userError);
+        throw userError;
+      }
+
+      // If current user is admin, check if they are the last admin
+      if (currentUser.is_admin) {
+        // Count total admins (including hardcoded admin)
+        const { data: allUsers, error: countError } = await supabase
+          .from(USERS_TABLE)
+          .select('is_admin, emailid');
+
+        if (countError) {
+          console.error('Error counting admins:', countError);
+          throw countError;
+        }
+
+        // Count admins (including hardcoded admin)
+        const adminCount = (allUsers || []).filter(user => {
+          const isDbAdmin = user.is_admin === true;
+          const isHardcodedAdmin = user.emailid?.toLowerCase() === 'yugandhar.bhamare@gmail.com';
+          return isDbAdmin || isHardcodedAdmin;
+        }).length;
+
+        // If this is the only admin, prevent downgrade
+        if (adminCount <= 1) {
+          throw new Error('Cannot remove admin privileges from the last admin user. At least one admin must remain in the system.');
+        }
+      }
+    }
+
     const updates = newRole === 'admin' 
       ? { is_admin: true, is_staff: true }  // Admins are also staff
       : { is_admin: false, is_staff: true }; // Staff members

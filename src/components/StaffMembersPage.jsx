@@ -107,7 +107,7 @@ const StaffMembersPage = () => {
       await loadStaffMembers();
     } catch (error) {
       console.error('Error changing user role:', error);
-      setError('Failed to change user role');
+      setError(error.message || 'Failed to change user role');
     }
   };
 
@@ -117,6 +117,17 @@ const StaffMembersPage = () => {
 
   const getUserRole = (member) => {
     return isAdminSync(member) ? 'admin' : 'staff';
+  };
+
+  // Check if this member is the last admin (cannot be demoted)
+  const isLastAdmin = (member) => {
+    if (!isAdminSync(member)) return false;
+    
+    // Count total admins in the current list
+    const adminCount = staffMembers.filter(m => isAdminSync(m)).length;
+    
+    // If there's only one admin, they cannot be demoted
+    return adminCount <= 1;
   };
 
   // Close role dropdown when clicking outside
@@ -289,15 +300,21 @@ const StaffMembersPage = () => {
                         </button>
                         
                         {roleDropdownOpen === member.id && (
-                          <div className="absolute top-full left-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                          <div className="absolute top-full left-0 mt-1 w-40 bg-white rounded-md shadow-lg border border-gray-200 z-50">
                             <div className="py-1">
                               <button
-                                onClick={() => handleRoleChange(member, 'staff')}
-                                className={`block w-full text-left px-3 py-2 text-xs hover:bg-gray-100 ${
-                                  !isAdminSync(member) ? 'bg-green-50 text-green-800' : 'text-gray-700'
+                                onClick={() => !isLastAdmin(member) && handleRoleChange(member, 'staff')}
+                                disabled={isLastAdmin(member)}
+                                className={`block w-full text-left px-3 py-2 text-xs ${
+                                  isLastAdmin(member) 
+                                    ? 'text-gray-400 cursor-not-allowed bg-gray-50' 
+                                    : !isAdminSync(member) 
+                                      ? 'bg-green-50 text-green-800 hover:bg-gray-100' 
+                                      : 'text-gray-700 hover:bg-gray-100'
                                 }`}
+                                title={isLastAdmin(member) ? 'Cannot demote the last admin user' : ''}
                               >
-                                Staff
+                                Staff {isLastAdmin(member) && '(Last Admin)'}
                               </button>
                               <button
                                 onClick={() => handleRoleChange(member, 'admin')}
