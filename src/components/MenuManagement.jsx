@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { menuManagementService } from '../services/menuManagementService'
 import MenuItemModal from './MenuItemModal'
 import { ChevronLeftIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { MENU_CATEGORIES } from '../constants/categories'
 
 const MenuManagement = () => {
   const navigate = useNavigate()
@@ -48,10 +49,18 @@ const MenuManagement = () => {
     loadMenuItems()
   }, [])
 
-  // Get unique categories for filter dropdown
+  // Get unique categories for filter dropdown - use shared constants for consistency
   const categories = useMemo(() => {
     const uniqueCategories = [...new Set(menuItems.map(item => item.category).filter(Boolean))]
-    return uniqueCategories.sort()
+    // Sort using the shared category order to maintain consistency
+    return uniqueCategories.sort((a, b) => {
+      const aIndex = MENU_CATEGORIES.indexOf(a)
+      const bIndex = MENU_CATEGORIES.indexOf(b)
+      if (aIndex === -1 && bIndex === -1) return a.localeCompare(b)
+      if (aIndex === -1) return 1
+      if (bIndex === -1) return -1
+      return aIndex - bIndex
+    })
   }, [menuItems])
 
   // Filtered and sorted menu items

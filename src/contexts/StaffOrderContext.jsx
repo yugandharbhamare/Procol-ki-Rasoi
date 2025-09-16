@@ -111,20 +111,21 @@ export const StaffOrderProvider = ({ children }) => {
     console.log('StaffOrderProvider: Setting up real-time subscription');
     
     const subscription = subscribeToOrders((payload) => {
-      console.log('StaffOrderProvider: Real-time order update received:', payload);
-      
-      // Refresh all orders when any change occurs
-      // This is simpler and more reliable than trying to sync individual changes
-      const refreshOrders = async () => {
-        console.log('StaffOrderProvider: Refreshing orders after real-time update');
+      try {
+        console.log('StaffOrderProvider: Real-time order update received:', payload);
         
-        // Add a small delay to ensure database operations are complete
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        try {
-          const result = await getAllOrders();
-          if (result.success) {
-            const orders = result.orders || [];
+        // Refresh all orders when any change occurs
+        // This is simpler and more reliable than trying to sync individual changes
+        const refreshOrders = async () => {
+          console.log('StaffOrderProvider: Refreshing orders after real-time update');
+          
+          // Add a small delay to ensure database operations are complete
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          try {
+            const result = await getAllOrders();
+            if (result.success) {
+              const orders = result.orders || [];
             
             // Filter orders by status
             const pending = orders.filter(order => order.status === ORDER_STATUS.PENDING);
@@ -167,12 +168,23 @@ export const StaffOrderProvider = ({ children }) => {
         }
       };
       
-      refreshOrders();
+        refreshOrders();
+      } catch (error) {
+        console.error('StaffOrderProvider: Error in subscription callback:', error);
+      }
     });
+
+    // Check if subscription was created successfully
+    if (!subscription) {
+      console.error('StaffOrderProvider: Failed to create subscription');
+      return;
+    }
 
     return () => {
       console.log('StaffOrderProvider: Cleaning up real-time subscription');
-      subscription.unsubscribe();
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
     };
   }, []);
 

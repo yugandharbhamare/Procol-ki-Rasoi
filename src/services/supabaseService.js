@@ -12,12 +12,37 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing')
   console.error('❌ Please create a .env file with your Supabase credentials')
   console.error('❌ Order placement will fail until this is fixed')
+} else {
+  console.log('✅ Supabase environment variables are set:')
+  console.log('✅ VITE_SUPABASE_URL:', supabaseUrl)
+  console.log('✅ VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set (length: ' + supabaseAnonKey.length + ')' : 'Missing')
 }
 
 // Create Supabase client only if environment variables are available
 export const supabase = supabaseUrl && supabaseAnonKey 
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null
+
+// Add global error handlers for unhandled promise rejections
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection:', event.reason)
+    // Prevent the default behavior (which would log to console)
+    event.preventDefault()
+  })
+
+  window.addEventListener('error', (event) => {
+    console.error('Global error:', event.error)
+  })
+
+  // Handle message channel errors specifically
+  window.addEventListener('message', (event) => {
+    // Ignore messages from extensions or other sources
+    if (event.source !== window) {
+      return
+    }
+  }, true)
+}
 
 // Helper function to check if Supabase is available
 const checkSupabaseAvailability = () => {
@@ -461,47 +486,104 @@ export const getOrderById = async (orderId) => {
 // ========================================
 
 export const subscribeToOrders = (callback) => {
-  return supabase
-    .channel('orders')
-    .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'orders' },
-      (payload) => {
-        console.log('Order change:', payload)
-        callback(payload)
-      }
-    )
-    .subscribe()
+  try {
+    return supabase
+      .channel('orders')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'orders' },
+        (payload) => {
+          try {
+            console.log('Order change:', payload)
+            callback(payload)
+          } catch (error) {
+            console.error('Error in order change callback:', error)
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to orders')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Error subscribing to orders channel')
+        } else if (status === 'TIMED_OUT') {
+          console.error('Subscription to orders timed out')
+        } else if (status === 'CLOSED') {
+          console.log('Orders subscription closed')
+        }
+      })
+  } catch (error) {
+    console.error('Error creating orders subscription:', error)
+    return null
+  }
 }
 
 export const subscribeToUserOrders = (userId, callback) => {
-  return supabase
-    .channel(`user_orders_${userId}`)
-    .on('postgres_changes', 
-      { 
-        event: '*', 
-        schema: 'public', 
-        table: 'orders',
-        filter: `user_id=eq.${userId}`
-      },
-      (payload) => {
-        console.log('User order change:', payload)
-        callback(payload)
-      }
-    )
-    .subscribe()
+  try {
+    return supabase
+      .channel(`user_orders_${userId}`)
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'orders',
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          try {
+            console.log('User order change:', payload)
+            callback(payload)
+          } catch (error) {
+            console.error('Error in user order change callback:', error)
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to user orders')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Error subscribing to user orders channel')
+        } else if (status === 'TIMED_OUT') {
+          console.error('Subscription to user orders timed out')
+        } else if (status === 'CLOSED') {
+          console.log('User orders subscription closed')
+        }
+      })
+  } catch (error) {
+    console.error('Error creating user orders subscription:', error)
+    return null
+  }
 }
 
 export const subscribeToOrderItems = (callback) => {
-  return supabase
-    .channel('order_items')
-    .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'order_items' },
-      (payload) => {
-        console.log('Order item change:', payload)
-        callback(payload)
-      }
-    )
-    .subscribe()
+  try {
+    return supabase
+      .channel('order_items')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'order_items' },
+        (payload) => {
+          try {
+            console.log('Order item change:', payload)
+            callback(payload)
+          } catch (error) {
+            console.error('Error in order item change callback:', error)
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to order items')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Error subscribing to order items channel')
+        } else if (status === 'TIMED_OUT') {
+          console.error('Subscription to order items timed out')
+        } else if (status === 'CLOSED') {
+          console.log('Order items subscription closed')
+        }
+      })
+  } catch (error) {
+    console.error('Error creating order items subscription:', error)
+    return null
+  }
 }
 
 // ========================================

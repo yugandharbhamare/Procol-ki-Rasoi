@@ -21,6 +21,10 @@ export const menuService = {
   // Get available menu items only (authenticated users only)
   async getAvailableMenuItems() {
     try {
+      if (!supabase) {
+        throw new Error('Supabase client is not initialized');
+      }
+      
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
@@ -28,8 +32,11 @@ export const menuService = {
         .order('category', { ascending: true })
         .order('name', { ascending: true });
 
-      if (error) throw error;
-      return { success: true, data };
+      if (error) {
+        throw error;
+      }
+      
+      return { success: true, data: data || [] };
     } catch (error) {
       console.error('Error fetching available menu items:', error);
       return { success: false, error: error.message };

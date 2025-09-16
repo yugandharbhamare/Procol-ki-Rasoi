@@ -1,6 +1,7 @@
 import MenuItem from './MenuItem'
 import { useMemo, useState, useEffect } from 'react'
 import { menuService } from '../services/menuService'
+import { CATEGORY_DISPLAY_ORDER } from '../constants/categories'
 
 
 const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
@@ -9,36 +10,31 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
   const [error, setError] = useState(null)
 
   // Fetch menu items from Supabase
-  useEffect(() => {
-    const fetchMenuItems = async () => {
-      try {
-        setLoading(true)
-        console.log('Menu: Fetching menu items from Supabase...')
-        
-        const result = await menuService.getAvailableMenuItems()
-        console.log('Menu: Supabase response:', result)
-        
-        if (result.success) {
-          console.log('Menu: Successfully loaded', result.data?.length || 0, 'menu items')
-          setMenuItems(result.data || [])
-          setError(null)
-        } else {
-          console.error('Menu: Failed to fetch menu items:', result.error)
-          setError(result.error || 'Failed to fetch menu items')
-          // Fallback to empty array
-          setMenuItems([])
-        }
-      } catch (err) {
-        console.error('Menu: Error fetching menu items:', err)
-        setError('Failed to fetch menu items: ' + err.message)
+  const fetchMenuItems = async () => {
+    try {
+      setLoading(true)
+      const result = await menuService.getAvailableMenuItems()
+      
+      if (result.success) {
+        setMenuItems(result.data || [])
+        setError(null)
+      } else {
+        setError(result.error || 'Failed to fetch menu items')
         setMenuItems([])
-      } finally {
-        setLoading(false)
       }
+    } catch (err) {
+      console.error('Menu: Error fetching menu items:', err)
+      setError('Failed to fetch menu items: ' + err.message)
+      setMenuItems([])
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchMenuItems()
   }, [])
+
 
   // Filter items based on search query
   const filteredItems = useMemo(() => {
@@ -85,19 +81,7 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
   }, [filteredItems])
 
   // Category order for consistent display
-  const categoryOrder = [
-    'Hot Beverages',
-    'Cold Beverages', 
-    'Breakfast Items',
-    'Maggi Varieties',
-    'Sandwiches',
-    'Main Course',
-    'Street Food',
-    'Snacks & Namkeen',
-    'Biscuits & Cookies',
-    'Fresh Items',
-    'Add-ons & Extras'
-  ]
+  const categoryOrder = CATEGORY_DISPLAY_ORDER
 
   // Loading state
   if (loading) {
@@ -124,10 +108,17 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
         <p className="text-gray-600 mb-4">{error}</p>
         <div className="space-y-3">
           <button 
-            onClick={() => window.location.reload()} 
-            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors mr-3"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors mr-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Try Again
+            {refreshing ? 'Refreshing...' : 'Try Again'}
+          </button>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors mr-3"
+          >
+            Reload Page
           </button>
           <button 
             onClick={() => console.log('Menu items state:', menuItems, 'Error:', error)} 
@@ -153,18 +144,14 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
         <p className="text-gray-600 max-w-md mx-auto">
           {searchQuery ? 'Try searching with different keywords or browse through our categories' : 'No menu items available at the moment'}
         </p>
-        {!searchQuery && (
-          <div className="mt-4 text-sm text-gray-500">
-            <p>Debug: Menu items loaded: {menuItems.length}</p>
-            <p>Categories found: {Object.keys(groupedItems).length}</p>
-          </div>
-        )}
       </div>
     )
   }
 
   return (
     <div className="space-y-16">
+
+
       {Object.keys(groupedItems).length > 0 ? (
         categoryOrder
           .filter(category => groupedItems[category])

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import ImageUpload from './ImageUpload'
+import { MENU_CATEGORIES } from '../constants/categories'
 
 const MenuItemModal = ({ item, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -109,19 +110,7 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
     }
   }
 
-  const categories = [
-    'General',
-    'Breakfast',
-    'Lunch',
-    'Dinner',
-    'Snacks',
-    'Beverages',
-    'Desserts',
-    'Salads',
-    'Soups',
-    'Main Course',
-    'Appetizers'
-  ]
+  const categories = MENU_CATEGORIES
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
