@@ -66,8 +66,8 @@ const MenuManagement = () => {
   // Filtered and sorted menu items
   const filteredAndSortedItems = useMemo(() => {
     let filtered = menuItems.filter(item => {
-      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesSearch = (item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                           (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
       const matchesCategory = !categoryFilter || item.category === categoryFilter
       const matchesStatus = statusFilter === '' || 
                            (statusFilter === 'available' && item.is_available) ||
@@ -520,18 +520,38 @@ const MenuManagement = () => {
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          {item.image && (
-                            <div className="flex-shrink-0 h-10 w-10">
-                              <img
-                                className="h-10 w-10 rounded-lg object-cover"
-                                src={item.image}
-                                alt={item.name}
-                                onError={(e) => {
-                                  e.target.style.display = 'none'
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200">
+                              {(item.image && (item.image.startsWith('/') || item.image.startsWith('data:image'))) ? (
+                                <img
+                                  className="h-10 w-10 rounded-lg object-cover"
+                                  src={item.image}
+                                  alt={item.name}
+                                  onError={(e) => {
+                                    // Hide the image and show fallback
+                                    e.target.style.display = 'none'
+                                    e.target.nextSibling.style.display = 'flex'
+                                  }}
+                                />
+                              ) : null}
+                              <div 
+                                className={`h-10 w-10 rounded-lg flex items-center justify-center text-lg font-medium ${
+                                  (item.image && (item.image.startsWith('/') || item.image.startsWith('data:image'))) 
+                                    ? 'hidden' 
+                                    : 'flex'
+                                }`}
+                                style={{ 
+                                  display: (item.image && (item.image.startsWith('/') || item.image.startsWith('data:image'))) 
+                                    ? 'none' 
+                                    : 'flex',
+                                  backgroundColor: '#F59E0B',
+                                  color: 'white'
                                 }}
-                              />
+                              >
+                                {item.name ? item.name.charAt(0).toUpperCase() : '?'}
+                              </div>
                             </div>
-                          )}
+                          </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{item.name}</div>
                             {item.description && (

@@ -9,7 +9,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
         {/* Enhanced Image Container */}
         <div className="flex-shrink-0">
           <div className="w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg flex items-center justify-center overflow-hidden shadow-sm border border-gray-200">
-            {(item.image.startsWith('/') || item.image.startsWith('data:image')) ? (
+            {(item.image && (item.image.startsWith('/') || item.image.startsWith('data:image'))) ? (
               <img 
                 src={item.image} 
                 alt={item.name}
@@ -23,7 +23,7 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
                 }}
               />
             ) : null}
-            <div className={`w-full h-full flex items-center justify-center text-3xl ${(item.image.startsWith('/') || item.image.startsWith('data:image')) ? 'hidden' : ''}`}>
+            <div className={`w-full h-full flex items-center justify-center text-3xl ${(item.image && (item.image.startsWith('/') || item.image.startsWith('data:image'))) ? 'hidden' : ''}`}>
               {item.image}
             </div>
           </div>

@@ -220,15 +220,76 @@ const parseItemsFromString = (itemsString) => {
   return items
 }
 
-// Helper function to get menu items (you might want to import this from Menu.jsx)
+// Helper function to get menu items (fallback when database is not available)
 const getMenuItems = () => {
-  // This is a simplified version - in production, you'd import the actual menu items
-  return [
-    { id: 1, name: "Ginger Chai", price: 10, image: "/optimized/Ginger Tea.png" },
-    { id: 2, name: "Masala Chai", price: 10, image: "/optimized/Ginger Tea.png" },
-    { id: 4, name: "Plain Maggi", price: 20, image: "/optimized/Plain Maggi.png" },
-    { id: 5, name: "Veg Butter Maggi", price: 30, image: "/optimized/Veg butter maggi.png" },
-    { id: 35, name: "Amul Chaas", price: 15, image: "/optimized/Amul Chaas.png" },
-    // Add more items as needed
-  ]
+  // This is a fallback version - in production, this should fetch from the database
+  // Using centralized image mappings from menuItemImageService
+  const { getMenuItemImage } = require('./menuItemImageService');
+  
+  const menuItems = [
+    // Hot Beverages
+    { id: 1, name: "Ginger Chai", price: 10 },
+    { id: 2, name: "Masala Chai", price: 10 },
+    
+    // Cold Beverages
+    { id: 35, name: "Amul Chaas", price: 15 },
+    { id: 36, name: "Amul Lassi", price: 20 },
+    { id: 37, name: "Coca Cola", price: 40 },
+    
+    // Breakfast Items
+    { id: 3, name: "Masala Oats", price: 20 },
+    { id: 10, name: "MTR Poha", price: 30 },
+    { id: 11, name: "MTR Upma", price: 30 },
+    { id: 15, name: "Besan Chila", price: 30 },
+    
+    // Maggi Varieties
+    { id: 4, name: "Plain Maggi", price: 20 },
+    { id: 5, name: "Veg Butter Maggi", price: 30 },
+    { id: 6, name: "Cheese Maggi", price: 30 },
+    { id: 7, name: "Butter Atta Maggi", price: 30 },
+    { id: 8, name: "Veg Cheese Maggi", price: 40 },
+    { id: 9, name: "Cheese Atta Maggi", price: 45 },
+    
+    // Sandwiches
+    { id: 12, name: "Veg Cheese Sandwich", price: 40 },
+    { id: 13, name: "Aloo Sandwich", price: 30 },
+    { id: 14, name: "Aloo Cheese Sandwich", price: 45 },
+    
+    // Main Course
+    { id: 22, name: "Pasta", price: 40 },
+    
+    // Street Food
+    { id: 16, name: "Bhel Puri", price: 30 },
+    { id: 30, name: "Fatafat Bhel", price: 10 },
+    
+    // Snacks & Namkeen
+    { id: 27, name: "Aloo Bhujiya", price: 10 },
+    { id: 31, name: "Lite Mixture", price: 10 },
+    { id: 32, name: "Moong Dal", price: 10 },
+    { id: 33, name: "Hing Chana", price: 10 },
+    { id: 28, name: "Salted Peanut", price: 10 },
+    { id: 29, name: "Popcorn", price: 10 },
+    
+    // Biscuits & Cookies
+    { id: 24, name: "Bourbon Biscuit", price: 10 },
+    { id: 25, name: "Good Day Biscuit", price: 10 },
+    { id: 26, name: "Parle G Biscuit", price: 10 },
+    
+    // Fresh Items
+    { id: 17, name: "Onion", price: 10 },
+    { id: 18, name: "Cucumber", price: 10 },
+    { id: 19, name: "Mix Salad", price: 20 },
+    { id: 23, name: "Cheese", price: 15 },
+    
+    // Add-ons & Extras
+    { id: 20, name: "Gud", price: 5 },
+    { id: 21, name: "Saunf", price: 5 },
+    { id: 34, name: "Pass Pass", price: 2 }
+  ];
+  
+  // Add image paths using centralized service
+  return menuItems.map(item => ({
+    ...item,
+    image: getMenuItemImage(item.name)
+  }));
 } 
