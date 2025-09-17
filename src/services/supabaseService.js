@@ -487,16 +487,28 @@ export const getOrderById = async (orderId) => {
 
 export const subscribeToOrders = (callback) => {
   try {
-    return supabase
-      .channel('orders')
+    const channel = supabase
+      .channel('orders', {
+        config: {
+          broadcast: { self: false },
+          presence: { key: 'orders' }
+        }
+      })
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'orders' },
         (payload) => {
           try {
             console.log('Order change:', payload)
-            callback(payload)
+            // Use setTimeout to ensure callback is async and doesn't block
+            setTimeout(() => {
+              try {
+                callback(payload)
+              } catch (callbackError) {
+                console.error('Error in orders subscription callback:', callbackError)
+              }
+            }, 0)
           } catch (error) {
-            console.error('Error in order change callback:', error)
+            console.error('Error in orders subscription payload handler:', error)
           }
         }
       )
@@ -511,6 +523,8 @@ export const subscribeToOrders = (callback) => {
           console.log('Orders subscription closed')
         }
       })
+    
+    return channel
   } catch (error) {
     console.error('Error creating orders subscription:', error)
     return null
@@ -519,8 +533,13 @@ export const subscribeToOrders = (callback) => {
 
 export const subscribeToUserOrders = (userId, callback) => {
   try {
-    return supabase
-      .channel(`user_orders_${userId}`)
+    const channel = supabase
+      .channel(`user_orders_${userId}`, {
+        config: {
+          broadcast: { self: false },
+          presence: { key: `user_orders_${userId}` }
+        }
+      })
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -531,9 +550,16 @@ export const subscribeToUserOrders = (userId, callback) => {
         (payload) => {
           try {
             console.log('User order change:', payload)
-            callback(payload)
+            // Use setTimeout to ensure callback is async and doesn't block
+            setTimeout(() => {
+              try {
+                callback(payload)
+              } catch (callbackError) {
+                console.error('Error in user orders subscription callback:', callbackError)
+              }
+            }, 0)
           } catch (error) {
-            console.error('Error in user order change callback:', error)
+            console.error('Error in user orders subscription payload handler:', error)
           }
         }
       )
@@ -548,6 +574,8 @@ export const subscribeToUserOrders = (userId, callback) => {
           console.log('User orders subscription closed')
         }
       })
+    
+    return channel
   } catch (error) {
     console.error('Error creating user orders subscription:', error)
     return null
@@ -556,16 +584,28 @@ export const subscribeToUserOrders = (userId, callback) => {
 
 export const subscribeToOrderItems = (callback) => {
   try {
-    return supabase
-      .channel('order_items')
+    const channel = supabase
+      .channel('order_items', {
+        config: {
+          broadcast: { self: false },
+          presence: { key: 'order_items' }
+        }
+      })
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'order_items' },
         (payload) => {
           try {
             console.log('Order item change:', payload)
-            callback(payload)
+            // Use setTimeout to ensure callback is async and doesn't block
+            setTimeout(() => {
+              try {
+                callback(payload)
+              } catch (callbackError) {
+                console.error('Error in order items subscription callback:', callbackError)
+              }
+            }, 0)
           } catch (error) {
-            console.error('Error in order item change callback:', error)
+            console.error('Error in order items subscription payload handler:', error)
           }
         }
       )
@@ -580,6 +620,8 @@ export const subscribeToOrderItems = (callback) => {
           console.log('Order items subscription closed')
         }
       })
+    
+    return channel
   } catch (error) {
     console.error('Error creating order items subscription:', error)
     return null

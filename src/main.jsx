@@ -11,6 +11,30 @@ console.log('  - VITE_FIREBASE_API_KEY:', import.meta.env.VITE_FIREBASE_API_KEY 
 console.log('  - VITE_FIREBASE_AUTH_DOMAIN:', import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? 'Set' : 'Missing')
 console.log('  - VITE_FIREBASE_PROJECT_ID:', import.meta.env.VITE_FIREBASE_PROJECT_ID ? 'Set' : 'Missing')
 
+// Global error handlers to prevent async channel errors
+window.addEventListener('unhandledrejection', (event) => {
+  console.warn('Unhandled promise rejection:', event.reason);
+  // Prevent the error from showing in console
+  event.preventDefault();
+});
+
+window.addEventListener('error', (event) => {
+  // Check if it's the async channel error
+  if (event.message && event.message.includes('message channel closed before a response was received')) {
+    console.warn('Async channel error caught and handled:', event.message);
+    event.preventDefault();
+    return false;
+  }
+});
+
+// Handle message channel errors specifically
+window.addEventListener('message', (event) => {
+  // This can help prevent message channel issues
+  if (event.data && typeof event.data === 'object') {
+    // Handle any message channel related data
+  }
+});
+
 try {
   console.log('🔧 Main.jsx: Creating React root...')
   const root = ReactDOM.createRoot(document.getElementById('root'))
