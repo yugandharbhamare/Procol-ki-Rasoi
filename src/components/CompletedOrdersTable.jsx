@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import DateRangeSelector from './DateRangeSelector';
 import { useStaffOrders } from '../contexts/StaffOrderContext';
+import SimplePagination from './SimplePagination';
 import { 
   ChevronUpDownIcon, 
   ChevronUpIcon, 
@@ -319,13 +320,6 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  const goToPreviousPage = () => {
-    goToPage(currentPage - 1);
-  };
-
-  const goToNextPage = () => {
-    goToPage(currentPage + 1);
-  };
 
   const formatOrderItems = (items) => {
     if (!items || items.length === 0) return 'No items';
@@ -829,43 +823,13 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                 )}
               </div>
 
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={goToPreviousPage}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  
-                  {/* Page Numbers */}
-                  <div className="flex items-center space-x-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => goToPage(page)}
-                        className={`px-3 py-1 text-sm border rounded-md ${
-                          currentPage === page
-                            ? 'bg-orange-500 text-white border-orange-500'
-                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <button
-                    onClick={goToNextPage}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              {/* Simplified Pagination */}
+              <SimplePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+                maxVisiblePages={5}
+              />
             </div>
           </div>
         )}
