@@ -9,6 +9,7 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState('100vh');
   
   // Form state
   const [selectedUser, setSelectedUser] = useState(null);
@@ -33,6 +34,29 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
       loadUsers();
       loadMenuItems();
     }
+  }, [isOpen]);
+
+  // Handle viewport height for mobile browsers
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updateViewportHeight = () => {
+      // Use the actual viewport height
+      const vh = window.innerHeight * 0.01;
+      setViewportHeight(`${window.innerHeight}px`);
+    };
+
+    // Set initial height
+    updateViewportHeight();
+
+    // Update on resize and orientation change
+    window.addEventListener('resize', updateViewportHeight);
+    window.addEventListener('orientationchange', updateViewportHeight);
+
+    return () => {
+      window.removeEventListener('resize', updateViewportHeight);
+      window.removeEventListener('orientationchange', updateViewportHeight);
+    };
   }, [isOpen]);
 
   // Close dropdowns when clicking outside
@@ -190,10 +214,17 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full h-[calc(100vh-1rem)] sm:h-[calc(100vh-2rem)] max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-0 sm:p-4">
+      <div 
+        className="bg-white rounded-none sm:rounded-lg shadow-xl max-w-2xl w-full overflow-hidden flex flex-col"
+        style={{
+          height: viewportHeight,
+          maxHeight: viewportHeight,
+          minHeight: viewportHeight
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between p-3 sm:p-6 border-b border-gray-200 flex-shrink-0 bg-white relative z-10">
           <h2 className="text-xl font-semibold text-gray-900">Place Order for Customer</h2>
           <button
             onClick={handleClose}
@@ -388,7 +419,7 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-end space-x-3 p-4 sm:p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+        <div className="flex items-center justify-end space-x-3 p-3 sm:p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0 relative z-10">
           <button
             type="button"
             onClick={handleClose}
