@@ -41,9 +41,15 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
     if (!isOpen) return;
 
     const updateViewportHeight = () => {
-      // Use the actual viewport height
-      const vh = window.innerHeight * 0.01;
-      setViewportHeight(`${window.innerHeight}px`);
+      // Get the actual viewport height
+      const actualHeight = window.innerHeight;
+      
+      // Set CSS custom property for viewport height
+      document.documentElement.style.setProperty('--vh', `${actualHeight * 0.01}px`);
+      document.documentElement.style.setProperty('--actual-vh', `${actualHeight}px`);
+      
+      // Also set state for inline styles
+      setViewportHeight(`${actualHeight}px`);
     };
 
     // Set initial height
@@ -52,10 +58,22 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
     // Update on resize and orientation change
     window.addEventListener('resize', updateViewportHeight);
     window.addEventListener('orientationchange', updateViewportHeight);
+    
+    // Also listen for visual viewport changes (for mobile browsers)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateViewportHeight);
+    }
+
+    // Force update after a short delay to catch any delayed viewport changes
+    const timeoutId = setTimeout(updateViewportHeight, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('resize', updateViewportHeight);
       window.removeEventListener('orientationchange', updateViewportHeight);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', updateViewportHeight);
+      }
     };
   }, [isOpen]);
 
@@ -214,13 +232,39 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-0 sm:p-4">
+    <>
+      <style>{`
+        /* Mobile viewport fix */
+        @media (max-width: 768px) {
+          .mobile-modal-container {
+            height: var(--actual-vh, 100vh) !important;
+            max-height: var(--actual-vh, 100vh) !important;
+            min-height: var(--actual-vh, 100vh) !important;
+          }
+        }
+        
+        /* Ensure modal takes full height on mobile */
+        @media (max-width: 768px) {
+          .mobile-modal-container {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+          }
+        }
+      `}</style>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-0 sm:p-4">
       <div 
-        className="bg-white rounded-none sm:rounded-lg shadow-xl max-w-2xl w-full overflow-hidden flex flex-col"
+        className="bg-white rounded-none sm:rounded-lg shadow-xl max-w-2xl w-full overflow-hidden flex flex-col mobile-modal-container"
         style={{
           height: viewportHeight,
           maxHeight: viewportHeight,
-          minHeight: viewportHeight
+          minHeight: viewportHeight,
+          // Fallback using CSS custom properties
+          '--modal-height': viewportHeight
         }}
       >
         {/* Header */}
@@ -438,6 +482,7 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
