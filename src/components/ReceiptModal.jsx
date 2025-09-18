@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getOrderStatusDisplay } from '../utils/orderUtils'
+import { getDisplayNotes } from '../utils/staffOrderUtils'
 import { InformationCircleIcon } from '@heroicons/react/24/outline'
 
 const ReceiptModal = ({ order }) => {
@@ -119,7 +120,7 @@ const ReceiptModal = ({ order }) => {
                   <InformationCircleIcon className="w-5 h-5 text-yellow-600" />
                   <span className="text-yellow-800 font-semibold text-sm">Special Instructions for Chef</span>
                 </div>
-                <p className="text-yellow-700 text-sm">{order.notes}</p>
+                <p className="text-yellow-700 text-sm">{getDisplayNotes(order)}</p>
               </div>
             </div>
           )}

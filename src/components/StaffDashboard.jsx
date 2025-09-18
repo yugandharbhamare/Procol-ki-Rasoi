@@ -5,7 +5,8 @@ import OrderCard from './OrderCard';
 import StaffHeader from './StaffHeader';
 import NotificationSound from './NotificationSound';
 import CompletedOrdersTable from './CompletedOrdersTable';
-import { DocumentTextIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import ManualOrderModal from './ManualOrderModal';
+import { DocumentTextIcon, ExclamationTriangleIcon, XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 export default function StaffDashboard() {
   const { staffUser, signOutUser } = useStaffAuth();
@@ -22,6 +23,8 @@ export default function StaffDashboard() {
   const [activeTab, setActiveTab] = useState('pending');
   const [showNotifications, setShowNotifications] = useState(true);
   const [playNotification, setPlayNotification] = useState(false);
+  const [showManualOrderModal, setShowManualOrderModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   const orderCounts = getOrderCounts();
 
@@ -44,6 +47,12 @@ export default function StaffDashboard() {
 
   const handleNotificationComplete = () => {
     setPlayNotification(false);
+  };
+
+  const handleManualOrderSuccess = (userName) => {
+    setToastMessage(`Order placed for ${userName}`);
+    // Auto-hide toast after 3 seconds
+    setTimeout(() => setToastMessage(''), 3000);
   };
 
 
@@ -211,6 +220,29 @@ export default function StaffDashboard() {
 
         </div>
       </div>
+
+      {/* Floating Add Button */}
+      <button
+        onClick={() => setShowManualOrderModal(true)}
+        className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-200 z-40"
+        title="Place order for customer"
+      >
+        <PlusIcon className="w-6 h-6" />
+      </button>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-pulse">
+          {toastMessage}
+        </div>
+      )}
+
+      {/* Manual Order Modal */}
+      <ManualOrderModal
+        isOpen={showManualOrderModal}
+        onClose={() => setShowManualOrderModal(false)}
+        onSuccess={handleManualOrderSuccess}
+      />
     </div>
   );
 }

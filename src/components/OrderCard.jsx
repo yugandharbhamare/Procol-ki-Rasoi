@@ -3,6 +3,7 @@ import { useStaffOrders } from '../contexts/StaffOrderContext';
 import { getDisplayOrderId, getDatabaseOrderId } from '../utils/orderUtils';
 import { updateOrderStatus } from '../services/supabaseService';
 import { getMenuItemImage } from '../services/menuItemImageService';
+import { isStaffOrder, getPaymentMode, getDisplayNotes } from '../utils/staffOrderUtils';
 import DeleteOrderModal from './DeleteOrderModal';
 import { 
   CheckIcon, 
@@ -347,7 +348,14 @@ export default function OrderCard({ order, status }) {
                 
                 {/* Customer Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-bold text-gray-900 truncate">{order.user?.name || 'Unknown User'}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-gray-900 truncate">{order.user?.name || 'Unknown User'}</h3>
+                    {isStaffOrder(order) && (
+                      <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full border border-blue-200">
+                        Staff Order
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-gray-500 truncate">{order.user?.email || 'No email'}</div>
                 </div>
               </div>
@@ -479,11 +487,22 @@ export default function OrderCard({ order, status }) {
                   <span className={`px-2 text-xs font-semibold rounded-full border w-fit ${getStatusColor(status)}`}>
                     {getStatusText(status)}
                   </span>
+                  {isStaffOrder(order) && (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full border border-blue-200">
+                      Staff Order
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-gray-500 space-x-2">
                   <span>#{getDisplayOrderId(order)}</span>
                   <span>•</span>
                   <span className="truncate">{order.user?.email || 'No email'}</span>
+                  {getPaymentMode(order) && (
+                    <>
+                      <span>•</span>
+                      <span className="truncate">Payment: {getPaymentMode(order)}</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -637,7 +656,7 @@ export default function OrderCard({ order, status }) {
             <div className="flex items-center gap-2">
               <InformationCircleIcon className="w-4 h-4 text-orange-600" />
               <span className="text-orange-800 font-medium text-sm">Special instructions:</span>
-              <span className="text-xs text-gray-700">{order.notes}</span>
+              <span className="text-xs text-gray-700">{getDisplayNotes(order)}</span>
             </div>
           </div>
         )}
