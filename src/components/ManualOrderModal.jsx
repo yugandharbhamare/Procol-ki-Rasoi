@@ -14,7 +14,7 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   // Form state
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [paymentMode, setPaymentMode] = useState('Cash');
+  const [paymentMode, setPaymentMode] = useState('UPI');
   const [userSearch, setUserSearch] = useState('');
   const [itemSearch, setItemSearch] = useState('');
   
@@ -26,7 +26,7 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   const itemDropdownRef = useRef(null);
 
   // Payment mode options
-  const paymentModes = ['Cash', 'UPI', 'Pay Later'];
+  const paymentModes = ['UPI', 'Cash', 'Pay Later'];
 
   // Load users and menu items when modal opens
   useEffect(() => {
