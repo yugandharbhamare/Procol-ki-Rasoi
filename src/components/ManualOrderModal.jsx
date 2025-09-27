@@ -9,12 +9,11 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState('100vh');
   
   // Form state
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [paymentMode, setPaymentMode] = useState('UPI');
+  const [paymentMode, setPaymentMode] = useState('Cash');
   const [userSearch, setUserSearch] = useState('');
   const [itemSearch, setItemSearch] = useState('');
   
@@ -26,7 +25,7 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   const itemDropdownRef = useRef(null);
 
   // Payment mode options
-  const paymentModes = ['UPI', 'Cash', 'Pay Later'];
+  const paymentModes = ['Cash', 'UPI', 'Pay Later'];
 
   // Load users and menu items when modal opens
   useEffect(() => {
@@ -34,47 +33,6 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
       loadUsers();
       loadMenuItems();
     }
-  }, [isOpen]);
-
-  // Handle viewport height for mobile browsers
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const updateViewportHeight = () => {
-      // Get the actual viewport height
-      const actualHeight = window.innerHeight;
-      
-      // Set CSS custom property for viewport height
-      document.documentElement.style.setProperty('--vh', `${actualHeight * 0.01}px`);
-      document.documentElement.style.setProperty('--actual-vh', `${actualHeight}px`);
-      
-      // Also set state for inline styles
-      setViewportHeight(`${actualHeight}px`);
-    };
-
-    // Set initial height
-    updateViewportHeight();
-
-    // Update on resize and orientation change
-    window.addEventListener('resize', updateViewportHeight);
-    window.addEventListener('orientationchange', updateViewportHeight);
-    
-    // Also listen for visual viewport changes (for mobile browsers)
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', updateViewportHeight);
-    }
-
-    // Force update after a short delay to catch any delayed viewport changes
-    const timeoutId = setTimeout(updateViewportHeight, 100);
-
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', updateViewportHeight);
-      window.removeEventListener('orientationchange', updateViewportHeight);
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', updateViewportHeight);
-      }
-    };
   }, [isOpen]);
 
   // Close dropdowns when clicking outside
@@ -232,43 +190,10 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <>
-      <style>{`
-        /* Mobile viewport fix */
-        @media (max-width: 768px) {
-          .mobile-modal-container {
-            height: var(--actual-vh, 100vh) !important;
-            max-height: var(--actual-vh, 100vh) !important;
-            min-height: var(--actual-vh, 100vh) !important;
-          }
-        }
-        
-        /* Ensure modal takes full height on mobile */
-        @media (max-width: 768px) {
-          .mobile-modal-container {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            margin: 0 !important;
-            border-radius: 0 !important;
-          }
-        }
-      `}</style>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-0 sm:p-4">
-      <div 
-        className="bg-white rounded-none sm:rounded-lg shadow-xl max-w-2xl w-full overflow-hidden flex flex-col mobile-modal-container"
-        style={{
-          height: viewportHeight,
-          maxHeight: viewportHeight,
-          minHeight: viewportHeight,
-          // Fallback using CSS custom properties
-          '--modal-height': viewportHeight
-        }}
-      >
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full h-[100vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-3 sm:p-6 border-b border-gray-200 flex-shrink-0 bg-white relative z-10">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">Place Order for Customer</h2>
           <button
             onClick={handleClose}
@@ -463,7 +388,7 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-end space-x-3 p-3 sm:p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0 relative z-10">
+        <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
           <button
             type="button"
             onClick={handleClose}
@@ -482,7 +407,6 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
       </div>
     </div>
-    </>
   );
 };
 
