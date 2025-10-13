@@ -280,10 +280,10 @@ export const getUserOrders = async (userId) => {
 
     // Get order items for all unique orders with enhanced data
     const orderIds = uniqueOrders.map(order => order.id)
+    
+    // Use RPC function for bulk query to avoid URL length limits
     const { data: orderItems, error: itemsError } = await supabase
-      .from('order_items')
-      .select('*')
-      .in('order_id', orderIds)
+      .rpc('get_order_items_by_ids', { order_ids: orderIds })
 
     if (itemsError) throw itemsError
 
@@ -371,10 +371,10 @@ export const getAllOrders = async () => {
 
     // Get order items for all unique orders with enhanced data
     const orderIds = uniqueOrders.map(order => order.id)
+    
+    // Use RPC function for bulk query to avoid URL length limits
     const { data: orderItems, error: itemsError } = await supabase
-      .from('order_items')
-      .select('*')
-      .in('order_id', orderIds)
+      .rpc('get_order_items_by_ids', { order_ids: orderIds })
 
     if (itemsError) throw itemsError
 

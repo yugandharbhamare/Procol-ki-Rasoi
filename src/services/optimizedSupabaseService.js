@@ -33,7 +33,7 @@ const QUERY_PATTERNS = {
   `,
   
   // Order items with minimal data
-  ORDER_ITEMS_MINIMAL: 'id, order_id, item_name, quantity, price, item_amount',
+  ORDER_ITEMS_MINIMAL: 'id, order_id, item_name, quantity, price',
   
   // Menu items minimal
   MENU_ITEMS_MINIMAL: 'id, name, price, image, category, is_available',
@@ -147,12 +147,10 @@ export const optimizedOrderService = {
 
         if (ordersError) throw ordersError;
 
-        // Get order items for all orders in a single query
+        // Get order items for all orders in a single query using RPC to avoid URL length limits
         const orderIds = orders?.map(order => order.id) || [];
         const { data: orderItems, error: itemsError } = await supabase
-          .from('order_items')
-          .select(QUERY_PATTERNS.ORDER_ITEMS_MINIMAL)
-          .in('order_id', orderIds);
+          .rpc('get_order_items_by_ids', { order_ids: orderIds });
 
         if (itemsError) throw itemsError;
 
@@ -225,12 +223,10 @@ export const optimizedOrderService = {
         const { data: orders, error: ordersError } = await query;
         if (ordersError) throw ordersError;
 
-        // Get order items in batch
+        // Get order items in batch using RPC to avoid URL length limits
         const orderIds = orders?.map(order => order.id) || [];
         const { data: orderItems, error: itemsError } = await supabase
-          .from('order_items')
-          .select(QUERY_PATTERNS.ORDER_ITEMS_MINIMAL)
-          .in('order_id', orderIds);
+          .rpc('get_order_items_by_ids', { order_ids: orderIds });
 
         if (itemsError) throw itemsError;
 
