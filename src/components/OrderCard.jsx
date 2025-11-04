@@ -30,7 +30,11 @@ export default function OrderCard({ order, status }) {
       supabase_id: order.supabase_id,
       custom_order_id: order.custom_order_id,
       status: order.status,
-      order_amount: order.order_amount
+      order_amount: order.order_amount,
+      items: order.items,
+      itemsType: Array.isArray(order.items) ? 'array' : typeof order.items,
+      itemsLength: Array.isArray(order.items) ? order.items.length : 'N/A',
+      itemsPreview: Array.isArray(order.items) && order.items.length > 0 ? order.items.slice(0, 2) : 'No items'
     });
     
     // Debug: Log user data specifically

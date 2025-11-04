@@ -77,10 +77,11 @@ function MenuPageContent() {
     console.log('🔧 MenuPageContent: User:', user)
     console.log('🔧 MenuPageContent: Order notes:', orderNotes)
     
-    // Generate a simpler order ID: ORD + 6-digit number
+    // Generate order ID: ORD + 6-digit number (100000-999999) to match database
     const orderNumber = Math.floor(Math.random() * 900000) + 100000; // 6-digit number
+    const orderId = `ORD${orderNumber}`; // ORD123456, ORD789012, etc.
     const order = {
-      id: `ORD${orderNumber}`,
+      id: orderId,
       items: cart,
       total: getTotalPrice(),
       notes: orderNotes || null,
