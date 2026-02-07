@@ -1,29 +1,16 @@
 import { ShoppingCartIcon } from '@heroicons/react/24/outline'
 
 const CartSummary = ({ cart, updateQuantity, totalItems, totalPrice, onPlaceOrder, orderNotes, onNotesChange }) => {
-  console.log('🔧 CartSummary: Rendering with props:', { cart, totalItems, totalPrice, onPlaceOrder, orderNotes })
-  
   // Don't render anything if cart is empty
   if (totalItems === 0) {
     return null
   }
-  
+
   const handlePlaceOrder = () => {
-    console.log('🔧 CartSummary: Place order button clicked')
-    console.log('🔧 CartSummary: Cart contents:', cart)
-    console.log('🔧 CartSummary: Total items:', totalItems)
-    console.log('🔧 CartSummary: Total price:', totalPrice)
-    
-    if (totalItems === 0) {
-      console.warn('🔧 CartSummary: Cannot place order - cart is empty')
-      return
-    }
-    
+    if (totalItems === 0) return
+
     if (onPlaceOrder && typeof onPlaceOrder === 'function') {
-      console.log('🔧 CartSummary: Calling onPlaceOrder function')
       onPlaceOrder()
-    } else {
-      console.error('🔧 CartSummary: onPlaceOrder is not a function or is undefined')
     }
   }
 

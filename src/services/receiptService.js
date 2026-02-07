@@ -1,6 +1,17 @@
 // Receipt Service for generating receipt images
 import Logger from '../utils/logger';
 
+// Escape HTML to prevent XSS in generated receipt markup
+const escapeHTML = (str) => {
+  if (typeof str !== 'string') return String(str ?? '');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 // Generate receipt as HTML and convert to image
 export const generateReceiptImage = async (order) => {
   try {
@@ -31,12 +42,12 @@ export const generateReceiptImage = async (order) => {
 
 // Generate receipt HTML
 const generateReceiptHTML = (order) => {
-  const items = Object.values(order.items).map(item => 
+  const items = Object.values(order.items).map(item =>
     `<tr>
-      <td class="item-name">${item.name}</td>
-      <td class="item-quantity">${item.quantity}</td>
-      <td class="item-price">₹${item.price.toFixed(2)}</td>
-      <td class="item-total">₹${(item.price * item.quantity).toFixed(2)}</td>
+      <td class="item-name">${escapeHTML(item.name)}</td>
+      <td class="item-quantity">${Number(item.quantity) || 0}</td>
+      <td class="item-price">₹${(Number(item.price) || 0).toFixed(2)}</td>
+      <td class="item-total">₹${((Number(item.price) || 0) * (Number(item.quantity) || 0)).toFixed(2)}</td>
     </tr>`
   ).join('');
   
@@ -174,7 +185,7 @@ const generateReceiptHTML = (order) => {
         <div class="order-info">
           <div class="order-row">
             <span class="order-label">Order ID:</span>
-            <span class="order-value">${order.id}</span>
+            <span class="order-value">${escapeHTML(order.id)}</span>
           </div>
           <div class="order-row">
             <span class="order-label">Date:</span>
@@ -186,11 +197,11 @@ const generateReceiptHTML = (order) => {
           </div>
           <div class="order-row">
             <span class="order-label">Customer:</span>
-            <span class="order-value">${order.user.displayName || `${order.user.firstName} ${order.user.lastName}`}</span>
+            <span class="order-value">${escapeHTML(order.user.displayName || `${order.user.firstName} ${order.user.lastName}`)}</span>
           </div>
           <div class="order-row">
             <span class="order-label">Email:</span>
-            <span class="order-value">${order.user.email}</span>
+            <span class="order-value">${escapeHTML(order.user.email)}</span>
           </div>
         </div>
         
@@ -201,12 +212,12 @@ const generateReceiptHTML = (order) => {
           </div>
           <div class="payment-row">
             <span class="order-label">Payment Method:</span>
-            <span class="order-value">${order.paymentDetails?.paymentMethod || 'UPI'}</span>
+            <span class="order-value">${escapeHTML(order.paymentDetails?.paymentMethod || 'UPI')}</span>
           </div>
           ${order.paymentDetails?.transactionId ? `
           <div class="payment-row">
             <span class="order-label">Transaction ID:</span>
-            <span class="order-value">${order.paymentDetails.transactionId}</span>
+            <span class="order-value">${escapeHTML(order.paymentDetails.transactionId)}</span>
           </div>
           ` : ''}
         </div>

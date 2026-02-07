@@ -19,14 +19,6 @@ const Header = ({ user, cartItemCount, onSearch }) => {
   const [showNotificationSettings, setShowNotificationSettings] = useState(false)
   const navigate = useNavigate()
 
-  // Debug: Log user data to see what we're getting
-  console.log('Header: User data:', user)
-  console.log('Header: User photoURL:', user?.photoURL)
-  console.log('Header: User displayName:', user?.displayName)
-  console.log('Header: User email:', user?.email)
-  console.log('Header: Cart item count:', cartItemCount)
-  console.log('Header: onSearch function:', onSearch)
-
   const handleSignOut = async () => {
     try {
       await signOutUser()
@@ -37,7 +29,6 @@ const Header = ({ user, cartItemCount, onSearch }) => {
   }
 
   const handleImageError = () => {
-    console.log('Profile image failed to load, showing fallback')
     setImageError(true)
   }
 
@@ -46,13 +37,9 @@ const Header = ({ user, cartItemCount, onSearch }) => {
   }
 
   const handleSearch = (query) => {
-    console.log('Header: Search query received:', query)
     setSearchQuery(query)
     if (onSearch && typeof onSearch === 'function') {
-      console.log('Header: Calling onSearch function with query:', query)
       onSearch(query)
-    } else {
-      console.warn('Header: onSearch function is not available')
     }
   }
 
@@ -95,8 +82,7 @@ const Header = ({ user, cartItemCount, onSearch }) => {
                       alt={user.displayName}
                       className="w-10 h-10 rounded-full border-2 border-gray-200 hover:border-orange-300 transition-colors cursor-pointer object-cover"
                       onError={handleImageError}
-                      onLoad={() => console.log('Profile image loaded successfully')}
-                    />
+                      />
                   ) : (
                     <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center border-2 border-gray-200 hover:border-orange-300 transition-colors cursor-pointer">
                       <span className="text-white font-semibold text-lg">

@@ -88,13 +88,19 @@ router.post('/upload-image', upload.single('image'), async (req, res) => {
 router.delete('/delete-image', async (req, res) => {
   try {
     const { fileName, folder = 'optimized' } = req.body;
-    
+
     if (!fileName) {
       return res.status(400).json({ error: 'No filename provided' });
     }
 
+    // Sanitize: strip directory traversal, use only the base filename
+    const safeFileName = path.basename(fileName);
+    if (safeFileName !== fileName) {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
+
     const optimizedDir = await ensureOptimizedDir();
-    const filePath = path.join(optimizedDir, fileName);
+    const filePath = path.join(optimizedDir, safeFileName);
     
     // Check if file exists and delete
     try {
@@ -126,8 +132,12 @@ router.delete('/delete-image', async (req, res) => {
 router.get('/image-info/:fileName', async (req, res) => {
   try {
     const { fileName } = req.params;
+    const safeFileName = path.basename(fileName);
+    if (safeFileName !== fileName) {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
     const optimizedDir = await ensureOptimizedDir();
-    const filePath = path.join(optimizedDir, fileName);
+    const filePath = path.join(optimizedDir, safeFileName);
     
     const stats = await fs.stat(filePath);
     
