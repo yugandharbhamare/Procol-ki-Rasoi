@@ -1,20 +1,13 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
 const SearchBar = ({ searchQuery, onSearch }) => {
-  console.log('SearchBar: Rendering with props:', { searchQuery, onSearch })
-  
   const handleSearchChange = (value) => {
-    console.log('SearchBar: Search value changed to:', value)
     if (onSearch && typeof onSearch === 'function') {
-      console.log('SearchBar: Calling onSearch function with value:', value)
       onSearch(value)
-    } else {
-      console.warn('SearchBar: onSearch function is not available')
     }
   }
 
   const handleClearSearch = () => {
-    console.log('SearchBar: Clearing search')
     handleSearchChange('')
   }
 

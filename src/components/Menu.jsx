@@ -8,13 +8,18 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
   const [menuItems, setMenuItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
 
   // Fetch menu items from Supabase
-  const fetchMenuItems = async () => {
+  const fetchMenuItems = async (isRefresh = false) => {
     try {
-      setLoading(true)
+      if (isRefresh) {
+        setRefreshing(true)
+      } else {
+        setLoading(true)
+      }
       const result = await menuService.getAvailableMenuItems()
-      
+
       if (result.success) {
         setMenuItems(result.data || [])
         setError(null)
@@ -28,7 +33,12 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
       setMenuItems([])
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
+  }
+
+  const handleRefresh = () => {
+    fetchMenuItems(true)
   }
 
   useEffect(() => {
@@ -114,17 +124,11 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
           >
             {refreshing ? 'Refreshing...' : 'Try Again'}
           </button>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors mr-3"
           >
             Reload Page
-          </button>
-          <button 
-            onClick={() => console.log('Menu items state:', menuItems, 'Error:', error)} 
-            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-          >
-            Debug Info
           </button>
         </div>
       </div>

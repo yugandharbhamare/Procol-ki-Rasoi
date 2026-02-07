@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline'
 
-const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
+const MenuItem = memo(({ item, addToCart, cartItem, updateQuantity }) => {
   const isInCart = cartItem && cartItem.quantity > 0
 
   return (
@@ -83,6 +84,8 @@ const MenuItem = ({ item, addToCart, cartItem, updateQuantity }) => {
       </div>
     </div>
   )
-}
+})
 
-export default MenuItem 
+MenuItem.displayName = 'MenuItem'
+
+export default MenuItem

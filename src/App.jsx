@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import { OrderProvider, useOrders } from './contexts/OrderContext'
@@ -13,7 +13,6 @@ import StaffApp from './StaffApp'
 
 // Main Menu Page Component - Now properly wrapped with OrderProvider
 function MenuPageContent() {
-  console.log('🔧 MenuPageContent: Component rendering...')
   const { user } = useAuth()
   const { addCompletedOrder, isSupabaseAvailable } = useOrders()
   const navigate = useNavigate()
@@ -22,9 +21,6 @@ function MenuPageContent() {
   const [currentOrder, setCurrentOrder] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [orderNotes, setOrderNotes] = useState('')
-
-  console.log('🔧 MenuPageContent: User state:', user)
-  console.log('🔧 MenuPageContent: Supabase available:', isSupabaseAvailable)
 
   const addToCart = (itemId, itemName, price, image) => {
     setCart(prev => {
@@ -47,12 +43,13 @@ function MenuPageContent() {
       const newCart = { ...cart }
       delete newCart[itemId]
       setCart(newCart)
-    } else if (newQuantity <= 10) { // Restrict to max 10
+    } else {
+      const clampedQuantity = Math.min(newQuantity, 10)
       setCart(prev => ({
         ...prev,
         [itemId]: {
           ...prev[itemId],
-          quantity: newQuantity
+          quantity: clampedQuantity
         }
       }))
     }
@@ -72,14 +69,9 @@ function MenuPageContent() {
   }
 
   const placeOrder = () => {
-    console.log('🔧 MenuPageContent: placeOrder called')
-    console.log('🔧 MenuPageContent: Cart contents:', cart)
-    console.log('🔧 MenuPageContent: User:', user)
-    console.log('🔧 MenuPageContent: Order notes:', orderNotes)
-    
     // Generate order ID: ORD + 6-digit number (100000-999999) to match database
-    const orderNumber = Math.floor(Math.random() * 900000) + 100000; // 6-digit number
-    const orderId = `ORD${orderNumber}`; // ORD123456, ORD789012, etc.
+    const orderNumber = Math.floor(Math.random() * 900000) + 100000;
+    const orderId = `ORD${orderNumber}`;
     const order = {
       id: orderId,
       items: cart,
@@ -95,47 +87,38 @@ function MenuPageContent() {
       }
     }
     
-    console.log('🔧 MenuPageContent: Order created:', order)
     setCurrentOrder(order)
     setShowPayment(true)
   }
 
   const handlePaymentComplete = async () => {
-    console.log('🔧 MenuPageContent: Payment completed, processing order...')
-    // Add the completed order to the context (which will also save to Supabase)
-    if (currentOrder) {
-      // Add payment details to the order
-      const completedOrder = {
-        ...currentOrder,
-        paymentDetails: {
-          transactionId: `TXN${Math.floor(Math.random() * 900000) + 100000}`, // 6-digit number
-          paymentMethod: 'UPI',
-          amount: getTotalPrice(),
-          status: 'success',
-          timestamp: new Date().toISOString()
-        }
-      };
-      
-      console.log('🔧 MenuPageContent: Completed order with payment:', completedOrder);
-      try {
-        const result = await addCompletedOrder(completedOrder);
-        console.log('🔧 MenuPageContent: Order successfully added to context:', result);
-        
-        // Store the order ID in sessionStorage to open receipt modal on order history page
-        // Use the custom_order_id that will be used in the database
-        sessionStorage.setItem('showReceiptForOrder', completedOrder.id);
-        console.log('🔧 MenuPageContent: Stored order ID in sessionStorage:', completedOrder.id);
-        
-        // Clear cart and redirect to order history
-        setCart({});
-        setCurrentOrder(null);
-        setShowPayment(false);
-        
-        // Navigate to order history page
-        navigate('/orders');
-      } catch (error) {
-        console.error('🔧 MenuPageContent: Error adding order to context:', error);
+    if (!currentOrder) return;
+
+    const completedOrder = {
+      ...currentOrder,
+      paymentDetails: {
+        transactionId: `TXN${Math.floor(Math.random() * 900000) + 100000}`,
+        paymentMethod: 'UPI',
+        amount: getTotalPrice(),
+        status: 'success',
+        timestamp: new Date().toISOString()
       }
+    };
+
+    try {
+      await addCompletedOrder(completedOrder);
+
+      // Store the order ID in sessionStorage to open receipt modal on order history page
+      sessionStorage.setItem('showReceiptForOrder', completedOrder.id);
+
+      // Clear cart and redirect to order history
+      setCart({});
+      setCurrentOrder(null);
+      setShowPayment(false);
+      setOrderNotes('');
+      navigate('/orders');
+    } catch (error) {
+      console.error('Error adding order:', error);
     }
   }
 
@@ -214,7 +197,6 @@ function MenuPageContent() {
 }
 
 function App() {
-  console.log('🔧 App: Component rendering...')
   const { user, loading } = useAuth()
 
   if (loading) {
