@@ -106,3 +106,5 @@ echo "DROP FUNCTION IF EXISTS get_order_items_by_ids(UUID[]);"
 echo "And revert frontend files"
 echo ""
 print_success "Deployment script completed successfully!"
+
+
