@@ -165,24 +165,27 @@ export const createOrder = async (orderData) => {
   try {
     checkSupabaseAvailability()
 
-    // Check for recent duplicate orders (within last 5 minutes)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    console.log('🔧 supabaseService: Creating order with data:', orderData)
+
+    // Check for exact duplicate orders (same user, same amount, within last 30 seconds)
+    // This only prevents accidental double-clicks, not legitimate repeat orders
+    const thirtySecondsAgo = new Date(Date.now() - 30 * 1000).toISOString();
 
     const { data: recentOrders, error: checkError } = await supabase
       .from('orders')
       .select('id, created_at')
       .eq('user_id', orderData.user_id)
       .eq('order_amount', orderData.order_amount)
-      .gte('created_at', fiveMinutesAgo)
+      .gte('created_at', thirtySecondsAgo)
       .limit(1);
 
     if (checkError) {
       console.warn('Could not check for duplicates:', checkError);
     } else if (recentOrders && recentOrders.length > 0) {
-      console.warn('Duplicate order detected within 5 minutes');
+      console.warn('Duplicate order detected within 30 seconds (likely double-click)');
       return {
         success: false,
-        error: 'Duplicate order detected. Please wait before placing another order.',
+        error: 'Duplicate order detected. Please wait a moment before placing another order.',
         duplicateOrder: recentOrders[0]
       };
     }
@@ -233,28 +236,16 @@ export const getUserOrders = async (userId) => {
 
     if (ordersError) throw ordersError
 
-    // Deduplicate orders based on user_id, order_amount, and created_at (date only)
+    // Deduplicate orders based on their unique UUID (not amount+date which drops legitimate orders)
     const uniqueOrders = [];
-    const seenOrders = new Set();
-    
+    const seenOrderIds = new Set();
+
     orders.forEach(order => {
-      // Create a unique key for deduplication
-      const orderKey = `${order.user_id}-${order.order_amount}-${new Date(order.created_at).toDateString()}`;
-      
-      if (!seenOrders.has(orderKey)) {
-        seenOrders.add(orderKey);
+      if (!seenOrderIds.has(order.id)) {
+        seenOrderIds.add(order.id);
         uniqueOrders.push(order);
-      } else {
-        console.warn('Duplicate order filtered out:', {
-          orderId: order.id,
-          customOrderId: order.custom_order_id,
-          amount: order.order_amount,
-          created: order.created_at
-        });
       }
     });
-
-    console.log(`Filtered ${orders.length} orders to ${uniqueOrders.length} unique orders`);
 
     // Get order items for all unique orders with enhanced data
     const orderIds = uniqueOrders.map(order => order.id)
@@ -324,28 +315,16 @@ export const getAllOrders = async () => {
 
     if (ordersError) throw ordersError
 
-    // Deduplicate orders based on user_id, order_amount, and created_at (date only)
+    // Deduplicate orders based on their unique UUID (not amount+date which drops legitimate orders)
     const uniqueOrders = [];
-    const seenOrders = new Set();
-    
+    const seenOrderIds = new Set();
+
     orders.forEach(order => {
-      // Create a unique key for deduplication
-      const orderKey = `${order.user_id}-${order.order_amount}-${new Date(order.created_at).toDateString()}`;
-      
-      if (!seenOrders.has(orderKey)) {
-        seenOrders.add(orderKey);
+      if (!seenOrderIds.has(order.id)) {
+        seenOrderIds.add(order.id);
         uniqueOrders.push(order);
-      } else {
-        console.debug('Duplicate order filtered out in getAllOrders:', {
-          orderId: order.id,
-          customOrderId: order.custom_order_id,
-          amount: order.order_amount,
-          created: order.created_at
-        });
       }
     });
-
-    console.log(`getAllOrders: Filtered ${orders.length} orders to ${uniqueOrders.length} unique orders`);
 
     // Get order items for all unique orders with enhanced data
     const orderIds = uniqueOrders.map(order => order.id)

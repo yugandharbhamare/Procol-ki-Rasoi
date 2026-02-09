@@ -111,12 +111,23 @@ export const OrderProvider = ({ children }) => {
         
         if (supabaseResult.success) {
           console.log('OrderContext: Order successfully created in Supabase:', supabaseResult.order.id)
+          console.log('OrderContext: DB-generated custom_order_id:', supabaseResult.order.custom_order_id)
+
+          // Update sessionStorage with the DB-generated custom_order_id so receipt can find it
+          const dbCustomOrderId = supabaseResult.order.custom_order_id
+          if (dbCustomOrderId) {
+            sessionStorage.setItem('showReceiptForOrder', dbCustomOrderId)
+            console.log('OrderContext: Updated sessionStorage with DB custom_order_id:', dbCustomOrderId)
+          }
+
           // Remove from processing set since order is now in Supabase
           setSupabaseOrderIds(prev => {
             const newSet = new Set(prev)
             newSet.delete(order.id)
             return newSet
           })
+
+          return { success: true, customOrderId: dbCustomOrderId }
         } else {
           console.error('OrderContext: Failed to create order in Supabase:', supabaseResult.error)
           console.error('OrderContext: Order data that failed:', orderData)
@@ -126,6 +137,8 @@ export const OrderProvider = ({ children }) => {
             newSet.delete(order.id)
             return newSet
           })
+
+          return { success: false, error: supabaseResult.error }
         }
       }
     } catch (error) {
