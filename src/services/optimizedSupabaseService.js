@@ -166,17 +166,16 @@ export const optimizedOrderService = {
           });
         });
 
-        // Transform and deduplicate orders
+        // Transform orders (deduplicate by UUID only, not by amount+date)
         const uniqueOrders = [];
-        const seenOrders = new Set();
-        
+        const seenOrderIds = new Set();
+
         orders?.forEach(order => {
-          const orderKey = `${order.user_id}-${order.order_amount}-${new Date(order.created_at).toDateString()}`;
-          
-          if (!seenOrders.has(orderKey)) {
-            seenOrders.add(orderKey);
+          if (!seenOrderIds.has(order.id)) {
+            seenOrderIds.add(order.id);
             uniqueOrders.push({
-              id: order.id,
+              id: order.custom_order_id || order.id,
+              supabase_id: order.id,
               custom_order_id: order.custom_order_id,
               status: order.status,
               order_amount: order.order_amount,
@@ -273,11 +272,11 @@ export const optimizedOrderService = {
   async createOrder(orderData) {
     try {
       // Start transaction-like operation
+      // Don't pass custom_order_id - the DB trigger generates it automatically
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
           user_id: orderData.user_id,
-          custom_order_id: orderData.custom_order_id,
           status: orderData.status || 'pending',
           order_amount: orderData.order_amount,
           notes: orderData.notes || null
