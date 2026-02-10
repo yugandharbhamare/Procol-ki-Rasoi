@@ -23,26 +23,9 @@ export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null
 
-// Add global error handlers for unhandled promise rejections
-if (typeof window !== 'undefined') {
-  window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason)
-    // Prevent the default behavior (which would log to console)
-    event.preventDefault()
-  })
-
-  window.addEventListener('error', (event) => {
-    console.error('Global error:', event.error)
-  })
-
-  // Handle message channel errors specifically
-  window.addEventListener('message', (event) => {
-    // Ignore messages from extensions or other sources
-    if (event.source !== window) {
-      return
-    }
-  }, true)
-}
+// Note: Removed global error handlers that were silently swallowing errors
+// via event.preventDefault(). Errors should surface naturally to the console
+// and error boundaries for proper debugging.
 
 // Helper function to check if Supabase is available
 const checkSupabaseAvailability = () => {
@@ -225,7 +208,7 @@ export const getUserOrders = async (userId) => {
       .from('orders')
       .select(`
         *,
-        users!inner(
+        users(
           id,
           name,
           emailid,
@@ -292,7 +275,7 @@ export const getAllOrders = async () => {
       .from('orders')
       .select(`
         *,
-        users!inner(
+        users(
           id,
           name,
           emailid,

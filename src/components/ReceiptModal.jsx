@@ -30,7 +30,7 @@ const ReceiptModal = ({ order }) => {
   }
 
   const getTotalPrice = () => {
-    return Object.values(order.items).reduce((total, item) => {
+    return Object.values(order.items || {}).reduce((total, item) => {
       if (typeof item.price === 'number') {
         return total + (item.price * item.quantity)
       }
@@ -38,7 +38,7 @@ const ReceiptModal = ({ order }) => {
     }, 0)
   }
 
-  const hasMRPItems = Object.values(order.items).some(item => typeof item.price !== 'number')
+  const hasMRPItems = Object.values(order.items || {}).some(item => typeof item.price !== 'number')
 
   return (
     <div className="bg-gradient-to-br from-green-50 to-blue-50">
@@ -63,11 +63,11 @@ const ReceiptModal = ({ order }) => {
             </div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-gray-600">Date</span>
-              <span className="font-semibold text-gray-900">{formatDate(new Date(order.timestamp))}</span>
+              <span className="font-semibold text-gray-900">{order.timestamp ? formatDate(new Date(order.timestamp)) : 'N/A'}</span>
             </div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-gray-600">Time</span>
-              <span className="font-semibold text-gray-900">{formatTime(new Date(order.timestamp))}</span>
+              <span className="font-semibold text-gray-900">{order.timestamp ? formatTime(new Date(order.timestamp)) : 'N/A'}</span>
             </div>
             {order.user && (
               <>

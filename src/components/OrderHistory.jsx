@@ -210,6 +210,8 @@ const OrderHistory = () => {
               loadUserOrders();
             }
           }
+        }).catch(err => {
+          console.error('OrderHistory: Error checking user in subscription:', err);
         });
       }
     });

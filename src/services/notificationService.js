@@ -10,23 +10,27 @@ class NotificationService {
     this.vibrationEnabled = true;
     this.audioContext = null;
     this.sounds = {};
-    
-    // Initialize audio context
-    this.initAudioContext();
-    
+
+    // Don't initialize AudioContext in constructor — browsers block it
+    // until a user gesture. It will be lazily created on first use.
+
     // Check if device supports vibration
-    this.vibrationSupported = 'vibrate' in navigator;
-    
-    // Request notification permission
+    this.vibrationSupported = typeof navigator !== 'undefined' && 'vibrate' in navigator;
+
+    // Request notification permission (non-blocking)
     this.requestNotificationPermission();
   }
 
   /**
-   * Initialize audio context for sound generation
+   * Initialize audio context lazily on first use (requires user gesture)
    */
   initAudioContext() {
+    if (this.audioContext) return; // Already initialized
     try {
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        this.audioContext = new AudioCtx();
+      }
     } catch (error) {
       console.warn('Audio context not supported:', error);
       this.soundEnabled = false;
@@ -50,7 +54,11 @@ class NotificationService {
    * Generate notification sound using Web Audio API
    */
   generateNotificationSound(type = 'default') {
-    if (!this.soundEnabled || !this.audioContext) return;
+    if (!this.soundEnabled) return;
+
+    // Lazily initialize AudioContext on first sound request (requires user gesture)
+    this.initAudioContext();
+    if (!this.audioContext) return;
 
     try {
       const oscillator = this.audioContext.createOscillator();
