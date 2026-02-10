@@ -216,7 +216,9 @@ const OrderHistory = () => {
 
     return () => {
       console.log('OrderHistory: Cleaning up real-time subscription');
-      subscription.unsubscribe();
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
     };
   }, [user]);
 

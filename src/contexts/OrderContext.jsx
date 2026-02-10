@@ -86,7 +86,7 @@ export const OrderProvider = ({ children }) => {
         // Prepare order data for Supabase
         const orderData = {
           user_id: supabaseUserId, // Use Supabase user ID, not Firebase UID
-          user_name: user.displayName || user.firstName + ' ' + user.lastName || 'Unknown User',
+          user_name: user.displayName || (user.firstName && user.lastName ? user.firstName + ' ' + user.lastName : null) || 'Unknown User',
           user_email: userEmail,
           user_photo_url: userPhotoURL,
           order_amount: order.total || 0,
