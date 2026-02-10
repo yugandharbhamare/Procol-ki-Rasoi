@@ -219,7 +219,8 @@ export const createOrder = async (orderData) => {
 
 export const getUserOrders = async (userId) => {
   try {
-    // Get orders for the specific user by joining with users table
+    // Get orders with user info and order items in a single query
+    // This avoids the 1000-row limit issue with separate items queries
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select(`
@@ -229,14 +230,15 @@ export const getUserOrders = async (userId) => {
           name,
           emailid,
           photo_url
-        )
+        ),
+        order_items(*)
       `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
     if (ordersError) throw ordersError
 
-    // Deduplicate orders based on their unique UUID (not amount+date which drops legitimate orders)
+    // Deduplicate orders based on their unique UUID
     const uniqueOrders = [];
     const seenOrderIds = new Set();
 
@@ -247,49 +249,34 @@ export const getUserOrders = async (userId) => {
       }
     });
 
-    // Get order items for all unique orders with enhanced data
-    const orderIds = uniqueOrders.map(order => order.id)
-    
-    // Use RPC function for bulk query to avoid URL length limits
-    const { data: orderItems, error: itemsError } = await supabase
-      .rpc('get_order_items_by_ids', { order_ids: orderIds })
-
-    if (itemsError) throw itemsError
-
-    // Group items by order_id and enhance with calculated data
-    const itemsByOrderId = {}
-    orderItems.forEach(item => {
-      if (!itemsByOrderId[item.order_id]) {
-        itemsByOrderId[item.order_id] = []
-      }
-      
-      // Ensure item_amount is calculated if not present
-      const enhancedItem = {
-        ...item,
-        item_amount: item.item_amount || (item.price * item.quantity)
-      }
-      
-      itemsByOrderId[item.order_id].push(enhancedItem)
-    })
-
     // Transform the data to match the expected format
-    const transformedOrders = uniqueOrders.map(order => ({
-      id: order.custom_order_id || order.id, // Use custom order ID for display, fallback to UUID
-      supabase_id: order.id, // Keep the original UUID for internal use
-      status: order.status,
-      order_amount: order.order_amount,
-      notes: order.notes || null, // Include notes field
-      created_at: order.created_at,
-      updated_at: order.updated_at,
-      user: {
-        name: order.users?.name || 'Unknown User',
-        email: order.users?.emailid || 'No email',
-        photoURL: order.users?.photo_url || null
-      },
-      items: itemsByOrderId[order.id] || [],
-      timestamp: order.created_at
-    }))
-    
+    const transformedOrders = uniqueOrders.map(order => {
+      // Enhance items with calculated fields
+      const items = (order.order_items || []).map(item => ({
+        ...item,
+        name: item.name || item.item_name,
+        item_name: item.item_name || item.name,
+        item_amount: item.item_amount || (Number(item.price || 0) * Number(item.quantity || 0))
+      }));
+
+      return {
+        id: order.custom_order_id || order.id,
+        supabase_id: order.id,
+        status: order.status,
+        order_amount: order.order_amount,
+        notes: order.notes || null,
+        created_at: order.created_at,
+        updated_at: order.updated_at,
+        user: {
+          name: order.users?.name || 'Unknown User',
+          email: order.users?.emailid || 'No email',
+          photoURL: order.users?.photo_url || null
+        },
+        items,
+        timestamp: order.created_at
+      };
+    });
+
     return { success: true, orders: transformedOrders }
   } catch (error) {
     console.error('Error getting user orders:', error)
@@ -299,7 +286,8 @@ export const getUserOrders = async (userId) => {
 
 export const getAllOrders = async () => {
   try {
-    // Get orders with user information by joining with users table
+    // Get orders with user info and order items in a single nested query
+    // This avoids the 1000-row limit issue that occurred with separate RPC/items queries
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select(`
@@ -309,13 +297,14 @@ export const getAllOrders = async () => {
           name,
           emailid,
           photo_url
-        )
+        ),
+        order_items(*)
       `)
       .order('created_at', { ascending: false })
 
     if (ordersError) throw ordersError
 
-    // Deduplicate orders based on their unique UUID (not amount+date which drops legitimate orders)
+    // Deduplicate orders based on their unique UUID
     const uniqueOrders = [];
     const seenOrderIds = new Set();
 
@@ -326,142 +315,27 @@ export const getAllOrders = async () => {
       }
     });
 
-    // Get order items for all unique orders with enhanced data
-    const orderIds = uniqueOrders.map(order => order.id)
-    
-    console.log('getAllOrders: Fetching items for order IDs:', orderIds.slice(0, 5), '... (total:', orderIds.length, ')');
-    
-    // If no orders, return early
-    if (orderIds.length === 0) {
-      console.log('getAllOrders: No orders found, returning empty array');
+    if (uniqueOrders.length === 0) {
       return { success: true, orders: [] };
     }
-    
-    // Use RPC function for bulk query to avoid URL length limits
-    const { data: orderItems, error: itemsError } = await supabase
-      .rpc('get_order_items_by_ids', { order_ids: orderIds })
-
-    let safeOrderItems = orderItems || [];
-    
-    // If RPC fails with an error (not just empty result), try fallback query
-    if (itemsError) {
-      console.error('getAllOrders: Error fetching order items via RPC:', itemsError);
-      console.error('getAllOrders: RPC function may not exist or there may be a permissions issue');
-      console.log('getAllOrders: Attempting fallback query for order items...');
-      
-      // Fallback: Query items directly using Supabase (works for smaller datasets)
-      try {
-        const { data: fallbackItems, error: fallbackError } = await supabase
-          .from('order_items')
-          .select('*')
-          .in('order_id', orderIds);
-        
-        if (fallbackError) {
-          console.error('getAllOrders: Fallback query also failed:', fallbackError);
-          safeOrderItems = []; // Use empty array as last resort
-        } else if (fallbackItems) {
-          console.log('getAllOrders: Fallback query succeeded, found', fallbackItems.length, 'items');
-          safeOrderItems = fallbackItems;
-        } else {
-          console.log('getAllOrders: Fallback query returned null/undefined');
-          safeOrderItems = [];
-        }
-      } catch (fallbackException) {
-        console.error('getAllOrders: Exception in fallback query:', fallbackException);
-        safeOrderItems = [];
-      }
-    }
-    
-    console.log('getAllOrders: Raw order items from RPC:', {
-      totalItems: safeOrderItems.length,
-      sampleItems: safeOrderItems.slice(0, 2),
-      hasItems: safeOrderItems.length > 0,
-      orderIdsRequested: orderIds.length,
-      orderIdsSample: orderIds.slice(0, 3)
-    });
-
-    // Group items by order_id and enhance with calculated data
-    // Normalize UUIDs to lowercase for consistent matching
-    const itemsByOrderId = {}
-    safeOrderItems.forEach(item => {
-      // Ensure order_id exists and is valid
-      if (!item.order_id) {
-        console.warn('getAllOrders: Item missing order_id:', item);
-        return;
-      }
-      
-      // Normalize order_id to lowercase string for consistent comparison
-      // UUIDs should be in format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-      const orderIdKey = String(item.order_id);
-      const orderIdKeyLower = orderIdKey.toLowerCase().trim(); // Normalize to lowercase, remove whitespace
-      
-      // Use lowercase as primary key for consistent matching
-      const primaryKey = orderIdKeyLower;
-      
-      if (!itemsByOrderId[primaryKey]) {
-        itemsByOrderId[primaryKey] = []
-      }
-      
-      // Also store under original key if different (for backwards compatibility)
-      if (primaryKey !== orderIdKey && !itemsByOrderId[orderIdKey]) {
-        itemsByOrderId[orderIdKey] = itemsByOrderId[primaryKey]; // Reference same array
-      }
-      
-      // Ensure item_amount is calculated if not present
-      // Also ensure name field is available (map item_name to name if needed)
-      const enhancedItem = {
-        ...item,
-        name: item.name || item.item_name, // Support both field names
-        item_name: item.item_name || item.name, // Keep both for compatibility
-        item_amount: item.item_amount || (Number(item.price || 0) * Number(item.quantity || 0))
-      }
-      
-      itemsByOrderId[primaryKey].push(enhancedItem)
-    })
-
-    console.log('getAllOrders: Items grouped by order_id:', {
-      totalOrders: uniqueOrders.length,
-      totalItems: orderItems?.length || 0,
-      itemsByOrderIdKeys: Object.keys(itemsByOrderId),
-      itemsByOrderIdCounts: Object.entries(itemsByOrderId).reduce((acc, [key, items]) => {
-        acc[key] = items.length;
-        return acc;
-      }, {})
-    });
 
     // Transform the data to match the expected format
-    // First pass: assign items that were found
     const transformedOrders = uniqueOrders.map(order => {
-      // Normalize order ID for matching (same normalization as items)
-      const orderIdKey = String(order.id);
-      const orderIdKeyLower = orderIdKey.toLowerCase().trim(); // Same normalization as items
-      
-      // Try multiple UUID formats for matching
-      let orderItemsArray = itemsByOrderId[orderIdKeyLower] || 
-                           itemsByOrderId[orderIdKey] || 
-                           itemsByOrderId[order.id] || 
-                           [];
-      
-      if (orderItemsArray.length === 0) {
-        console.warn(`getAllOrders: Order ${order.id} (${order.custom_order_id}) has NO items assigned!`, {
-          orderId: order.id,
-          orderIdString: String(order.id),
-          orderIdKeyLower: orderIdKeyLower,
-          availableKeys: Object.keys(itemsByOrderId).slice(0, 10),
-          itemsByOrderIdCount: Object.keys(itemsByOrderId).length,
-          sampleAvailableKey: Object.keys(itemsByOrderId)[0]
-        });
-      } else {
-        console.log(`getAllOrders: Order ${order.id} (${order.custom_order_id}) has ${orderItemsArray.length} items`);
-      }
-      
+      // Enhance items with calculated fields
+      const items = (order.order_items || []).map(item => ({
+        ...item,
+        name: item.name || item.item_name,
+        item_name: item.item_name || item.name,
+        item_amount: item.item_amount || (Number(item.price || 0) * Number(item.quantity || 0))
+      }));
+
       return {
-        id: order.custom_order_id || order.id, // Use custom order ID for display, fallback to UUID
-        supabase_id: order.id, // Keep the original UUID for internal use
-        custom_order_id: order.custom_order_id, // Include custom_order_id explicitly
+        id: order.custom_order_id || order.id,
+        supabase_id: order.id,
+        custom_order_id: order.custom_order_id,
         status: order.status,
         order_amount: order.order_amount,
-        notes: order.notes || null, // Include notes field
+        notes: order.notes || null,
         created_at: order.created_at,
         updated_at: order.updated_at,
         user: {
@@ -469,85 +343,11 @@ export const getAllOrders = async () => {
           email: order.users?.emailid || 'No email',
           photoURL: order.users?.photo_url || null
         },
-        items: orderItemsArray,
+        items,
         timestamp: order.created_at
       };
     });
-    
-    // Second pass: For orders with no items, try direct query as fallback
-    const ordersNeedingItems = transformedOrders.filter(order => !order.items || order.items.length === 0);
-    if (ordersNeedingItems.length > 0) {
-      console.log(`getAllOrders: ${ordersNeedingItems.length} orders missing items, attempting direct queries...`);
-      
-      // Query items directly for these orders
-      const missingOrderIds = ordersNeedingItems.map(order => order.supabase_id);
-      
-      try {
-        const { data: directItems, error: directError } = await supabase
-          .from('order_items')
-          .select('*')
-          .in('order_id', missingOrderIds);
-        
-        if (!directError && directItems && directItems.length > 0) {
-          console.log(`getAllOrders: Direct query found ${directItems.length} items for ${missingOrderIds.length} orders`);
-          
-          // Group direct items by order_id (normalize keys for matching)
-          const directItemsByOrderId = {};
-          directItems.forEach(item => {
-            const orderIdKey = String(item.order_id);
-            const orderIdKeyLower = orderIdKey.toLowerCase().trim();
-            
-            // Store under normalized key
-            if (!directItemsByOrderId[orderIdKeyLower]) {
-              directItemsByOrderId[orderIdKeyLower] = [];
-            }
-            
-            // Also store under original key for backwards compatibility
-            if (orderIdKeyLower !== orderIdKey && !directItemsByOrderId[orderIdKey]) {
-              directItemsByOrderId[orderIdKey] = directItemsByOrderId[orderIdKeyLower];
-            }
-            
-            const enhancedItem = {
-              ...item,
-              name: item.name || item.item_name,
-              item_name: item.item_name || item.name,
-              item_amount: item.item_amount || (Number(item.price || 0) * Number(item.quantity || 0))
-            };
-            
-            directItemsByOrderId[orderIdKeyLower].push(enhancedItem);
-          });
-          
-          // Update orders with found items
-          transformedOrders.forEach(order => {
-            if (!order.items || order.items.length === 0) {
-              const orderIdKey = String(order.supabase_id);
-              const orderIdKeyLower = orderIdKey.toLowerCase().trim();
-              
-              // Try multiple key formats
-              const foundItems = directItemsByOrderId[orderIdKeyLower] || 
-                                directItemsByOrderId[orderIdKey] || 
-                                directItemsByOrderId[order.supabase_id] || [];
-              
-              if (foundItems.length > 0) {
-                console.log(`getAllOrders: Found ${foundItems.length} items for order ${order.custom_order_id} (${order.supabase_id}) via direct query`);
-                order.items = foundItems;
-              }
-            }
-          });
-        } else if (directError) {
-          console.error('getAllOrders: Direct query for missing items failed:', directError);
-        }
-      } catch (directException) {
-        console.error('getAllOrders: Exception in direct query for missing items:', directException);
-      }
-    }
-    
-    console.log('getAllOrders: Returning transformed orders:', {
-      totalOrders: transformedOrders.length,
-      ordersWithItems: transformedOrders.filter(o => o.items && o.items.length > 0).length,
-      ordersWithoutItems: transformedOrders.filter(o => !o.items || o.items.length === 0).length
-    });
-    
+
     return { success: true, orders: transformedOrders }
   } catch (error) {
     console.error('Error getting all orders:', error)
