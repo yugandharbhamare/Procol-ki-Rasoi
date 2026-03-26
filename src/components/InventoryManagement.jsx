@@ -278,9 +278,9 @@ function BookInwardModal({ inventoryItems, staffUserName, onClose, onSuccess }) 
 // ─── Ledger transaction type config ──────────────────────────────────────────
 const TX_TYPE_CONFIG = {
   inward:             { label: 'Inward',             classes: 'bg-green-100 text-green-800' },
-  order_deduction:    { label: 'Order Deduction',    classes: 'bg-red-100 text-red-800' },
+  order_deduction:    { label: 'Order Placed',        classes: 'bg-red-100 text-red-800' },
   manual_adjustment:  { label: 'Manual Adjustment',  classes: 'bg-amber-100 text-amber-800' },
-  order_restoration:  { label: 'Order Restoration',  classes: 'bg-blue-100 text-blue-800' },
+  order_restoration:  { label: 'Order Cancelled',    classes: 'bg-blue-100 text-blue-800' },
 }
 
 const LEDGER_PAGE_SIZE = 20
@@ -412,9 +412,9 @@ function ItemLedgerTab({ inventoryItems, staffUserName, onStockRefresh }) {
             >
               <option value="">All Types</option>
               <option value="inward">Inward</option>
-              <option value="order_deduction">Order Deduction</option>
+              <option value="order_deduction">Order Placed</option>
               <option value="manual_adjustment">Manual Adjustment</option>
-              <option value="order_restoration">Order Restoration</option>
+              <option value="order_restoration">Order Cancelled</option>
             </select>
           </div>
         </div>
