@@ -267,8 +267,17 @@ export const StaffOrderProvider = ({ children }) => {
   };
 
   // Move order from completed to cancelled
+  // Also restores inventory (non-fatal) since the order is being reversed
   const moveToCancelled = async (orderId) => {
     try {
+      // Restore inventory for any inventory-linked items (non-fatal)
+      inventoryService.restoreInventoryForOrder(orderId, 'Staff')
+        .then(r => {
+          if (!r.success) console.warn('StaffOrderContext: inventory restoration on moveToCancelled failed (non-fatal):', r.error)
+          else console.log('StaffOrderContext: inventory restored for order moved to cancelled', orderId)
+        })
+        .catch(err => console.warn('StaffOrderContext: inventory restoration on moveToCancelled threw (non-fatal):', err))
+
       return await updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
     } catch (error) {
       console.error('Error moving order to cancelled:', error);

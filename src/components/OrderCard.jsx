@@ -129,9 +129,9 @@ export default function OrderCard({ order, status }) {
           console.log(`OrderCard: updateOrderStatus to completed result:`, result);
           break;
         case 'cancel':
-          console.log(`OrderCard: Calling updateOrderStatus to cancelled for order ${orderIdForUpdate}`);
-          result = await updateOrderStatus(orderIdForUpdate, 'cancelled');
-          console.log(`OrderCard: updateOrderStatus to cancelled result:`, result);
+          console.log(`OrderCard: Calling cancelOrder for order ${orderIdForUpdate}`);
+          result = await cancelOrder(orderIdForUpdate);
+          console.log(`OrderCard: cancelOrder result:`, result);
           break;
         case 'pending':
           console.log(`OrderCard: Calling updateOrderStatus to pending for order ${orderIdForUpdate}`);
