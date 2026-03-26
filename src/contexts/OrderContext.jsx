@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { createOrder, getUserByEmail } from '../services/supabaseService'
+import { createOrder, getUserByEmail, supabase } from '../services/supabaseService'
 import { addOrderToGoogleSheets, syncOrdersFromGoogleSheets } from '../services/googleSheetsService'
 import notificationService from '../services/notificationService'
+import { inventoryService } from '../services/inventoryService'
 
 const OrderContext = createContext()
 
@@ -118,6 +119,36 @@ export const OrderProvider = ({ children }) => {
           if (dbCustomOrderId) {
             sessionStorage.setItem('showReceiptForOrder', dbCustomOrderId)
             console.log('OrderContext: Updated sessionStorage with DB custom_order_id:', dbCustomOrderId)
+          }
+
+          // Deduct inventory for inventory-linked menu items
+          try {
+            const menuItemIds = Object.keys(order.items || {})
+            if (menuItemIds.length > 0) {
+              const { data: linkedItems } = await supabase
+                .from('menu_items')
+                .select('id, is_inventory_item, inventory_item_id')
+                .in('id', menuItemIds)
+                .eq('is_inventory_item', true)
+
+              if (linkedItems && linkedItems.length > 0) {
+                const deductions = linkedItems
+                  .filter(mi => mi.inventory_item_id)
+                  .map(mi => ({
+                    inventory_item_id: mi.inventory_item_id,
+                    quantity: order.items[mi.id]?.quantity || 0
+                  }))
+                  .filter(d => d.quantity > 0)
+
+                if (deductions.length > 0) {
+                  await inventoryService.deductInventoryForOrder(deductions, dbCustomOrderId, orderData.user_name)
+                  console.log('OrderContext: Inventory deducted for', deductions.length, 'item(s)')
+                }
+              }
+            }
+          } catch (inventoryError) {
+            // Non-fatal: order was placed, just log the inventory deduction failure
+            console.error('OrderContext: Inventory deduction failed (non-fatal):', inventoryError)
           }
 
           // Remove from processing set since order is now in Supabase
