@@ -478,7 +478,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
         {/* Side Panel - Sales Breakdown */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden sticky top-4">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden sticky top-4 lg:h-[calc(100vh-10rem)] lg:flex lg:flex-col">
             {/* Total Sales Header */}
             <div className="p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-b border-gray-200">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Sales</p>
@@ -487,12 +487,12 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
             </div>
 
             {/* Item-wise Breakdown */}
-            <div className="p-3">
+            <div className="p-3 flex-1 min-h-0">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-1">Item-wise Sales</p>
               {stats.itemBreakdown.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-4">No data</p>
               ) : (
-                <div className="space-y-1 max-h-[calc(100vh-280px)] overflow-y-auto">
+                <div className="space-y-1 h-full overflow-y-auto">
                   {stats.itemBreakdown.map((item, idx) => (
                     <div
                       key={item.name}
@@ -518,9 +518,9 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
         {/* Main Content - Orders Table (9 cols) */}
         <div className="lg:col-span-9">
-      <div className="sm:bg-white sm:rounded-lg sm:shadow-sm sm:border sm:border-gray-200 overflow-hidden">
+      <div className="sm:bg-white sm:rounded-lg sm:shadow-sm sm:border sm:border-gray-200 overflow-hidden lg:h-[calc(100vh-10rem)] lg:overflow-y-auto">
         {/* Toolbar: Date Range + Filter + Download */}
-        <div className="hidden sm:block border-b border-gray-200 p-3 sm:p-4">
+        <div className="hidden sm:block border-b border-gray-200 py-3 sm:py-4 sticky top-0 z-20 bg-white">
           <DateRangeSelector
             startDate={startDate}
             endDate={endDate}
@@ -925,7 +925,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
         {/* Table Footer with Pagination */}
         {filteredOrders.length > 0 && (
-          <div className="px-3 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="px-3 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 sticky bottom-0 z-20">
             <div className="flex items-center justify-between">
               {/* Results Counter */}
               <div className="flex items-center space-x-4">
