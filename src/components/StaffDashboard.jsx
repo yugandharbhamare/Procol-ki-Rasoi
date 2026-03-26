@@ -114,8 +114,8 @@ export default function StaffDashboard() {
           noShadow
         />
         {/* Tabs */}
-        <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8">
-          <nav className="max-w-7xl mx-auto -mb-px flex space-x-2 sm:space-x-4 md:space-x-8 overflow-x-auto">
+        <div className="bg-white border-b border-gray-200">
+          <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mb-px flex space-x-2 sm:space-x-4 md:space-x-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab('pending')}
               className={`pt-2 pb-3 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
