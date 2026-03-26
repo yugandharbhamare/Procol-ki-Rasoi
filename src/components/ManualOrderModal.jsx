@@ -3,6 +3,7 @@ import { XMarkIcon, MagnifyingGlassIcon, CheckIcon } from '@heroicons/react/24/o
 import { createOrder } from '../services/supabaseService';
 import { getAllUsers } from '../services/supabaseService';
 import { menuService } from '../services/menuService';
+import { inventoryService } from '../services/inventoryService';
 
 const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   const [users, setUsers] = useState([]);
@@ -163,6 +164,29 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
       const result = await createOrder(orderData);
 
       if (result.success) {
+        // Deduct inventory for inventory-linked menu items (non-fatal)
+        try {
+          const deductions = selectedItems
+            .filter(item => item.is_inventory_item && item.inventory_item_id)
+            .map(item => ({
+              inventory_item_id: item.inventory_item_id,
+              quantity: item.quantity
+            }))
+            .filter(d => d.quantity > 0)
+
+          if (deductions.length > 0) {
+            const customOrderId = result.order?.custom_order_id || null
+            inventoryService.deductInventoryForOrder(deductions, customOrderId, 'Staff')
+              .then(r => {
+                if (!r.success) console.warn('ManualOrderModal: inventory deduction failed (non-fatal):', r.error)
+                else console.log('ManualOrderModal: inventory deducted for', deductions.length, 'item(s)')
+              })
+              .catch(err => console.warn('ManualOrderModal: inventory deduction threw (non-fatal):', err))
+          }
+        } catch (inventoryError) {
+          console.warn('ManualOrderModal: inventory deduction setup failed (non-fatal):', inventoryError)
+        }
+
         onSuccess(selectedUser.name);
         handleClose();
       } else {

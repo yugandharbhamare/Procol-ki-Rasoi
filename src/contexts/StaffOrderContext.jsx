@@ -7,6 +7,7 @@ import {
   ORDER_STATUS
 } from '../services/supabaseService';
 import notificationService from '../services/notificationService';
+import { inventoryService } from '../services/inventoryService';
 
 const StaffOrderContext = createContext();
 
@@ -166,8 +167,17 @@ export const StaffOrderProvider = ({ children }) => {
   };
 
   // Cancel order (payment not confirmed or order rejected)
+  // Restores inventory stock non-fatally — order cancellation always proceeds
   const cancelOrder = async (orderId) => {
     try {
+      // Restore inventory for any inventory-linked items (non-fatal)
+      inventoryService.restoreInventoryForOrder(orderId, 'Staff')
+        .then(r => {
+          if (!r.success) console.warn('StaffOrderContext: inventory restoration failed (non-fatal):', r.error)
+          else console.log('StaffOrderContext: inventory restored for cancelled order', orderId)
+        })
+        .catch(err => console.warn('StaffOrderContext: inventory restoration threw (non-fatal):', err))
+
       return await updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
     } catch (error) {
       console.error('Error cancelling order:', error);
@@ -176,8 +186,26 @@ export const StaffOrderProvider = ({ children }) => {
   };
 
   // Delete order (permanently remove)
+  // Restores inventory only if the order was NOT already cancelled (to avoid double-restoration)
   const deleteOrder = async (orderId) => {
     try {
+      // Check if this order is already in cancelled state — if so, skip restoration
+      // (cancelOrder already restored it when it was cancelled)
+      const isAlreadyCancelled = cancelledOrders.some(
+        o => o.id === orderId || o.supabase_id === orderId || o.custom_order_id === orderId
+      )
+
+      if (!isAlreadyCancelled) {
+        inventoryService.restoreInventoryForOrder(orderId, 'Staff')
+          .then(r => {
+            if (!r.success) console.warn('StaffOrderContext: inventory restoration on delete failed (non-fatal):', r.error)
+            else console.log('StaffOrderContext: inventory restored for deleted order', orderId)
+          })
+          .catch(err => console.warn('StaffOrderContext: inventory restoration on delete threw (non-fatal):', err))
+      } else {
+        console.log('StaffOrderContext: skipping restoration for already-cancelled order', orderId)
+      }
+
       const result = await deleteOrderFromDB(orderId);
 
       if (result.success) {

@@ -138,6 +138,21 @@ export const inventoryService = {
     }
   },
 
+  // Restore inventory for a cancelled/deleted order (non-fatal wrapper)
+  // orderId: custom_order_id (e.g. "ORD123456") or UUID
+  async restoreInventoryForOrder(orderId, createdBy = null) {
+    try {
+      const { error } = await supabase.rpc('restore_order_inventory', {
+        p_order_ref:  orderId,
+        p_created_by: createdBy || null
+      })
+      if (error) return { success: false, error: error.message }
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  },
+
   // Fetch ledger entries with optional filters + server-side pagination
   async getLedgerEntries(filters = {}) {
     try {

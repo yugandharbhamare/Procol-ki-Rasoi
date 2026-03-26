@@ -123,27 +123,39 @@ export const OrderProvider = ({ children }) => {
 
           // Deduct inventory for inventory-linked menu items
           try {
-            const menuItemIds = Object.keys(order.items || {})
+            // menu_items.id is INTEGER — coerce string keys from Object.keys
+            const menuItemIds = Object.keys(order.items || {}).map(id => parseInt(id, 10)).filter(Boolean)
             if (menuItemIds.length > 0) {
-              const { data: linkedItems } = await supabase
+              const { data: linkedItems, error: linkedError } = await supabase
                 .from('menu_items')
                 .select('id, is_inventory_item, inventory_item_id')
                 .in('id', menuItemIds)
                 .eq('is_inventory_item', true)
 
-              if (linkedItems && linkedItems.length > 0) {
+              if (linkedError) {
+                console.error('OrderContext: Failed to query menu_items for inventory links:', linkedError.message)
+              } else if (linkedItems && linkedItems.length > 0) {
                 const deductions = linkedItems
                   .filter(mi => mi.inventory_item_id)
                   .map(mi => ({
                     inventory_item_id: mi.inventory_item_id,
-                    quantity: order.items[mi.id]?.quantity || 0
+                    // order.items keys are strings, so match by string too
+                    quantity: order.items[mi.id]?.quantity || order.items[String(mi.id)]?.quantity || 0
                   }))
                   .filter(d => d.quantity > 0)
 
                 if (deductions.length > 0) {
-                  await inventoryService.deductInventoryForOrder(deductions, dbCustomOrderId, orderData.user_name)
-                  console.log('OrderContext: Inventory deducted for', deductions.length, 'item(s)')
+                  const deductResult = await inventoryService.deductInventoryForOrder(deductions, dbCustomOrderId, orderData.user_name)
+                  if (deductResult.success) {
+                    console.log('OrderContext: Inventory deducted for', deductions.length, 'item(s)')
+                  } else {
+                    console.error('OrderContext: Inventory deduction returned error (non-fatal):', deductResult.error)
+                  }
+                } else {
+                  console.log('OrderContext: No inventory deductions needed (no linked items with qty > 0)')
                 }
+              } else {
+                console.log('OrderContext: No inventory-linked menu items found for this order')
               }
             }
           } catch (inventoryError) {
