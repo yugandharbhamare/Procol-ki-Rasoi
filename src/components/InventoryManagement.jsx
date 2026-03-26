@@ -621,12 +621,10 @@ const InventoryManagement = () => {
         setShowModal(false)
         setEditingItem(null)
 
-        // Log manual adjustment if quantity changed (non-fatal)
-        if (qtyBefore !== qtyAfter) {
-          inventoryService.addManualAdjustmentLog(
-            editingItem.id, qtyBefore, qtyAfter, staffUserName
-          ).catch(err => console.warn('Manual adjustment log failed (non-fatal):', err))
-        }
+        // Log every edit as a manual_adjustment entry in the ledger (non-fatal)
+        inventoryService.addManualAdjustmentLog(
+          editingItem.id, qtyBefore, qtyAfter, staffUserName
+        ).catch(err => console.warn('Manual adjustment log failed (non-fatal):', err))
       } else {
         setError(result.error)
       }

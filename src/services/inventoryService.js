@@ -121,36 +121,16 @@ export const inventoryService = {
     }
   },
 
-  // Log a manual quantity adjustment (fire-and-forget, non-fatal)
+  // Log a manual adjustment via SECURITY DEFINER RPC (bypasses RLS on inventory_ledger)
+  // Called on every stock item edit — qty_before/after may be equal if only name/UOM changed
   async addManualAdjustmentLog(inventory_item_id, qty_before, qty_after, created_by) {
     try {
-      const { data: item, error: fetchError } = await supabase
-        .from('inventory')
-        .select('item_code, item_name')
-        .eq('id', inventory_item_id)
-        .single()
-
-      if (fetchError) {
-        console.warn('addManualAdjustmentLog: could not fetch item details', fetchError)
-        return { success: false, error: fetchError.message }
-      }
-
-      const { error } = await supabase
-        .from('inventory_ledger')
-        .insert([{
-          inventory_item_id,
-          item_code: item.item_code,
-          item_name: item.item_name,
-          transaction_type: 'manual_adjustment',
-          quantity_change: qty_after - qty_before,
-          quantity_before: qty_before,
-          quantity_after: qty_after,
-          reference_type: 'manual',
-          reference_id: null,
-          notes: null,
-          created_by: created_by || null
-        }])
-
+      const { error } = await supabase.rpc('log_manual_adjustment', {
+        p_inventory_id: inventory_item_id,
+        p_qty_before:   parseFloat(qty_before) || 0,
+        p_qty_after:    parseFloat(qty_after)  || 0,
+        p_created_by:   created_by || null
+      })
       if (error) return { success: false, error: error.message }
       return { success: true }
     } catch (error) {
