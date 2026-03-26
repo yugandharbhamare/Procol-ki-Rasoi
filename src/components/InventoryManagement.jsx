@@ -537,7 +537,10 @@ function ItemLedgerTab({ inventoryItems, staffUserName, onStockRefresh }) {
             </div>
 
             {totalPages > 1 && (
-              <div className="px-4 py-4 border-t border-gray-100 flex justify-center">
+              <div className="px-4 py-4 border-t border-gray-100 flex items-center justify-between">
+                <span className="text-sm text-gray-500">
+                  Showing {(currentPage - 1) * LEDGER_PAGE_SIZE + 1}–{Math.min(currentPage * LEDGER_PAGE_SIZE, totalCount)} of {totalCount}
+                </span>
                 <SimplePagination
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -575,6 +578,8 @@ const InventoryManagement = () => {
   const [editingItem, setEditingItem] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [stockPage, setStockPage] = useState(1)
+  const STOCK_PAGE_SIZE = 10
 
   const loadItems = useCallback(async () => {
     setLoading(true)
@@ -598,6 +603,15 @@ const InventoryManagement = () => {
       i.item_name.toLowerCase().includes(term)
     )
   }, [items, searchTerm])
+
+  // Reset to page 1 when search changes
+  useEffect(() => { setStockPage(1) }, [searchTerm])
+
+  const stockTotalPages = Math.ceil(filtered.length / STOCK_PAGE_SIZE)
+  const paginatedStock = useMemo(() => {
+    const start = (stockPage - 1) * STOCK_PAGE_SIZE
+    return filtered.slice(start, start + STOCK_PAGE_SIZE)
+  }, [filtered, stockPage])
 
   const handleSave = async (formData) => {
     if (editingItem) {
@@ -780,7 +794,7 @@ const InventoryManagement = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filtered.map((item) => (
+                    {paginatedStock.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-mono font-medium bg-gray-100 text-gray-700">
@@ -828,6 +842,19 @@ const InventoryManagement = () => {
                   </tbody>
                 </table>
               </div>
+
+              {stockTotalPages > 1 && (
+                <div className="px-4 py-4 border-t border-gray-100 flex items-center justify-between">
+                  <span className="text-sm text-gray-500">
+                    Showing {(stockPage - 1) * STOCK_PAGE_SIZE + 1}–{Math.min(stockPage * STOCK_PAGE_SIZE, filtered.length)} of {filtered.length}
+                  </span>
+                  <SimplePagination
+                    currentPage={stockPage}
+                    totalPages={stockTotalPages}
+                    onPageChange={setStockPage}
+                  />
+                </div>
+              )}
             )}
           </div>
         </div>
