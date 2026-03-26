@@ -152,7 +152,7 @@ function InventoryModal({ item, onSave, onClose }) {
 
 // ─── BookInwardModal ──────────────────────────────────────────────────────────
 function BookInwardModal({ inventoryItems, staffUserName, onClose, onSuccess }) {
-  const [formData, setFormData] = useState({ inventory_item_id: '', quantity: '', notes: '' })
+  const [formData, setFormData] = useState({ inventory_item_id: '', quantity: '' })
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
@@ -183,7 +183,7 @@ function BookInwardModal({ inventoryItems, staffUserName, onClose, onSuccess }) 
     const result = await inventoryService.bookInward(
       parseInt(formData.inventory_item_id),
       formData.quantity,
-      formData.notes.trim() || null,
+      null,
       staffUserName
     )
     setSaving(false)
@@ -249,18 +249,6 @@ function BookInwardModal({ inventoryItems, staffUserName, onClose, onSuccess }) 
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${errors.quantity ? 'border-red-300' : 'border-gray-300'}`}
               />
               {errors.quantity && <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notes <span className="text-gray-400 font-normal">(optional)</span></label>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                rows={2}
-                placeholder="e.g. Morning delivery from supplier"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
-              />
             </div>
 
             <div className="flex justify-end space-x-3 pt-2">
