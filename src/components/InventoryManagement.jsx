@@ -842,19 +842,18 @@ const InventoryManagement = () => {
                   </tbody>
                 </table>
               </div>
-
-              {stockTotalPages > 1 && (
-                <div className="px-4 py-4 border-t border-gray-100 flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
-                    Showing {(stockPage - 1) * STOCK_PAGE_SIZE + 1}–{Math.min(stockPage * STOCK_PAGE_SIZE, filtered.length)} of {filtered.length}
-                  </span>
-                  <SimplePagination
-                    currentPage={stockPage}
-                    totalPages={stockTotalPages}
-                    onPageChange={setStockPage}
-                  />
-                </div>
-              )}
+            )}
+            {stockTotalPages > 1 && (
+              <div className="px-4 py-4 border-t border-gray-100 flex items-center justify-between">
+                <span className="text-sm text-gray-500">
+                  Showing {(stockPage - 1) * STOCK_PAGE_SIZE + 1}–{Math.min(stockPage * STOCK_PAGE_SIZE, filtered.length)} of {filtered.length}
+                </span>
+                <SimplePagination
+                  currentPage={stockPage}
+                  totalPages={stockTotalPages}
+                  onPageChange={setStockPage}
+                />
+              </div>
             )}
           </div>
         </div>
