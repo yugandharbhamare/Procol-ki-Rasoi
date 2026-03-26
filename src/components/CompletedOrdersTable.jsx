@@ -559,7 +559,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
               {(salesView === 'item' ? stats.itemBreakdown.length : stats.customerBreakdown.length) === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-4">No data</p>
               ) : (
-                <div className="space-y-1 h-full overflow-y-auto pb-16">
+                <div className="-mx-3 px-3 space-y-1 h-full overflow-y-auto pb-16">
                   {(salesView === 'item' ? stats.itemBreakdown : stats.customerBreakdown).map((item, idx) => (
                     <div
                       key={item.name}
