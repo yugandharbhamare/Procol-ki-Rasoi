@@ -2,18 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import DateRangeSelector from './DateRangeSelector';
 import { useStaffOrders } from '../contexts/StaffOrderContext';
 import SimplePagination from './SimplePagination';
-import { 
-  ChevronUpDownIcon, 
-  ChevronUpIcon, 
+import {
+  ChevronUpDownIcon,
+  ChevronUpIcon,
   ChevronDownIcon,
-  CurrencyDollarIcon,
-  CheckCircleIcon,
-  UserIcon,
   DocumentTextIcon,
   EllipsisVerticalIcon,
   ClockIcon,
   CheckIcon,
-  XMarkIcon
+  XMarkIcon,
+  FunnelIcon,
+  ChevronRightIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 
 export default function CompletedOrdersTable({ orders, loading, error }) {
@@ -21,19 +21,28 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
   // These orders have already gone through the full flow:
   // pending -> accepted (payment confirmed) -> ready -> completed (delivered/picked up)
   const [filteredOrders, setFilteredOrders] = useState([]);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const today = new Date().toISOString().split('T')[0];
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  // Multi-select filters: each key holds a Set of selected values
   const [filters, setFilters] = useState({
-    customer: '',
-    amount: '',
-    date: '',
-    items: ''
+    customer: new Set(),
+    items: new Set()
+  });
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [activeFilterTab, setActiveFilterTab] = useState('customer');
+  const [filterSearch, setFilterSearch] = useState('');
+  // Staged filters: edits happen here, applied only on "Apply"
+  const [stagedFilters, setStagedFilters] = useState({
+    customer: new Set(),
+    items: new Set()
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [showDropdown, setShowDropdown] = useState(null);
   const dropdownRefs = useRef({});
+  const filterPanelRef = useRef(null);
   const { moveToPending, moveToAccepted, moveToCancelled } = useStaffOrders();
 
   useEffect(() => {
@@ -68,6 +77,19 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, []);
+
+  // Close filter panel on outside click
+  useEffect(() => {
+    const handleFilterClickOutside = (e) => {
+      if (filterPanelRef.current && !filterPanelRef.current.contains(e.target)) {
+        setShowFilterPanel(false);
+      }
+    };
+    if (showFilterPanel) {
+      document.addEventListener('mousedown', handleFilterClickOutside);
+      return () => document.removeEventListener('mousedown', handleFilterClickOutside);
+    }
+  }, [showFilterPanel]);
 
   const handleAction = async (orderId, action) => {
     console.log('CompletedOrdersTable: handleAction called with:', { orderId, action });
@@ -134,41 +156,21 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       });
     }
 
-    // Column filtering
-    if (filters.orderDetails) {
-      filtered = filtered.filter(order => 
-        order.id.toLowerCase().includes(filters.orderDetails.toLowerCase())
-      );
-    }
-
-    if (filters.customer) {
-      filtered = filtered.filter(order => 
-        order.user?.name?.toLowerCase().includes(filters.customer.toLowerCase()) ||
-        order.user?.email?.toLowerCase().includes(filters.customer.toLowerCase())
-      );
-    }
-
-    if (filters.amount) {
-      filtered = filtered.filter(order => 
-        order.order_amount?.toString().includes(filters.amount)
-      );
-    }
-
-
-
-    if (filters.date) {
-      filtered = filtered.filter(order => 
-        formatDate(order.created_at).toLowerCase().includes(filters.date.toLowerCase())
-      );
-    }
-
-    if (filters.items) {
+    // Multi-select filtering
+    if (filters.customer.size > 0) {
       filtered = filtered.filter(order => {
-        const items = Array.isArray(order.items) ? order.items : Object.values(order.items || {});
-        const itemsText = items.map(item => `${item.item_name || item.name || ''} x ${item.quantity}`).join(' ');
-        return itemsText.toLowerCase().includes(filters.items.toLowerCase());
+        const name = order.user?.name || 'Unknown';
+        return filters.customer.has(name);
       });
     }
+
+    if (filters.items.size > 0) {
+      filtered = filtered.filter(order => {
+        const orderItems = Array.isArray(order.items) ? order.items : Object.values(order.items || {});
+        return orderItems.some(item => filters.items.has(item.item_name || item.name || ''));
+      });
+    }
+
 
     // Sorting
     if (sortConfig.key) {
@@ -280,20 +282,85 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
     }));
   };
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
+  const clearFilters = () => {
+    setFilters({ customer: new Set(), items: new Set() });
+    setStagedFilters({ customer: new Set(), items: new Set() });
   };
 
-  const clearFilters = () => {
-    setFilters({
-      customer: '',
-      amount: '',
-      date: '',
-      items: ''
+  const activeFilterCount = filters.customer.size + filters.items.size;
+
+  // Build unique filter options from date-filtered orders
+  const getFilterOptions = () => {
+    let dateFiltered = [...(orders || [])];
+    if (startDate) {
+      dateFiltered = dateFiltered.filter(order => {
+        const orderDate = new Date(order.created_at);
+        return orderDate >= new Date(startDate);
+      });
+    }
+    if (endDate) {
+      dateFiltered = dateFiltered.filter(order => {
+        const orderDate = new Date(order.created_at);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        return orderDate <= end;
+      });
+    }
+
+    const customers = new Map();
+    const items = new Map();
+
+    dateFiltered.forEach(order => {
+      const name = order.user?.name || 'Unknown';
+      customers.set(name, (customers.get(name) || 0) + 1);
+
+      const orderItems = Array.isArray(order.items) ? order.items : Object.values(order.items || {});
+      orderItems.forEach(item => {
+        const itemName = item.item_name || item.name || '';
+        if (itemName) items.set(itemName, (items.get(itemName) || 0) + 1);
+      });
     });
+
+    return {
+      customer: [...customers.entries()].sort((a, b) => b[1] - a[1]),
+      items: [...items.entries()].sort((a, b) => b[1] - a[1])
+    };
+  };
+
+  const filterOptions = getFilterOptions();
+
+  const FILTER_TABS = [
+    { key: 'customer', label: 'Customer' },
+    { key: 'items', label: 'Items' }
+  ];
+
+  const toggleStagedFilter = (category, value) => {
+    setStagedFilters(prev => {
+      const newSet = new Set(prev[category]);
+      if (newSet.has(value)) newSet.delete(value);
+      else newSet.add(value);
+      return { ...prev, [category]: newSet };
+    });
+  };
+
+  const applyFilters = () => {
+    setFilters({ ...stagedFilters });
+    setShowFilterPanel(false);
+  };
+
+  const openFilterPanel = () => {
+    // Clone current filters into staged
+    setStagedFilters({
+      customer: new Set(filters.customer),
+      items: new Set(filters.items)
+    });
+    setFilterSearch('');
+    setActiveFilterTab('customer');
+    setShowFilterPanel(true);
+  };
+
+  const clearStagedFilters = () => {
+    setStagedFilters({ customer: new Set(), items: new Set() });
   };
 
   const getSortIcon = (key) => {
@@ -332,12 +399,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
   // Calculate statistics based only on date range filters
   const calculateStats = () => {
     if (!orders || orders.length === 0) {
-      return {
-        totalSales: 0,
-        totalOrders: 0,
-        mostOrderedItem: null,
-        topCustomer: null
-      };
+      return { totalSales: 0, totalOrders: 0, itemBreakdown: [] };
     }
 
     // Apply only date range filters for statistics
@@ -355,29 +417,23 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       dateFilteredOrders = dateFilteredOrders.filter(order => {
         const orderDate = new Date(order.created_at);
         const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999); // Include the entire end date
+        end.setHours(23, 59, 59, 999);
         return orderDate <= end;
       });
     }
 
     if (dateFilteredOrders.length === 0) {
-      return {
-        totalSales: 0,
-        totalOrders: 0,
-        mostOrderedItem: null,
-        topCustomer: null
-      };
+      return { totalSales: 0, totalOrders: 0, itemBreakdown: [] };
     }
 
-    // Calculate total sales
     const totalSales = dateFilteredOrders.reduce((sum, order) => sum + (order.order_amount || 0), 0);
     const totalOrders = dateFilteredOrders.length;
 
-    // Find most ordered item
+    // Build item-wise breakdown
     const itemStats = {};
     dateFilteredOrders.forEach(order => {
       order.items?.forEach(item => {
-        const itemName = item.item_name;
+        const itemName = item.item_name || item.name || 'Unknown';
         if (!itemStats[itemName]) {
           itemStats[itemName] = { count: 0, totalAmount: 0 };
         }
@@ -386,40 +442,12 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       });
     });
 
-    const mostOrderedItem = Object.entries(itemStats)
-      .sort(([,a], [,b]) => {
-        // First sort by count (descending)
-        if (b.count !== a.count) {
-          return b.count - a.count;
-        }
-        // If counts are equal, sort by total amount (descending)
-        return b.totalAmount - a.totalAmount;
-      })[0];
+    // Sort by totalAmount descending
+    const itemBreakdown = Object.entries(itemStats)
+      .map(([name, data]) => ({ name, count: data.count, totalAmount: data.totalAmount }))
+      .sort((a, b) => b.totalAmount - a.totalAmount);
 
-    // Find top customer by total order amount
-    const customerOrders = {};
-    dateFilteredOrders.forEach(order => {
-      const customerName = order.user?.name || 'Unknown';
-      if (!customerOrders[customerName]) {
-        customerOrders[customerName] = { totalAmount: 0, orderCount: 0 };
-      }
-      customerOrders[customerName].totalAmount += (order.order_amount || 0);
-      customerOrders[customerName].orderCount += 1;
-    });
-
-    const topCustomer = Object.entries(customerOrders)
-      .sort(([,a], [,b]) => b.totalAmount - a.totalAmount)[0];
-
-    return {
-      totalSales,
-      totalOrders,
-      mostOrderedItem: mostOrderedItem ? { name: mostOrderedItem[0], count: mostOrderedItem[1].count } : null,
-      topCustomer: topCustomer ? { 
-        name: topCustomer[0], 
-        totalAmount: topCustomer[1].totalAmount,
-        orderCount: topCustomer[1].orderCount 
-      } : null
-    };
+    return { totalSales, totalOrders, itemBreakdown };
   };
 
   const stats = calculateStats();
@@ -445,61 +473,53 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
   return (
     <div className="space-y-4">
-      {/* Statistics Cards - Hidden on Mobile */}
-      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-        {/* Total Sales */}
-                  <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 shadow-sm">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <CurrencyDollarIcon className="w-5 h-5 text-green-600" />
+      {/* Split Layout: Side Panel (3 cols) + Orders Table (9 cols) */}
+      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4">
+
+        {/* Side Panel - Sales Breakdown */}
+        <div className="lg:col-span-3">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden sticky top-4">
+            {/* Total Sales Header */}
+            <div className="p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-b border-gray-200">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Sales</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalSales)}</p>
+              <p className="text-xs text-gray-500 mt-1">{stats.totalOrders} order{stats.totalOrders !== 1 ? 's' : ''}</p>
+            </div>
+
+            {/* Item-wise Breakdown */}
+            <div className="p-3">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-1">Item-wise Sales</p>
+              {stats.itemBreakdown.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">No data</p>
+              ) : (
+                <div className="space-y-1 max-h-[calc(100vh-280px)] overflow-y-auto">
+                  {stats.itemBreakdown.map((item, idx) => (
+                    <div
+                      key={item.name}
+                      className="flex items-center justify-between py-2 px-2 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="text-xs font-medium text-gray-400 w-4 flex-shrink-0">{idx + 1}.</span>
+                        <span className="text-sm text-gray-800 truncate">{item.name}</span>
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-700 flex-shrink-0">
+                          {item.count}
+                        </span>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900 flex-shrink-0 ml-2">
+                        {formatCurrency(item.totalAmount)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </div>
-              <div className="ml-3">
-                <p className="text-xs sm:text-sm font-medium text-gray-500">Total Sales</p>
-                <p className="text-sm sm:text-lg font-semibold text-gray-900">{formatCurrency(stats.totalSales)}</p>
-              </div>
+              )}
             </div>
           </div>
+        </div>
 
-                  {/* Most Ordered Item */}
-          <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 shadow-sm">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <CheckCircleIcon className="w-5 h-5 text-blue-600" />
-                </div>
-              </div>
-              <div className="ml-3">
-                <p className="text-xs sm:text-sm font-medium text-gray-500">Most Ordered</p>
-                <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                  {stats.mostOrderedItem ? `${stats.mostOrderedItem.name} (${stats.mostOrderedItem.count})` : 'N/A'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Top Customer */}
-          <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 shadow-sm">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <UserIcon className="w-5 h-5 text-purple-600" />
-                </div>
-              </div>
-              <div className="ml-3">
-                <p className="text-xs sm:text-sm font-medium text-gray-500">Top Customer</p>
-                <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                  {stats.topCustomer ? `${stats.topCustomer.name} (${formatCurrency(stats.topCustomer.totalAmount)})` : 'N/A'}
-                </p>
-              </div>
-            </div>
-          </div>
-      </div>
-
-      {/* Table Card */}
+        {/* Main Content - Orders Table (9 cols) */}
+        <div className="lg:col-span-9">
       <div className="sm:bg-white sm:rounded-lg sm:shadow-sm sm:border sm:border-gray-200 overflow-hidden">
-        {/* Date Range Selector - Hidden on Mobile */}
+        {/* Toolbar: Date Range + Filter + Download */}
         <div className="hidden sm:block border-b border-gray-200 p-3 sm:p-4">
           <DateRangeSelector
             startDate={startDate}
@@ -510,7 +530,129 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
             downloadDisabled={filteredOrders.length === 0}
             downloadCount={filteredOrders.length}
             className="shadow-none bg-transparent p-0"
-          />
+          >
+            {/* Filter Button */}
+            <div className="relative" ref={filterPanelRef}>
+              <button
+                onClick={openFilterPanel}
+                className={`flex items-center gap-2 px-3 py-2 h-10 rounded-lg border transition-colors text-sm font-medium ${
+                  activeFilterCount > 0
+                    ? 'border-orange-500 bg-orange-50 text-orange-600'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <FunnelIcon className="w-4 h-4" />
+                Filter
+                {activeFilterCount > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded-full">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Filter Dropdown Panel */}
+              {showFilterPanel && (
+                <div className="absolute right-0 top-12 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-[420px] overflow-hidden">
+                  <div className="flex h-[340px]">
+                    {/* Left sidebar - filter categories */}
+                    <div className="w-[140px] border-r border-gray-100 bg-gray-50 py-2">
+                      {FILTER_TABS.map(tab => {
+                        const count = stagedFilters[tab.key].size;
+                        return (
+                          <button
+                            key={tab.key}
+                            onClick={() => { setActiveFilterTab(tab.key); setFilterSearch(''); }}
+                            className={`w-full text-left px-4 py-2.5 text-sm flex items-center justify-between transition-colors ${
+                              activeFilterTab === tab.key
+                                ? 'text-orange-600 bg-white font-medium border-r-2 border-orange-500'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <span>{tab.label}</span>
+                            <div className="flex items-center gap-1">
+                              {count > 0 && (
+                                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-orange-100 text-orange-600 rounded-full">
+                                  {count}
+                                </span>
+                              )}
+                              <ChevronRightIcon className={`w-3 h-3 ${activeFilterTab === tab.key ? 'text-orange-500' : 'text-gray-400'}`} />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Right panel - options */}
+                    <div className="flex-1 flex flex-col">
+                      {/* Search within options */}
+                      <div className="p-2 border-b border-gray-100">
+                        <div className="relative">
+                          <MagnifyingGlassIcon className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            placeholder="Search"
+                            value={filterSearch}
+                            onChange={(e) => setFilterSearch(e.target.value)}
+                            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Checkbox list */}
+                      <div className="flex-1 overflow-y-auto p-1">
+                        {(filterOptions[activeFilterTab] || [])
+                          .filter(([val]) => val.toLowerCase().includes(filterSearch.toLowerCase()))
+                          .map(([val, count]) => (
+                            <label
+                              key={val}
+                              className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-50 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={stagedFilters[activeFilterTab].has(val)}
+                                onChange={() => toggleStagedFilter(activeFilterTab, val)}
+                                className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500 accent-orange-500"
+                              />
+                              <span className="text-sm text-gray-800 flex-1 truncate">{val}</span>
+                              <span className="text-xs text-gray-400">{count}</span>
+                            </label>
+                          ))
+                        }
+                        {(filterOptions[activeFilterTab] || [])
+                          .filter(([val]) => val.toLowerCase().includes(filterSearch.toLowerCase())).length === 0 && (
+                          <p className="text-sm text-gray-400 text-center py-6">No matches</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
+                    <button
+                      onClick={clearStagedFilters}
+                      className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                    >
+                      Clear all filters
+                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowFilterPanel(false)}
+                        className="px-4 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={applyFilters}
+                        className="px-5 py-1.5 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DateRangeSelector>
         </div>
         
         {/* Orders Table */}
@@ -671,58 +813,35 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                     <span>Actions</span>
                   </th>
                 </tr>
-                {/* Filter Row */}
-                <tr className="bg-gray-100">
-                  <th className="px-3 sm:px-6 py-2">
-                    <input
-                      type="text"
-                      placeholder="Filter by ID..."
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
-                      value={filters.orderDetails || ''}
-                      onChange={(e) => handleFilterChange('orderDetails', e.target.value)}
-                    />
-                  </th>
-                  <th className="px-3 sm:px-6 py-2">
-                    <input
-                      type="text"
-                      placeholder="Filter by name/email..."
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
-                      value={filters.customer}
-                      onChange={(e) => handleFilterChange('customer', e.target.value)}
-                    />
-                  </th>
-                  <th className="px-3 sm:px-6 py-2">
-                    <input
-                      type="text"
-                      placeholder="Filter by items..."
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
-                      value={filters.items}
-                      onChange={(e) => handleFilterChange('items', e.target.value)}
-                    />
-                  </th>
-                  <th className="px-3 sm:px-6 py-2">
-                    <input
-                      type="text"
-                      placeholder="Filter by amount..."
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
-                      value={filters.amount}
-                      onChange={(e) => handleFilterChange('amount', e.target.value)}
-                    />
-                  </th>
-
-                  <th className="px-3 sm:px-6 py-2">
-                    <input
-                      type="text"
-                      placeholder="Filter by date..."
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
-                      value={filters.date}
-                      onChange={(e) => handleFilterChange('date', e.target.value)}
-                    />
-                  </th>
-                  <th className="px-3 sm:px-6 py-2">
-                    {/* No filter for actions column */}
+                {/* Active filter tags row */}
+                {activeFilterCount > 0 && (
+                <tr className="bg-orange-50">
+                  <th colSpan={6} className="px-3 sm:px-6 py-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-gray-500">Active filters:</span>
+                      {[...filters.customer].map(v => (
+                        <span key={`c-${v}`} className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-orange-200 text-orange-700 text-xs rounded-full">
+                          {v}
+                          <button onClick={() => setFilters(prev => { const s = new Set(prev.customer); s.delete(v); return { ...prev, customer: s }; })} className="hover:text-orange-900">
+                            <XMarkIcon className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                      {[...filters.items].map(v => (
+                        <span key={`i-${v}`} className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-orange-200 text-orange-700 text-xs rounded-full">
+                          {v}
+                          <button onClick={() => setFilters(prev => { const s = new Set(prev.items); s.delete(v); return { ...prev, items: s }; })} className="hover:text-orange-900">
+                            <XMarkIcon className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                      <button onClick={clearFilters} className="text-xs text-orange-600 hover:text-orange-800 font-medium ml-1">
+                        Clear all
+                      </button>
+                    </div>
                   </th>
                 </tr>
+                )}
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentOrders.map((order) => (
@@ -813,7 +932,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                 <span className="text-sm text-gray-600">
                   Showing {startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
                 </span>
-                {(filters.orderDetails || filters.customer || filters.amount || filters.date || filters.items) && (
+                {activeFilterCount > 0 && (
                   <button
                     onClick={clearFilters}
                     className="text-sm text-orange-600 hover:text-orange-700 font-medium"
@@ -833,6 +952,8 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
             </div>
           </div>
         )}
+      </div>
+        </div>
       </div>
     </div>
   );
