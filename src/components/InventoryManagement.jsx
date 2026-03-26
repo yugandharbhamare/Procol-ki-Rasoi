@@ -656,21 +656,12 @@ const InventoryManagement = () => {
               <p className="hidden sm:block text-sm text-gray-500">Manage stock levels for items</p>
             </div>
           </div>
-          {activeTab === 'stock' && (
-            <button
-              onClick={() => { setEditingItem(null); setShowModal(true) }}
-              className="flex items-center space-x-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              <PlusIcon className="w-4 h-4" />
-              <span>Add Item</span>
-            </button>
-          )}
         </div>
       </div>
 
       {/* Tab Bar */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
             {[
               { key: 'stock',  label: 'Stock' },
@@ -689,13 +680,6 @@ const InventoryManagement = () => {
               </button>
             ))}
           </nav>
-          <button
-            onClick={() => setShowInward(true)}
-            className="flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
-          >
-            <ArrowDownTrayIcon className="w-4 h-4" />
-            <span>Book Inward</span>
-          </button>
         </div>
       </div>
 
@@ -715,8 +699,8 @@ const InventoryManagement = () => {
             </div>
           )}
 
-          {/* Search */}
-          <div className="bg-white shadow-sm rounded-lg p-4 mb-6 flex items-center space-x-4">
+          {/* Search + Actions */}
+          <div className="bg-white shadow-sm rounded-lg p-4 mb-6 flex items-center gap-3">
             <div className="relative flex-1 max-w-xs">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -731,7 +715,23 @@ const InventoryManagement = () => {
                 className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
               />
             </div>
-            <span className="text-sm text-gray-500">{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
+            <span className="text-sm text-gray-500 whitespace-nowrap">{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={() => setShowInward(true)}
+                className="flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                <span>Book Inward</span>
+              </button>
+              <button
+                onClick={() => { setEditingItem(null); setShowModal(true) }}
+                className="flex items-center space-x-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
+              >
+                <PlusIcon className="w-4 h-4" />
+                <span>Add Item</span>
+              </button>
+            </div>
           </div>
 
           {/* Table */}
