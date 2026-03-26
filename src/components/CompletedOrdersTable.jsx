@@ -828,7 +828,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                 <tr>
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center justify-between">
-                      <span>Order Details</span>
+                      <span>Order</span>
                       <button
                         onClick={() => handleSort('orderDetails')}
                         className="ml-2 hover:text-orange-500 transition-colors"
@@ -850,7 +850,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                   </th>
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center justify-between">
-                      <span>Order Items</span>
+                      <span>Items</span>
                       <button
                         onClick={() => handleSort('items')}
                         className="ml-2 hover:text-orange-500 transition-colors"
@@ -883,7 +883,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                     </div>
                   </th>
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <span>Actions</span>
+                    <span></span>
                   </th>
                 </tr>
                 {/* Active filter tags row */}
