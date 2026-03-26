@@ -751,7 +751,7 @@ const InventoryManagement = () => {
                 className="flex items-center space-x-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
               >
                 <PlusIcon className="w-4 h-4" />
-                <span>Add Stock</span>
+                <span>Add Item</span>
               </button>
               <button
                 onClick={downloadStockExcel}
