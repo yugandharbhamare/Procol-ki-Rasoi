@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { inventoryService } from '../services/inventoryService'
 import { useStaffAuth } from '../contexts/StaffAuthContext'
 import SimplePagination from './SimplePagination'
-import { ChevronLeftIcon, XMarkIcon, PencilIcon, TrashIcon, PlusIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
+import { ChevronLeftIcon, XMarkIcon, PencilIcon, TrashIcon, PlusIcon, ArrowDownTrayIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 
 const COMMON_UOMS = ['pcs', 'kg', 'g', 'litre', 'ml', 'bottle', 'can', 'dozen', 'pkt', 'box', 'bag', 'cup', 'plate', 'serve']
 
@@ -202,7 +202,7 @@ function BookInwardModal({ inventoryItems, staffUserName, onClose, onSuccess }) 
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center">
-                <ArrowDownTrayIcon className="w-5 h-5 text-green-600" />
+                <ArrowUpTrayIcon className="w-5 h-5 text-green-600" />
               </div>
               <h3 className="text-lg font-medium text-gray-900">Book Inward</h3>
             </div>
@@ -628,6 +628,35 @@ const InventoryManagement = () => {
     hour: '2-digit', minute: '2-digit'
   })
 
+  const downloadStockExcel = () => {
+    // Build CSV content
+    const headers = ['Item Code', 'Item Name', 'Available Quantity', 'UOM', 'Last Updated']
+    const rows = filtered.map(item => [
+      item.item_code,
+      `"${(item.item_name || '').replace(/"/g, '""')}"`,
+      parseFloat(item.available_quantity) % 1 === 0
+        ? parseInt(item.available_quantity)
+        : parseFloat(item.available_quantity).toFixed(2),
+      item.uom,
+      new Date(item.last_updated_on).toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      })
+    ])
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+    const BOM = '\uFEFF'
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `inventory_stock_${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -718,18 +747,26 @@ const InventoryManagement = () => {
             <span className="text-sm text-gray-500 whitespace-nowrap">{filtered.length} item{filtered.length !== 1 ? 's' : ''}</span>
             <div className="ml-auto flex items-center gap-2">
               <button
-                onClick={() => setShowInward(true)}
-                className="flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
-              >
-                <ArrowDownTrayIcon className="w-4 h-4" />
-                <span>Book Inward</span>
-              </button>
-              <button
                 onClick={() => { setEditingItem(null); setShowModal(true) }}
                 className="flex items-center space-x-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
               >
                 <PlusIcon className="w-4 h-4" />
-                <span>Add Item</span>
+                <span>Add Stock</span>
+              </button>
+              <button
+                onClick={downloadStockExcel}
+                className="flex items-center space-x-1.5 border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
+                title="Download stock as Excel"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                <span>Download</span>
+              </button>
+              <button
+                onClick={() => setShowInward(true)}
+                className="flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
+              >
+                <ArrowUpTrayIcon className="w-4 h-4" />
+                <span>Book Inward</span>
               </button>
             </div>
           </div>
