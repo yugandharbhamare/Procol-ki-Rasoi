@@ -38,7 +38,11 @@ export const menuManagementService = {
           description: menuItem.description || '',
           image: menuItem.image || '',
           category: menuItem.category || 'General',
-          is_available: menuItem.is_available !== false
+          is_available: menuItem.is_available !== false,
+          is_inventory_item: menuItem.is_inventory_item || false,
+          inventory_item_id: menuItem.is_inventory_item && menuItem.inventory_item_id
+            ? parseInt(menuItem.inventory_item_id)
+            : null
         }])
         .select()
 
@@ -71,6 +75,10 @@ export const menuManagementService = {
       if (updates.image !== undefined) updateData.image = updates.image
       if (updates.category !== undefined) updateData.category = updates.category
       if (updates.is_available !== undefined) updateData.is_available = updates.is_available
+      if (updates.is_inventory_item !== undefined) updateData.is_inventory_item = updates.is_inventory_item
+      updateData.inventory_item_id = updates.is_inventory_item && updates.inventory_item_id
+        ? parseInt(updates.inventory_item_id)
+        : null
 
       const { data, error } = await supabase
         .from('menu_items')

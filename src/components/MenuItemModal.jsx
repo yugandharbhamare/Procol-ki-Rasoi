@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import ImageUpload from './ImageUpload'
 import { MENU_CATEGORIES } from '../constants/categories'
+import { inventoryService } from '../services/inventoryService'
 
 const MenuItemModal = ({ item, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -9,10 +10,20 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
     description: '',
     image: '',
     category: 'General',
-    is_available: true
+    is_available: true,
+    is_inventory_item: false,
+    inventory_item_id: ''
   })
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
+  const [inventoryItems, setInventoryItems] = useState([])
+
+  // Load inventory items for the dropdown
+  useEffect(() => {
+    inventoryService.getAllInventoryItems().then(result => {
+      if (result.success) setInventoryItems(result.items)
+    })
+  }, [])
 
   // Initialize form data when item prop changes
   useEffect(() => {
@@ -24,7 +35,9 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
         description: item.description || '',
         image: item.image || '',
         category: item.category || 'General',
-        is_available: item.is_available !== false
+        is_available: item.is_available !== false,
+        is_inventory_item: item.is_inventory_item || false,
+        inventory_item_id: item.inventory_item_id?.toString() || ''
       })
     } else {
       console.log('MenuItemModal: Creating new item');
@@ -34,7 +47,9 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
         description: '',
         image: '',
         category: 'General',
-        is_available: true
+        is_available: true,
+        is_inventory_item: false,
+        inventory_item_id: ''
       })
     }
     setErrors({})
@@ -56,8 +71,9 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
       }
     }
 
-    // Image validation is now handled by the ImageUpload component
-    // No need to validate image URL here since it's either a valid URL or base64 data
+    if (formData.is_inventory_item && !formData.inventory_item_id) {
+      newErrors.inventory_item_id = 'Please select an inventory item'
+    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -231,6 +247,68 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
               />
               {errors.image && (
                 <p className="mt-1 text-sm text-red-600">{errors.image}</p>
+              )}
+            </div>
+
+            {/* Inventory Item Toggle */}
+            <div className="border border-gray-200 rounded-lg p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label htmlFor="is_inventory_item" className="text-sm font-medium text-gray-700">
+                    Inventory Item
+                  </label>
+                  <p className="text-xs text-gray-500 mt-0.5">Link this menu item to an inventory entry to track stock</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={formData.is_inventory_item}
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      is_inventory_item: !prev.is_inventory_item,
+                      inventory_item_id: !prev.is_inventory_item ? prev.inventory_item_id : ''
+                    }))
+                  }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
+                    formData.is_inventory_item ? 'bg-orange-500' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                      formData.is_inventory_item ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {formData.is_inventory_item && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Linked Inventory Item *
+                  </label>
+                  <select
+                    name="inventory_item_id"
+                    value={formData.inventory_item_id}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm ${
+                      errors.inventory_item_id ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                  >
+                    <option value="">— Select inventory item —</option>
+                    {inventoryItems.map(inv => (
+                      <option key={inv.id} value={inv.id}>
+                        {inv.item_code} — {inv.item_name} ({inv.available_quantity} {inv.uom})
+                      </option>
+                    ))}
+                  </select>
+                  {errors.inventory_item_id && (
+                    <p className="mt-1 text-sm text-red-600">{errors.inventory_item_id}</p>
+                  )}
+                  {inventoryItems.length === 0 && (
+                    <p className="mt-1 text-xs text-amber-600">No inventory items found. Add items in the Inventory section first.</p>
+                  )}
+                </div>
               )}
             </div>
 

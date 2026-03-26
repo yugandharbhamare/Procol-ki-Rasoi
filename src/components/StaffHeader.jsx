@@ -107,6 +107,15 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
                             <button
                               onClick={() => {
                                 setShowDropdown(false);
+                                navigate('/staff/inventory');
+                              }}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Inventory
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowDropdown(false);
                                 navigate('/staff/members');
                               }}
                               className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

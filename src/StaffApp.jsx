@@ -5,6 +5,7 @@ import StaffLoginScreen from './components/StaffLoginScreen';
 import StaffDashboard from './components/StaffDashboard';
 import MenuManagement from './components/MenuManagement';
 import StaffMembersPage from './components/StaffMembersPage';
+import InventoryManagement from './components/InventoryManagement';
 
 // Staff Dashboard Page Component
 function StaffDashboardPage() {
@@ -116,6 +117,62 @@ function MenuManagementPage() {
   );
 }
 
+// Inventory Management Page Component
+function InventoryManagementPage() {
+  const { staffUser, loading, error } = useStaffAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading inventory...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Configuration Error</h2>
+            <p className="text-red-600">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!staffUser) return <StaffLoginScreen />;
+
+  if (!staffUser.is_admin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h2>
+            <p className="text-red-600">Only administrators can access inventory management.</p>
+            <button
+              onClick={() => window.history.back()}
+              className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <StaffOrderProvider>
+      <InventoryManagement />
+    </StaffOrderProvider>
+  );
+}
+
 // Staff Members Page Component
 function StaffMembersPageWrapper() {
   const { staffUser, loading, error } = useStaffAuth();
@@ -189,6 +246,7 @@ function StaffApp() {
         <Routes>
           <Route path="/" element={<StaffDashboardPage />} />
           <Route path="/menu" element={<MenuManagementPage />} />
+          <Route path="/inventory" element={<InventoryManagementPage />} />
           <Route path="/members" element={<StaffMembersPageWrapper />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

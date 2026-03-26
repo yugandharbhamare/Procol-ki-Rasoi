@@ -24,10 +24,10 @@ export const menuService = {
       if (!supabase) {
         throw new Error('Supabase client is not initialized');
       }
-      
+
       const { data, error } = await supabase
         .from('menu_items')
-        .select('*')
+        .select('*, inventory:inventory_item_id(id, item_name, available_quantity, uom)')
         .eq('is_available', true)
         .order('category', { ascending: true })
         .order('name', { ascending: true });
@@ -35,7 +35,7 @@ export const menuService = {
       if (error) {
         throw error;
       }
-      
+
       return { success: true, data: data || [] };
     } catch (error) {
       console.error('Error fetching available menu items:', error);
