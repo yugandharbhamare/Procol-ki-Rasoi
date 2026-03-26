@@ -688,11 +688,32 @@ export const deleteOrder = async (orderId) => {
     console.log(`supabaseService: Deleting order ${orderId} permanently`);
     console.log(`supabaseService: orderId type: ${typeof orderId}, value: ${orderId}`);
     
-    // First, verify the order exists
+    // Resolve custom order ID (e.g. "ORD123456") to Supabase UUID if needed
+    let supabaseOrderId = orderId;
+    if (isCustomOrderId(orderId)) {
+      const { data: order, error: findError } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('custom_order_id', orderId)
+        .single();
+
+      if (findError && findError.code !== 'PGRST116') {
+        console.error('supabaseService: Error finding order by custom ID for deletion:', findError);
+        throw findError;
+      }
+      if (!order) {
+        console.log(`supabaseService: Order ${orderId} not found, may already be deleted`);
+        return { success: true, message: 'Order not found (may already be deleted)' };
+      }
+      supabaseOrderId = order.id;
+      console.log('supabaseService: Resolved custom order ID to Supabase ID:', supabaseOrderId);
+    }
+
+    // Verify the order exists
     const { data: existingOrder, error: fetchError } = await supabase
       .from('orders')
       .select('id, custom_order_id')
-      .eq('id', orderId)
+      .eq('id', supabaseOrderId)
       .single();
 
     if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows returned
@@ -706,27 +727,27 @@ export const deleteOrder = async (orderId) => {
     }
 
     console.log(`supabaseService: Found order to delete:`, existingOrder);
-    
+
     // First delete order items (due to foreign key constraint)
-    console.log(`supabaseService: Deleting order items for order ${orderId}`);
+    console.log(`supabaseService: Deleting order items for order ${supabaseOrderId}`);
     const { error: itemsError } = await supabase
       .from('order_items')
       .delete()
-      .eq('order_id', orderId);
+      .eq('order_id', supabaseOrderId);
 
     if (itemsError) {
       console.error('supabaseService: Error deleting order items:', itemsError);
       throw itemsError;
     }
-    
-    console.log(`supabaseService: Successfully deleted order items for order ${orderId}`);
+
+    console.log(`supabaseService: Successfully deleted order items for order ${supabaseOrderId}`);
 
     // Then delete the order
-    console.log(`supabaseService: Deleting order ${orderId}`);
+    console.log(`supabaseService: Deleting order ${supabaseOrderId}`);
     const { error: orderError } = await supabase
       .from('orders')
       .delete()
-      .eq('id', orderId);
+      .eq('id', supabaseOrderId);
 
     if (orderError) {
       console.error('supabaseService: Error deleting order:', orderError);

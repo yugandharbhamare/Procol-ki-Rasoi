@@ -68,8 +68,9 @@ export const OrderProvider = ({ children }) => {
             newSet.delete(order.id)
             return newSet
           })
-          
-          // Continue with Google Sheets and local storage
+
+          // Continue with Google Sheets and local storage, then return
+          return { success: false, error: 'Supabase not available' }
         } else {
           throw new Error('User not found in Supabase. Please sign in again.')
         }

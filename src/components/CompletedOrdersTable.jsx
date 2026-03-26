@@ -164,7 +164,8 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
     if (filters.items) {
       filtered = filtered.filter(order => {
-        const itemsText = order.items?.map(item => `${item.item_name} x ${item.quantity}`).join(' ') || '';
+        const items = Array.isArray(order.items) ? order.items : Object.values(order.items || {});
+        const itemsText = items.map(item => `${item.item_name || item.name || ''} x ${item.quantity}`).join(' ');
         return itemsText.toLowerCase().includes(filters.items.toLowerCase());
       });
     }
@@ -180,8 +181,8 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
             bValue = b.id;
             break;
           case 'items':
-            aValue = a.items?.length || 0;
-            bValue = b.items?.length || 0;
+            aValue = Array.isArray(a.items) ? a.items.length : Object.keys(a.items || {}).length;
+            bValue = Array.isArray(b.items) ? b.items.length : Object.keys(b.items || {}).length;
             break;
           case 'customer':
             aValue = a.user?.name || '';
@@ -288,7 +289,6 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
   const clearFilters = () => {
     setFilters({
-      orderDetails: '',
       customer: '',
       amount: '',
       date: '',

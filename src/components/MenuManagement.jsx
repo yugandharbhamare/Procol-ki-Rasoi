@@ -531,7 +531,7 @@ const MenuManagement = () => {
                                   onError={(e) => {
                                     // Hide the image and show fallback
                                     e.target.style.display = 'none'
-                                    e.target.nextSibling.style.display = 'flex'
+                                    if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'
                                   }}
                                 />
                               ) : null}

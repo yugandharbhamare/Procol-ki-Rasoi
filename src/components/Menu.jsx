@@ -52,21 +52,21 @@ const Menu = ({ addToCart, cart, updateQuantity, searchQuery = '' }) => {
 
     return menuItems
       .filter(item => 
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.category?.toLowerCase().includes(searchQuery.toLowerCase())
       )
       .sort((a, b) => {
         // Prioritize exact name matches
-        const aNameMatch = a.name.toLowerCase().startsWith(searchQuery.toLowerCase())
-        const bNameMatch = b.name.toLowerCase().startsWith(searchQuery.toLowerCase())
-        
+        const aNameMatch = (a.name || '').toLowerCase().startsWith(searchQuery.toLowerCase())
+        const bNameMatch = (b.name || '').toLowerCase().startsWith(searchQuery.toLowerCase())
+
         if (aNameMatch && !bNameMatch) return -1
         if (!aNameMatch && bNameMatch) return 1
-        
+
         // Then prioritize name matches over description matches
-        const aNameContains = a.name.toLowerCase().includes(searchQuery.toLowerCase())
-        const bNameContains = b.name.toLowerCase().includes(searchQuery.toLowerCase())
+        const aNameContains = (a.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+        const bNameContains = (b.name || '').toLowerCase().includes(searchQuery.toLowerCase())
         
         if (aNameContains && !bNameContains) return -1
         if (!aNameContains && bNameContains) return 1

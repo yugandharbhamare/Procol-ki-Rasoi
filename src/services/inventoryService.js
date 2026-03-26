@@ -98,6 +98,7 @@ export const inventoryService = {
       const failed = results.filter(r => !r.success)
       if (failed.length > 0) {
         console.error('Some inventory deductions failed:', failed)
+        return { success: false, error: `${failed.length} of ${results.length} deductions failed`, partialFailures: failed }
       }
       return { success: true }
     } catch (error) {

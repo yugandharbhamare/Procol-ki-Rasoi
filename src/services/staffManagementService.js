@@ -187,6 +187,9 @@ export const checkEmailExists = async (email, excludeId = null) => {
   }
 };
 
+// In-memory admin emails list (runtime only, seeded from AUTHORIZED_STAFF_EMAILS-like pattern)
+const ADMIN_EMAILS = ['yugandhar.bhamare@gmail.com'];
+
 // Add admin email
 export const addAdminEmail = (email) => {
   const normalizedEmail = email?.toLowerCase();

@@ -132,11 +132,11 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
   }, [order])
 
   const getTotalItems = () => {
-    return Object.values(order.items).reduce((total, item) => total + item.quantity, 0)
+    return Object.values(order.items || {}).reduce((total, item) => total + item.quantity, 0)
   }
 
   const getTotalPrice = () => {
-    return Object.values(order.items).reduce((total, item) => {
+    return Object.values(order.items || {}).reduce((total, item) => {
       if (typeof item.price === 'number') {
         return total + (item.price * item.quantity)
       }
@@ -144,7 +144,7 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
     }, 0)
   }
 
-  const hasMRPItems = Object.values(order.items).some(item => typeof item.price !== 'number')
+  const hasMRPItems = Object.values(order.items || {}).some(item => typeof item.price !== 'number')
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
@@ -265,7 +265,7 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                           decoding="sync"
                           onError={(e) => {
                             e.target.style.display = 'none'
-                            e.target.nextSibling.style.display = 'flex'
+                            if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'
                           }}
                         />
                         <div className="w-8 h-8 bg-green-500 rounded flex items-center justify-center text-white font-bold text-xs" style={{display: 'none'}}>
@@ -307,7 +307,7 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                           decoding="sync"
                           onError={(e) => {
                             e.target.style.display = 'none'
-                            e.target.nextSibling.style.display = 'flex'
+                            if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'
                           }}
                         />
                         <div className="w-8 h-8 bg-purple-500 rounded flex items-center justify-center text-white font-bold text-xs" style={{display: 'none'}}>
@@ -349,7 +349,7 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                           decoding="sync"
                           onError={(e) => {
                             e.target.style.display = 'none'
-                            e.target.nextSibling.style.display = 'flex'
+                            if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'
                           }}
                         />
                         <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-xs" style={{display: 'none'}}>
@@ -391,7 +391,7 @@ const PaymentScreen = ({ order, onPaymentComplete, onBack }) => {
                           decoding="sync"
                           onError={(e) => {
                             e.target.style.display = 'none'
-                            e.target.nextSibling.style.display = 'flex'
+                            if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'
                           }}
                         />
                         <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center text-white font-bold text-xs" style={{display: 'none'}}>

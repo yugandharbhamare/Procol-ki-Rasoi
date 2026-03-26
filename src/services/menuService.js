@@ -90,7 +90,7 @@ export const menuService = {
       if (error) throw error;
       
       // Remove duplicates and return unique categories
-      const uniqueCategories = [...new Set(data.map(item => item.category))];
+      const uniqueCategories = [...new Set((data || []).map(item => item.category))];
       return { success: true, data: uniqueCategories };
     } catch (error) {
       console.error('Error fetching categories:', error);

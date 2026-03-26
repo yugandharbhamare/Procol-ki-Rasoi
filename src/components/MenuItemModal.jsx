@@ -20,9 +20,11 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
 
   // Load inventory items for the dropdown
   useEffect(() => {
-    inventoryService.getAllInventoryItems().then(result => {
-      if (result.success) setInventoryItems(result.items)
-    })
+    inventoryService.getAllInventoryItems()
+      .then(result => {
+        if (result.success) setInventoryItems(result.items)
+      })
+      .catch(err => console.error('MenuItemModal: Failed to load inventory items:', err))
   }, [])
 
   // Initialize form data when item prop changes

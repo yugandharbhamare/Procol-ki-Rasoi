@@ -73,7 +73,7 @@ const ReceiptModal = ({ order }) => {
               <>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-600">Customer</span>
-                  <span className="font-semibold text-gray-900">{order.user.displayName}</span>
+                  <span className="font-semibold text-gray-900">{order.user.displayName || order.user.name || 'Unknown'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Email</span>

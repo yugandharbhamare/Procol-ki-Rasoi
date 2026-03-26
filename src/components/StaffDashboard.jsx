@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStaffAuth } from '../contexts/StaffAuthContext';
 import { useStaffOrders } from '../contexts/StaffOrderContext';
 import OrderCard from './OrderCard';
@@ -49,10 +49,12 @@ export default function StaffDashboard() {
     setPlayNotification(false);
   };
 
+  const toastTimerRef = useRef(null);
   const handleManualOrderSuccess = (userName) => {
     setToastMessage(`Order placed for ${userName}`);
-    // Auto-hide toast after 3 seconds
-    setTimeout(() => setToastMessage(''), 3000);
+    // Auto-hide toast after 3 seconds (clear previous timer to avoid leaks)
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToastMessage(''), 3000);
   };
 
 

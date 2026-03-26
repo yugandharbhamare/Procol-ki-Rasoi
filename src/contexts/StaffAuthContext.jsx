@@ -208,7 +208,12 @@ export const StaffAuthProvider = ({ children }) => {
               console.log('StaffAuthProvider: Unauthorized user', user.email);
               setStaffUser(null);
               setError('Unauthorized access. Only staff members can access this interface.');
-              signOut(auth);
+              try {
+                const { signOut: firebaseSignOut } = await import('firebase/auth');
+                await firebaseSignOut(auth);
+              } catch (signOutError) {
+                console.error('StaffAuthProvider: Error signing out unauthorized user:', signOutError);
+              }
             }
           } else {
             // User is signed out
