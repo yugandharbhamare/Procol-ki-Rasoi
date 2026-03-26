@@ -591,7 +591,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
         {/* Main Content - Orders Table (9 cols) */}
         <div className="lg:col-span-9">
-      <div className="sm:bg-white sm:rounded-lg sm:shadow-sm sm:border sm:border-gray-200 overflow-hidden lg:mt-3 lg:mb-4 lg:h-[calc(100vh-152px)] lg:overflow-y-auto">
+      <div className="sm:bg-white sm:rounded-lg sm:shadow-sm sm:border sm:border-gray-200 overflow-hidden lg:mt-3 lg:mb-4 lg:h-[calc(100vh-152px)] lg:flex lg:flex-col">
         {/* Toolbar: Date Range + Filter + Download */}
         <div className="hidden sm:block border-b border-gray-200 py-3 sm:py-4 sticky top-0 z-20 bg-white">
           <DateRangeSelector
@@ -729,19 +729,19 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
         </div>
         
         {/* Orders Table */}
-        
-        {filteredOrders.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <DocumentTextIcon className="w-8 h-8 text-gray-400" />
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {filteredOrders.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <DocumentTextIcon className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No completed orders</h3>
+              <p className="text-gray-500">
+                {startDate || endDate ? 'No orders found for the selected date range.' : 'No completed orders yet.'}
+              </p>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No completed orders</h3>
-            <p className="text-gray-500">
-              {startDate || endDate ? 'No orders found for the selected date range.' : 'No completed orders yet.'}
-            </p>
-          </div>
-        ) : (
-          <>
+          ) : (
+            <>
             {/* Mobile Card View - Direct on Background */}
             <div className="block sm:hidden">
               <div className="space-y-4">
@@ -995,10 +995,11 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
           </div>
             </>
           )}
+        </div>
 
         {/* Table Footer with Pagination */}
         {filteredOrders.length > 0 && (
-          <div className="px-3 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 sticky bottom-0 z-20">
+          <div className="px-3 sm:px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               {/* Results Counter */}
               <div className="flex items-center space-x-4">
