@@ -286,7 +286,7 @@ const TX_TYPE_CONFIG = {
 const LEDGER_PAGE_SIZE = 20
 
 // ─── ItemLedgerTab ────────────────────────────────────────────────────────────
-function ItemLedgerTab({ inventoryItems, staffUserName, onStockRefresh }) {
+function ItemLedgerTab({ onStockRefresh, refreshKey }) {
   const [entries, setEntries]           = useState([])
   const [totalCount, setTotalCount]     = useState(0)
   const [ledgerLoading, setLedgerLoading] = useState(true)
@@ -298,9 +298,6 @@ function ItemLedgerTab({ inventoryItems, staffUserName, onStockRefresh }) {
   const [dateFrom, setDateFrom]       = useState('')
   const [dateTo, setDateTo]           = useState('')
   const [txTypeFilter, setTxTypeFilter] = useState('')
-
-  // Inward modal
-  const [showInward, setShowInward]   = useState(false)
 
   const fetchLedger = useCallback(async () => {
     setLedgerLoading(true)
@@ -320,7 +317,7 @@ function ItemLedgerTab({ inventoryItems, staffUserName, onStockRefresh }) {
       setLedgerError(result.error)
     }
     setLedgerLoading(false)
-  }, [search, txTypeFilter, dateFrom, dateTo, currentPage])
+  }, [search, txTypeFilter, dateFrom, dateTo, currentPage, refreshKey])
 
   useEffect(() => { fetchLedger() }, [fetchLedger])
 
@@ -328,11 +325,6 @@ function ItemLedgerTab({ inventoryItems, staffUserName, onStockRefresh }) {
   useEffect(() => { setCurrentPage(1) }, [search, txTypeFilter, dateFrom, dateTo])
 
   const totalPages = Math.max(1, Math.ceil(totalCount / LEDGER_PAGE_SIZE))
-
-  const handleInwardSuccess = () => {
-    fetchLedger()
-    onStockRefresh?.()
-  }
 
   const formatDateTime = (d) => new Date(d).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric',
@@ -346,23 +338,6 @@ function ItemLedgerTab({ inventoryItems, staffUserName, onStockRefresh }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Tab header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div>
-          <h2 className="text-base font-semibold text-gray-900">Item Ledger</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {totalCount > 0 ? `${totalCount} transaction${totalCount !== 1 ? 's' : ''}` : 'All stock movement history'}
-          </p>
-        </div>
-        <button
-          onClick={() => setShowInward(true)}
-          className="flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
-        >
-          <ArrowDownTrayIcon className="w-4 h-4" />
-          <span>Book Inward</span>
-        </button>
-      </div>
-
       {/* Filters */}
       <div className="bg-white shadow-sm rounded-lg p-4 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -552,14 +527,6 @@ function ItemLedgerTab({ inventoryItems, staffUserName, onStockRefresh }) {
         )}
       </div>
 
-      {showInward && (
-        <BookInwardModal
-          inventoryItems={inventoryItems}
-          staffUserName={staffUserName}
-          onClose={() => setShowInward(false)}
-          onSuccess={handleInwardSuccess}
-        />
-      )}
     </div>
   )
 }
@@ -579,6 +546,8 @@ const InventoryManagement = () => {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [stockPage, setStockPage] = useState(1)
+  const [showInward, setShowInward] = useState(false)
+  const [ledgerRefreshKey, setLedgerRefreshKey] = useState(0)
   const STOCK_PAGE_SIZE = 10
 
   const loadItems = useCallback(async () => {
@@ -701,7 +670,7 @@ const InventoryManagement = () => {
 
       {/* Tab Bar */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <nav className="flex space-x-8">
             {[
               { key: 'stock',  label: 'Stock' },
@@ -720,6 +689,13 @@ const InventoryManagement = () => {
               </button>
             ))}
           </nav>
+          <button
+            onClick={() => setShowInward(true)}
+            className="flex items-center space-x-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
+          >
+            <ArrowDownTrayIcon className="w-4 h-4" />
+            <span>Book Inward</span>
+          </button>
         </div>
       </div>
 
@@ -862,9 +838,8 @@ const InventoryManagement = () => {
       {/* Ledger Tab */}
       {activeTab === 'ledger' && (
         <ItemLedgerTab
-          inventoryItems={items}
-          staffUserName={staffUserName}
           onStockRefresh={loadItems}
+          refreshKey={ledgerRefreshKey}
         />
       )}
 
@@ -874,6 +849,19 @@ const InventoryManagement = () => {
           item={editingItem}
           onSave={handleSave}
           onClose={() => { setShowModal(false); setEditingItem(null) }}
+        />
+      )}
+
+      {/* Book Inward Modal */}
+      {showInward && (
+        <BookInwardModal
+          inventoryItems={items}
+          staffUserName={staffUserName}
+          onClose={() => setShowInward(false)}
+          onSuccess={() => {
+            loadItems()
+            setLedgerRefreshKey(k => k + 1)
+          }}
         />
       )}
 
