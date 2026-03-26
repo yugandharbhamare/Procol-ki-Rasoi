@@ -226,7 +226,7 @@ export default function StaffDashboard() {
       {/* Floating Add Button */}
       <button
         onClick={() => setShowManualOrderModal(true)}
-        className="fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-200 z-40"
+        className="fixed bottom-6 md:bottom-[104px] right-6 md:right-[44px] bg-orange-500 hover:bg-orange-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-200 z-40"
         title="Place order for customer"
       >
         <PlusIcon className="w-6 h-6" />

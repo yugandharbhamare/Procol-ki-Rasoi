@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import DateRangeSelector from './DateRangeSelector';
 import { useStaffOrders } from '../contexts/StaffOrderContext';
 import SimplePagination from './SimplePagination';
@@ -17,6 +17,37 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function CompletedOrdersTable({ orders, loading, error }) {
+  function TruncatedItemName({ text }) {
+    const textRef = useRef(null);
+    const [isTruncated, setIsTruncated] = useState(false);
+
+    useLayoutEffect(() => {
+      const checkTruncation = () => {
+        if (!textRef.current) return;
+        setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
+      };
+
+      checkTruncation();
+      window.addEventListener('resize', checkTruncation);
+      return () => window.removeEventListener('resize', checkTruncation);
+    }, [text]);
+
+    return (
+      <div className="relative min-w-0 group/item-name">
+        <span ref={textRef} className="block text-sm text-gray-800 truncate">
+          {text}
+        </span>
+        {isTruncated && (
+          <div className="pointer-events-none absolute left-0 top-full mt-1 z-30 hidden group-hover/item-name:block">
+            <div className="max-w-[220px] whitespace-normal rounded-md bg-gray-900 px-2 py-1 text-xs text-white shadow-lg">
+              {text}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Note: Only orders with status 'completed' are passed to this component
   // These orders have already gone through the full flow:
   // pending -> accepted (payment confirmed) -> ready -> completed (delivered/picked up)
@@ -477,7 +508,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4">
 
         {/* Side Panel - Sales Breakdown */}
-        <div className="lg:col-span-3">
+        <div className="hidden lg:block lg:col-span-3">
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden sticky top-4 lg:h-[calc(100vh-10rem)] lg:flex lg:flex-col">
             {/* Total Sales Header */}
             <div className="p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-b border-gray-200">
@@ -500,7 +531,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                     >
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <span className="text-xs font-medium text-gray-400 w-4 flex-shrink-0">{idx + 1}.</span>
-                        <span className="text-sm text-gray-800 truncate">{item.name}</span>
+                        <TruncatedItemName text={item.name} />
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-700 flex-shrink-0">
                           {item.count}
                         </span>
@@ -552,7 +583,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
               {/* Filter Dropdown Panel */}
               {showFilterPanel && (
-                <div className="absolute right-0 top-12 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-[420px] overflow-hidden">
+                <div className="absolute left-0 top-12 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-[420px] overflow-hidden">
                   <div className="flex h-[340px]">
                     {/* Left sidebar - filter categories */}
                     <div className="w-[140px] border-r border-gray-100 bg-gray-50 py-2">
@@ -930,7 +961,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
               {/* Results Counter */}
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  Showing {startIndex + 1} to {Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
+                  Showing {currentOrders.length} of {filteredOrders.length} orders
                 </span>
                 {activeFilterCount > 0 && (
                   <button
