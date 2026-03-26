@@ -176,7 +176,7 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
 
           if (deductions.length > 0) {
             const customOrderId = result.order?.custom_order_id || null
-            inventoryService.deductInventoryForOrder(deductions, customOrderId, 'Staff')
+            inventoryService.deductInventoryForOrder(deductions, customOrderId, selectedUser.name || 'Staff')
               .then(r => {
                 if (!r.success) console.warn('ManualOrderModal: inventory deduction failed (non-fatal):', r.error)
                 else console.log('ManualOrderModal: inventory deducted for', deductions.length, 'item(s)')
