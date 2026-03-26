@@ -33,8 +33,8 @@ function InventoryModal({ item, onSave, onClose }) {
     if (!formData.item_name.trim()) errs.item_name = 'Item name is required'
     if (formData.available_quantity === '') {
       errs.available_quantity = 'Quantity is required'
-    } else if (isNaN(parseFloat(formData.available_quantity)) || parseFloat(formData.available_quantity) < 0) {
-      errs.available_quantity = 'Enter a valid quantity'
+    } else if (!Number.isInteger(Number(formData.available_quantity)) || Number(formData.available_quantity) < 0) {
+      errs.available_quantity = 'Enter a valid whole number'
     }
     if (!formData.uom.trim()) errs.uom = 'UOM is required'
     setErrors(errs)
@@ -103,7 +103,7 @@ function InventoryModal({ item, onSave, onClose }) {
                   value={formData.available_quantity}
                   onChange={handleChange}
                   min="0"
-                  step="0.01"
+                  step="1"
                   placeholder="0"
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${errors.available_quantity ? 'border-red-300' : 'border-gray-300'}`}
                 />
@@ -162,8 +162,8 @@ function BookInwardModal({ inventoryItems, staffUserName, onClose, onSuccess }) 
     if (!formData.inventory_item_id) errs.inventory_item_id = 'Please select an item'
     if (formData.quantity === '') {
       errs.quantity = 'Quantity is required'
-    } else if (isNaN(parseFloat(formData.quantity)) || parseFloat(formData.quantity) <= 0) {
-      errs.quantity = 'Enter a valid positive quantity'
+    } else if (!Number.isInteger(Number(formData.quantity)) || Number(formData.quantity) <= 0) {
+      errs.quantity = 'Enter a valid whole number'
     }
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -243,8 +243,8 @@ function BookInwardModal({ inventoryItems, staffUserName, onClose, onSuccess }) 
                 name="quantity"
                 value={formData.quantity}
                 onChange={handleChange}
-                min="0.01"
-                step="0.01"
+                min="1"
+                step="1"
                 placeholder="e.g. 10"
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${errors.quantity ? 'border-red-300' : 'border-gray-300'}`}
               />
