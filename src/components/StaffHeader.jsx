@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import NotificationSettings from './NotificationSettings';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
-export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNotifications }) {
+export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNotifications, noShadow = false }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ export default function StaffHeader({ staffUser, onSignOut, orderCounts, showNot
 
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className={`bg-white border-b border-gray-200 ${noShadow ? 'shadow-none' : 'shadow-sm'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Title */}

@@ -104,46 +104,18 @@ export default function StaffDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <StaffHeader 
-        staffUser={staffUser} 
-        onSignOut={signOutUser}
-        orderCounts={orderCounts}
-        showNotifications={showNotifications}
-      />
-
-      {/* Notification Sound */}
-      <NotificationSound 
-        play={playNotification} 
-        onPlayComplete={handleNotificationComplete} 
-      />
-
-      {/* Notification Banner */}
-      {orderCounts.pending > 0 && showNotifications && (
-        <div className="bg-orange-500 text-white px-4 py-3">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center space-x-2">
-              <ExclamationTriangleIcon className="w-5 h-5 animate-pulse" />
-              <span className="font-semibold">
-                {orderCounts.pending} new order{orderCounts.pending > 1 ? 's' : ''} awaiting confirmation
-              </span>
-            </div>
-            <button
-              onClick={() => setShowNotifications(false)}
-              className="text-white hover:text-orange-100"
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-
-
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="bg-white shadow-sm">
+        <StaffHeader 
+          staffUser={staffUser} 
+          onSignOut={signOutUser}
+          orderCounts={orderCounts}
+          showNotifications={showNotifications}
+          noShadow
+        />
         {/* Tabs */}
-        <div className="border-b border-gray-200 mb-4">
-          <nav className="-mb-px flex space-x-2 sm:space-x-4 md:space-x-8 overflow-x-auto">
+        <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8">
+          <nav className="max-w-7xl mx-auto -mb-px flex space-x-2 sm:space-x-4 md:space-x-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab('pending')}
               className={`pt-2 pb-3 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
@@ -206,21 +178,45 @@ export default function StaffDashboard() {
 
           </nav>
         </div>
+      </div>
 
-        {/* Order Content */}
-        <div className="space-y-6">
-          {activeTab === 'pending' && renderOrders(pendingOrders, 'pending')}
-          {activeTab === 'accepted' && renderOrders(acceptedOrders, 'accepted')}
-          {activeTab === 'completed' && (
-            <CompletedOrdersTable 
-              orders={completedOrders} 
-              loading={loading} 
-              error={error} 
-            />
-          )}
-          {activeTab === 'cancelled' && renderOrders(cancelledOrders, 'cancelled')}
+      {/* Notification Sound */}
+      <NotificationSound 
+        play={playNotification} 
+        onPlayComplete={handleNotificationComplete} 
+      />
 
+      {/* Notification Banner */}
+      {orderCounts.pending > 0 && showNotifications && (
+        <div className="bg-orange-500 text-white px-4 py-3">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center space-x-2">
+              <ExclamationTriangleIcon className="w-5 h-5 animate-pulse" />
+              <span className="font-semibold">
+                {orderCounts.pending} new order{orderCounts.pending > 1 ? 's' : ''} awaiting confirmation
+              </span>
+            </div>
+            <button
+              onClick={() => setShowNotifications(false)}
+              className="text-white hover:text-orange-100"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
+      )}
+
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-1 pb-0 flex-1">
+        {activeTab === 'pending' && renderOrders(pendingOrders, 'pending')}
+        {activeTab === 'accepted' && renderOrders(acceptedOrders, 'accepted')}
+        {activeTab === 'completed' && (
+          <CompletedOrdersTable 
+            orders={completedOrders} 
+            loading={loading} 
+            error={error} 
+          />
+        )}
+        {activeTab === 'cancelled' && renderOrders(cancelledOrders, 'cancelled')}
       </div>
 
       {/* Floating Add Button */}

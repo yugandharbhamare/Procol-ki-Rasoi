@@ -522,7 +522,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
         {/* Side Panel - Sales Breakdown */}
         <div className="hidden lg:block lg:col-span-3">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden sticky top-4 lg:h-[calc(100vh-10rem)] lg:flex lg:flex-col">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden sticky top-4 lg:mt-3 lg:mb-4 lg:h-[calc(100vh-152px)] lg:flex lg:flex-col">
             {/* Total Sales Header */}
             <div className="p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-b border-gray-200">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Sales</p>
@@ -591,7 +591,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
         {/* Main Content - Orders Table (9 cols) */}
         <div className="lg:col-span-9">
-      <div className="sm:bg-white sm:rounded-lg sm:shadow-sm sm:border sm:border-gray-200 overflow-hidden lg:h-[calc(100vh-10rem)] lg:overflow-y-auto">
+      <div className="sm:bg-white sm:rounded-lg sm:shadow-sm sm:border sm:border-gray-200 overflow-hidden lg:mt-3 lg:mb-4 lg:h-[calc(100vh-152px)] lg:overflow-y-auto">
         {/* Toolbar: Date Range + Filter + Download */}
         <div className="hidden sm:block border-b border-gray-200 py-3 sm:py-4 sticky top-0 z-20 bg-white">
           <DateRangeSelector
