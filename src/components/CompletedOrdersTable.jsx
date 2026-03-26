@@ -69,6 +69,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
     customer: new Set(),
     items: new Set()
   });
+  const [salesView, setSalesView] = useState('item');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [showDropdown, setShowDropdown] = useState(null);
@@ -430,7 +431,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
   // Calculate statistics based only on date range filters
   const calculateStats = () => {
     if (!orders || orders.length === 0) {
-      return { totalSales: 0, totalOrders: 0, itemBreakdown: [] };
+      return { totalSales: 0, totalOrders: 0, itemBreakdown: [], customerBreakdown: [] };
     }
 
     // Apply only date range filters for statistics
@@ -454,7 +455,7 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
     }
 
     if (dateFilteredOrders.length === 0) {
-      return { totalSales: 0, totalOrders: 0, itemBreakdown: [] };
+      return { totalSales: 0, totalOrders: 0, itemBreakdown: [], customerBreakdown: [] };
     }
 
     const totalSales = dateFilteredOrders.reduce((sum, order) => sum + (order.order_amount || 0), 0);
@@ -462,7 +463,15 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
     // Build item-wise breakdown
     const itemStats = {};
+    const customerStats = {};
     dateFilteredOrders.forEach(order => {
+      const customerName = order.user?.name || 'Unknown';
+      if (!customerStats[customerName]) {
+        customerStats[customerName] = { orderCount: 0, totalAmount: 0 };
+      }
+      customerStats[customerName].orderCount += 1;
+      customerStats[customerName].totalAmount += Number(order.order_amount || 0);
+
       order.items?.forEach(item => {
         const itemName = item.item_name || item.name || 'Unknown';
         if (!itemStats[itemName]) {
@@ -478,7 +487,11 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
       .map(([name, data]) => ({ name, count: data.count, totalAmount: data.totalAmount }))
       .sort((a, b) => b.totalAmount - a.totalAmount);
 
-    return { totalSales, totalOrders, itemBreakdown };
+    const customerBreakdown = Object.entries(customerStats)
+      .map(([name, data]) => ({ name, orderCount: data.orderCount, totalAmount: data.totalAmount }))
+      .sort((a, b) => b.totalAmount - a.totalAmount);
+
+    return { totalSales, totalOrders, itemBreakdown, customerBreakdown };
   };
 
   const stats = calculateStats();
@@ -519,12 +532,35 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
 
             {/* Item-wise Breakdown */}
             <div className="p-3 flex-1 min-h-0">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-1">Item-wise Sales</p>
-              {stats.itemBreakdown.length === 0 ? (
+              <div className="mb-3 px-1">
+                <div className="flex w-full items-center rounded-lg border border-gray-200 bg-gray-50 p-1">
+                  <button
+                    onClick={() => setSalesView('item')}
+                    className={`flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                      salesView === 'item'
+                        ? 'bg-orange-500 text-white shadow-sm'
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-white'
+                    }`}
+                  >
+                    Item wise
+                  </button>
+                  <button
+                    onClick={() => setSalesView('customer')}
+                    className={`flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                      salesView === 'customer'
+                        ? 'bg-orange-500 text-white shadow-sm'
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-white'
+                    }`}
+                  >
+                    Customer wise
+                  </button>
+                </div>
+              </div>
+              {(salesView === 'item' ? stats.itemBreakdown.length : stats.customerBreakdown.length) === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-4">No data</p>
               ) : (
                 <div className="space-y-1 h-full overflow-y-auto">
-                  {stats.itemBreakdown.map((item, idx) => (
+                  {(salesView === 'item' ? stats.itemBreakdown : stats.customerBreakdown).map((item, idx) => (
                     <div
                       key={item.name}
                       className="flex items-center justify-between py-2 px-2 rounded-md hover:bg-gray-50 transition-colors"
@@ -532,9 +568,15 @@ export default function CompletedOrdersTable({ orders, loading, error }) {
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <span className="text-xs font-medium text-gray-400 w-4 flex-shrink-0">{idx + 1}.</span>
                         <TruncatedItemName text={item.name} />
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-700 flex-shrink-0">
-                          {item.count}
-                        </span>
+                        {salesView === 'item' ? (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-700 flex-shrink-0">
+                            {item.count}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 flex-shrink-0">
+                            {item.orderCount}
+                          </span>
+                        )}
                       </div>
                       <span className="text-sm font-semibold text-gray-900 flex-shrink-0 ml-2">
                         {formatCurrency(item.totalAmount)}
