@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { XMarkIcon, MagnifyingGlassIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { createOrder } from '../services/supabaseService';
 import { getAllUsers } from '../services/supabaseService';
-import { menuService } from '../services/menuService';
+import { supabase } from '../services/supabaseService';
 import { inventoryService } from '../services/inventoryService';
 
 const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
@@ -69,15 +69,30 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
 
   const loadMenuItems = async () => {
     try {
-      const result = await menuService.getAllMenuItems();
-      if (result.success) {
-        setMenuItems(result.data || []);
-      } else {
-        throw new Error(result.error);
-      }
+      // Load all menu items (including unavailable) with inventory join so we can
+      // correctly mark out-of-stock inventory-linked items in the staff dropdown.
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select('*, inventory:inventory_item_id(id, item_name, available_quantity, uom)')
+        .order('category', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setMenuItems(data || []);
     } catch (error) {
       console.error('Error loading menu items:', error);
     }
+  };
+
+  const isItemOutOfStock = (item) => {
+    if (item.is_available === false) return true;
+
+    const isInventoryItem = item.is_inventory_item && item.inventory_item_id;
+    if (!isInventoryItem) return false;
+
+    const qty = parseFloat(item.inventory?.available_quantity);
+    if (Number.isNaN(qty)) return false;
+    return qty <= 0;
   };
 
   const filteredUsers = users.filter(user => 
@@ -103,6 +118,8 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const handleItemToggle = (item) => {
+    if (isItemOutOfStock(item)) return;
+
     setSelectedItems(prev => {
       const exists = prev.find(selected => selected.id === item.id);
       if (exists) {
@@ -316,12 +333,18 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
                   {filteredMenuItems.length > 0 ? (
                     filteredMenuItems.map(item => {
                       const isSelected = selectedItems.find(selected => selected.id === item.id);
+                      const isOutOfStock = isItemOutOfStock(item);
                       return (
                         <button
                           key={item.id}
                           type="button"
                           onClick={() => handleItemToggle(item)}
-                          className={`w-full text-left px-4 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center justify-between ${
+                          disabled={isOutOfStock}
+                          className={`w-full text-left px-4 py-2 border-b border-gray-100 last:border-b-0 flex items-center justify-between ${
+                            isOutOfStock
+                              ? 'bg-gray-50 cursor-not-allowed opacity-80'
+                              : 'hover:bg-gray-50'
+                          } ${
                             isSelected ? 'bg-orange-50' : ''
                           }`}
                         >
@@ -329,7 +352,14 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="font-medium text-gray-900">{item.name}</div>
                             <div className="text-sm text-gray-500">{item.category} - ₹{item.price}</div>
                           </div>
-                          {isSelected && <CheckIcon className="w-5 h-5 text-orange-500" />}
+                          <div className="flex items-center gap-2">
+                            {isOutOfStock && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700">
+                                Out of stock
+                              </span>
+                            )}
+                            {isSelected && !isOutOfStock && <CheckIcon className="w-5 h-5 text-orange-500" />}
+                          </div>
                         </button>
                       );
                     })
