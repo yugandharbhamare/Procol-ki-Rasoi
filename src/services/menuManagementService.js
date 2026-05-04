@@ -6,15 +6,25 @@ export const menuManagementService = {
   async getAllMenuItems() {
     try {
       console.log('MenuManagementService: Fetching all menu items')
-      
+
       const { data, error } = await supabase
         .from('menu_items')
-        .select('*')
+        .select('*, menu_item_ingredients(id, inventory_item_id, quantity, inventory:inventory_item_id(id, item_code, item_name, available_quantity, uom))')
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('MenuManagementService: Error fetching menu items:', error)
-        return { success: false, error: error.message }
+        // Fallback: menu_item_ingredients table may not exist yet — fetch without join
+        console.warn('MenuManagementService: Ingredients join failed, falling back:', error.message)
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('menu_items')
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (fallbackError) {
+          console.error('MenuManagementService: Error fetching menu items:', fallbackError)
+          return { success: false, error: fallbackError.message }
+        }
+        return { success: true, menuItems: (fallbackData || []).map(item => ({ ...item, menu_item_ingredients: [] })) }
       }
 
       console.log('MenuManagementService: Successfully fetched menu items:', data?.length || 0)
@@ -25,11 +35,49 @@ export const menuManagementService = {
     }
   },
 
+  // Get ingredients for a menu item
+  async getIngredients(menuItemId) {
+    try {
+      const { data, error } = await supabase
+        .from('menu_item_ingredients')
+        .select('id, inventory_item_id, quantity, inventory:inventory_item_id(id, item_code, item_name, available_quantity, uom)')
+        .eq('menu_item_id', menuItemId)
+
+      if (error) return { success: false, error: error.message }
+      return { success: true, ingredients: data || [] }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  },
+
+  // Save ingredients for a menu item (replace all existing)
+  async saveIngredients(menuItemId, ingredients) {
+    try {
+      await supabase.from('menu_item_ingredients').delete().eq('menu_item_id', menuItemId)
+
+      const valid = (ingredients || []).filter(
+        ing => ing.inventory_item_id && parseFloat(ing.quantity) > 0
+      )
+      if (valid.length > 0) {
+        const rows = valid.map(ing => ({
+          menu_item_id: menuItemId,
+          inventory_item_id: parseInt(ing.inventory_item_id),
+          quantity: parseFloat(ing.quantity)
+        }))
+        const { error } = await supabase.from('menu_item_ingredients').insert(rows)
+        if (error) return { success: false, error: error.message }
+      }
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  },
+
   // Add new menu item
   async addMenuItem(menuItem) {
     try {
       console.log('MenuManagementService: Adding new menu item:', menuItem)
-      
+
       const { data, error } = await supabase
         .from('menu_items')
         .insert([{
@@ -39,10 +87,7 @@ export const menuManagementService = {
           image: menuItem.image || '',
           category: menuItem.category || 'General',
           is_available: menuItem.is_available !== false,
-          is_inventory_item: menuItem.is_inventory_item || false,
-          inventory_item_id: menuItem.is_inventory_item && menuItem.inventory_item_id
-            ? parseInt(menuItem.inventory_item_id)
-            : null
+          is_inventory_item: menuItem.is_inventory_item || false
         }])
         .select()
 
@@ -51,8 +96,14 @@ export const menuManagementService = {
         return { success: false, error: error.message }
       }
 
-      console.log('MenuManagementService: Successfully added menu item:', data?.[0])
-      return { success: true, menuItem: data?.[0] }
+      const newItem = data?.[0]
+      if (newItem && menuItem.is_inventory_item && menuItem.ingredients?.length > 0) {
+        await this.saveIngredients(newItem.id, menuItem.ingredients)
+      }
+
+      const fullItem = newItem ? (await this._fetchFullItem(newItem.id) || newItem) : newItem
+      console.log('MenuManagementService: Successfully added menu item:', fullItem)
+      return { success: true, menuItem: { ...fullItem, menu_item_ingredients: fullItem?.menu_item_ingredients || [] } }
     } catch (error) {
       console.error('MenuManagementService: Exception adding menu item:', error)
       return { success: false, error: error.message }
@@ -63,12 +114,11 @@ export const menuManagementService = {
   async updateMenuItem(id, updates) {
     try {
       console.log('MenuManagementService: Updating menu item:', id, updates)
-      
+
       const updateData = {
         updated_at: new Date().toISOString()
       }
 
-      // Only include fields that are provided
       if (updates.name !== undefined) updateData.name = updates.name
       if (updates.price !== undefined) updateData.price = parseFloat(updates.price)
       if (updates.description !== undefined) updateData.description = updates.description
@@ -76,9 +126,7 @@ export const menuManagementService = {
       if (updates.category !== undefined) updateData.category = updates.category
       if (updates.is_available !== undefined) updateData.is_available = updates.is_available
       if (updates.is_inventory_item !== undefined) updateData.is_inventory_item = updates.is_inventory_item
-      updateData.inventory_item_id = updates.is_inventory_item && updates.inventory_item_id
-        ? parseInt(updates.inventory_item_id)
-        : null
+      // Leave inventory_item_id column untouched — ingredients are in menu_item_ingredients table
 
       const { data, error } = await supabase
         .from('menu_items')
@@ -91,11 +139,37 @@ export const menuManagementService = {
         return { success: false, error: error.message }
       }
 
-      console.log('MenuManagementService: Successfully updated menu item:', data?.[0])
-      return { success: true, menuItem: data?.[0] }
+      const updatedItem = data?.[0]
+      if (updatedItem) {
+        const ingredientsToSave = updates.is_inventory_item ? (updates.ingredients || []) : []
+        await this.saveIngredients(id, ingredientsToSave)
+      }
+
+      const fullItem = updatedItem ? (await this._fetchFullItem(id) || updatedItem) : updatedItem
+      console.log('MenuManagementService: Successfully updated menu item:', fullItem)
+      return { success: true, menuItem: { ...fullItem, menu_item_ingredients: fullItem?.menu_item_ingredients || [] } }
     } catch (error) {
       console.error('MenuManagementService: Exception updating menu item:', error)
       return { success: false, error: error.message }
+    }
+  },
+
+  // Fetch a single menu item with ingredients joined (internal helper)
+  async _fetchFullItem(id) {
+    try {
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select('*, menu_item_ingredients(id, inventory_item_id, quantity, inventory:inventory_item_id(id, item_code, item_name, available_quantity, uom))')
+        .eq('id', id)
+        .single()
+      if (error) {
+        // Fallback without join
+        const { data: bare } = await supabase.from('menu_items').select('*').eq('id', id).single()
+        return bare ? { ...bare, menu_item_ingredients: [] } : null
+      }
+      return data
+    } catch {
+      return null
     }
   },
 

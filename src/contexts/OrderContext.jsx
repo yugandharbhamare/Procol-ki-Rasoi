@@ -122,45 +122,44 @@ export const OrderProvider = ({ children }) => {
             console.log('OrderContext: Updated sessionStorage with DB custom_order_id:', dbCustomOrderId)
           }
 
-          // Deduct inventory for inventory-linked menu items
+          // Deduct inventory via menu_item_ingredients (recipe-based, multi-ingredient)
           try {
-            // menu_items.id is INTEGER — coerce string keys from Object.keys
             const menuItemIds = Object.keys(order.items || {}).map(id => parseInt(id, 10)).filter(Boolean)
             if (menuItemIds.length > 0) {
-              const { data: linkedItems, error: linkedError } = await supabase
-                .from('menu_items')
-                .select('id, is_inventory_item, inventory_item_id')
-                .in('id', menuItemIds)
-                .eq('is_inventory_item', true)
+              const { data: ingredients, error: ingError } = await supabase
+                .from('menu_item_ingredients')
+                .select('menu_item_id, inventory_item_id, quantity')
+                .in('menu_item_id', menuItemIds)
 
-              if (linkedError) {
-                console.error('OrderContext: Failed to query menu_items for inventory links:', linkedError.message)
-              } else if (linkedItems && linkedItems.length > 0) {
-                const deductions = linkedItems
-                  .filter(mi => mi.inventory_item_id)
-                  .map(mi => ({
-                    inventory_item_id: mi.inventory_item_id,
-                    // order.items keys are strings, so match by string too
-                    quantity: order.items[mi.id]?.quantity || order.items[String(mi.id)]?.quantity || 0
-                  }))
-                  .filter(d => d.quantity > 0)
+              if (ingError) {
+                console.error('OrderContext: Failed to query menu_item_ingredients:', ingError.message)
+              } else if (ingredients && ingredients.length > 0) {
+                const deductionMap = {}
+                for (const ing of ingredients) {
+                  const orderedQty = order.items[ing.menu_item_id]?.quantity || order.items[String(ing.menu_item_id)]?.quantity || 0
+                  if (orderedQty > 0) {
+                    deductionMap[ing.inventory_item_id] = (deductionMap[ing.inventory_item_id] || 0) + ing.quantity * orderedQty
+                  }
+                }
+                const deductions = Object.entries(deductionMap)
+                  .filter(([, qty]) => qty > 0)
+                  .map(([invId, qty]) => ({ inventory_item_id: parseInt(invId), quantity: qty }))
 
                 if (deductions.length > 0) {
                   const deductResult = await inventoryService.deductInventoryForOrder(deductions, dbCustomOrderId, orderData.user_name)
                   if (deductResult.success) {
-                    console.log('OrderContext: Inventory deducted for', deductions.length, 'item(s)')
+                    console.log('OrderContext: Inventory deducted for', deductions.length, 'ingredient(s)')
                   } else {
                     console.error('OrderContext: Inventory deduction returned error (non-fatal):', deductResult.error)
                   }
                 } else {
-                  console.log('OrderContext: No inventory deductions needed (no linked items with qty > 0)')
+                  console.log('OrderContext: No inventory deductions needed')
                 }
               } else {
-                console.log('OrderContext: No inventory-linked menu items found for this order')
+                console.log('OrderContext: No ingredients linked to ordered items')
               }
             }
           } catch (inventoryError) {
-            // Non-fatal: order was placed, just log the inventory deduction failure
             console.error('OrderContext: Inventory deduction failed (non-fatal):', inventoryError)
           }
 

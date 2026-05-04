@@ -69,11 +69,10 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
 
   const loadMenuItems = async () => {
     try {
-      // Load all menu items (including unavailable) with inventory join so we can
-      // correctly mark out-of-stock inventory-linked items in the staff dropdown.
+      // Load menu items with multi-ingredient data for out-of-stock checks.
       const { data, error } = await supabase
         .from('menu_items')
-        .select('*, inventory:inventory_item_id(id, item_name, available_quantity, uom)')
+        .select('*, menu_item_ingredients(inventory_item_id, quantity, inventory:inventory_item_id(id, item_name, available_quantity, uom))')
         .order('category', { ascending: true })
         .order('name', { ascending: true });
 
@@ -86,13 +85,13 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
 
   const isItemOutOfStock = (item) => {
     if (item.is_available === false) return true;
-
-    const isInventoryItem = item.is_inventory_item && item.inventory_item_id;
-    if (!isInventoryItem) return false;
-
-    const qty = parseFloat(item.inventory?.available_quantity);
-    if (Number.isNaN(qty)) return false;
-    return qty <= 0;
+    if (!item.is_inventory_item) return false;
+    const ingredients = item.menu_item_ingredients || [];
+    if (ingredients.length === 0) return false;
+    return ingredients.some(ing => {
+      const qty = parseFloat(ing.inventory?.available_quantity);
+      return !Number.isNaN(qty) && qty <= 0;
+    });
   };
 
   const filteredUsers = users.filter(user => 
@@ -181,22 +180,26 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
       const result = await createOrder(orderData);
 
       if (result.success) {
-        // Deduct inventory for inventory-linked menu items (non-fatal)
+        // Deduct inventory via menu_item_ingredients (recipe-based, multi-ingredient)
         try {
-          const deductions = selectedItems
-            .filter(item => item.is_inventory_item && item.inventory_item_id)
-            .map(item => ({
-              inventory_item_id: item.inventory_item_id,
-              quantity: item.quantity
-            }))
-            .filter(d => d.quantity > 0)
+          const deductionMap = {}
+          for (const item of selectedItems) {
+            const ingredients = item.menu_item_ingredients || []
+            for (const ing of ingredients) {
+              const key = ing.inventory_item_id
+              deductionMap[key] = (deductionMap[key] || 0) + ing.quantity * item.quantity
+            }
+          }
+          const deductions = Object.entries(deductionMap)
+            .filter(([, qty]) => qty > 0)
+            .map(([invId, qty]) => ({ inventory_item_id: parseInt(invId), quantity: qty }))
 
           if (deductions.length > 0) {
             const customOrderId = result.order?.custom_order_id || null
             inventoryService.deductInventoryForOrder(deductions, customOrderId, selectedUser.name || 'Staff')
               .then(r => {
                 if (!r.success) console.warn('ManualOrderModal: inventory deduction failed (non-fatal):', r.error)
-                else console.log('ManualOrderModal: inventory deducted for', deductions.length, 'item(s)')
+                else console.log('ManualOrderModal: inventory deducted for', deductions.length, 'ingredient(s)')
               })
               .catch(err => console.warn('ManualOrderModal: inventory deduction threw (non-fatal):', err))
           }

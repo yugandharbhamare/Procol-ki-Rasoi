@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import ImageUpload from './ImageUpload'
 import { MENU_CATEGORIES } from '../constants/categories'
 import { inventoryService } from '../services/inventoryService'
+import { menuManagementService } from '../services/menuManagementService'
 
 const MenuItemModal = ({ item, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -12,13 +13,12 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
     category: 'General',
     is_available: true,
     is_inventory_item: false,
-    inventory_item_id: ''
   })
+  const [ingredients, setIngredients] = useState([])
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
   const [inventoryItems, setInventoryItems] = useState([])
 
-  // Load inventory items for the dropdown
   useEffect(() => {
     inventoryService.getAllInventoryItems()
       .then(result => {
@@ -27,10 +27,8 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
       .catch(err => console.error('MenuItemModal: Failed to load inventory items:', err))
   }, [])
 
-  // Initialize form data when item prop changes
   useEffect(() => {
     if (item) {
-      console.log('MenuItemModal: Editing item with image:', item.image);
       setFormData({
         name: item.name || '',
         price: item.price?.toString() || '',
@@ -39,10 +37,30 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
         category: item.category || 'General',
         is_available: item.is_available !== false,
         is_inventory_item: item.is_inventory_item || false,
-        inventory_item_id: item.inventory_item_id?.toString() || ''
       })
+      // Load existing ingredients
+      if (item.id) {
+        if (item.menu_item_ingredients) {
+          setIngredients(
+            item.menu_item_ingredients.map(ing => ({
+              inventory_item_id: String(ing.inventory_item_id),
+              quantity: String(ing.quantity)
+            }))
+          )
+        } else {
+          menuManagementService.getIngredients(item.id).then(result => {
+            if (result.success) {
+              setIngredients(
+                result.ingredients.map(ing => ({
+                  inventory_item_id: String(ing.inventory_item_id),
+                  quantity: String(ing.quantity)
+                }))
+              )
+            }
+          })
+        }
+      }
     } else {
-      console.log('MenuItemModal: Creating new item');
       setFormData({
         name: '',
         price: '',
@@ -51,8 +69,8 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
         category: 'General',
         is_available: true,
         is_inventory_item: false,
-        inventory_item_id: ''
       })
+      setIngredients([])
     }
     setErrors({})
   }, [item])
@@ -60,51 +78,37 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
   const validateForm = () => {
     const newErrors = {}
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Item name is required'
-    }
+    if (!formData.name.trim()) newErrors.name = 'Item name is required'
 
     if (!formData.price.trim()) {
       newErrors.price = 'Price is required'
     } else {
       const price = parseFloat(formData.price)
-      if (isNaN(price) || price < 0) {
-        newErrors.price = 'Please enter a valid price'
-      }
+      if (isNaN(price) || price < 0) newErrors.price = 'Please enter a valid price'
     }
 
-    if (formData.is_inventory_item && !formData.inventory_item_id) {
-      newErrors.inventory_item_id = 'Please select an inventory item'
+    if (formData.is_inventory_item) {
+      if (ingredients.length === 0) {
+        newErrors.ingredients = 'Add at least one ingredient'
+      } else {
+        const invalid = ingredients.some(
+          ing => !ing.inventory_item_id || !ing.quantity || parseFloat(ing.quantity) <= 0
+        )
+        if (invalid) newErrors.ingredients = 'Each ingredient needs an item and quantity > 0'
+      }
     }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  const isValidUrl = (string) => {
-    try {
-      new URL(string)
-      return true
-    } catch (_) {
-      return false
-    }
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    console.log('MenuItemModal: Form submitted with data:', formData)
-    
-    if (!validateForm()) {
-      console.log('MenuItemModal: Form validation failed:', errors)
-      return
-    }
+    if (!validateForm()) return
 
-    console.log('MenuItemModal: Form validation passed, calling onSave')
     setSaving(true)
     try {
-      await onSave(formData)
-      console.log('MenuItemModal: onSave completed successfully')
+      await onSave({ ...formData, ingredients })
     } catch (error) {
       console.error('MenuItemModal: Error saving menu item:', error)
     } finally {
@@ -118,14 +122,20 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }))
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }))
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+  }
+
+  const addIngredient = () => {
+    setIngredients(prev => [...prev, { inventory_item_id: '', quantity: '' }])
+  }
+
+  const removeIngredient = (index) => {
+    setIngredients(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const updateIngredient = (index, field, value) => {
+    setIngredients(prev => prev.map((ing, i) => i === index ? { ...ing, [field]: value } : ing))
+    if (errors.ingredients) setErrors(prev => ({ ...prev, ingredients: '' }))
   }
 
   const categories = MENU_CATEGORIES
@@ -134,49 +144,36 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-medium text-gray-900">
               {item ? 'Edit Menu Item' : 'Add New Menu Item'}
             </h3>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Item Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Item Name *
-              </label>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Item Name *</label>
               <input
                 type="text"
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                  errors.name ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${errors.name ? 'border-red-300' : 'border-gray-300'}`}
                 placeholder="Enter item name"
               />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-              )}
+              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
             </div>
 
             {/* Price */}
             <div>
-              <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                Price (₹) *
-              </label>
+              <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Price (₹) *</label>
               <input
                 type="number"
                 id="price"
@@ -185,21 +182,15 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
                 onChange={handleChange}
                 step="0.01"
                 min="0"
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                  errors.price ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 ${errors.price ? 'border-red-300' : 'border-gray-300'}`}
                 placeholder="0.00"
               />
-              {errors.price && (
-                <p className="mt-1 text-sm text-red-600">{errors.price}</p>
-              )}
+              {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
             </div>
 
             {/* Description */}
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea
                 id="description"
                 name="description"
@@ -213,9 +204,7 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
 
             {/* Category */}
             <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
+              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
               <select
                 id="category"
                 name="category"
@@ -224,91 +213,115 @@ const MenuItemModal = ({ item, onSave, onClose }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
+                  <option key={category} value={category}>{category}</option>
                 ))}
               </select>
             </div>
 
             {/* Image Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Item Image
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Item Image</label>
               <ImageUpload
                 value={formData.image}
-                onChange={(imageUrl) => {
-                  setFormData(prev => ({ ...prev, image: imageUrl }));
-                }}
-                onError={(error) => {
-                  setErrors(prev => ({ ...prev, image: error }));
-                }}
+                onChange={(imageUrl) => setFormData(prev => ({ ...prev, image: imageUrl }))}
+                onError={(error) => setErrors(prev => ({ ...prev, image: error }))}
                 disabled={saving}
                 className="w-full"
               />
-              {errors.image && (
-                <p className="mt-1 text-sm text-red-600">{errors.image}</p>
-              )}
+              {errors.image && <p className="mt-1 text-sm text-red-600">{errors.image}</p>}
             </div>
 
-            {/* Inventory Item Toggle */}
+            {/* Inventory / Ingredients */}
             <div className="border border-gray-200 rounded-lg p-3 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
                   <label htmlFor="is_inventory_item" className="text-sm font-medium text-gray-700">
-                    Inventory Item
+                    Track Inventory
                   </label>
-                  <p className="text-xs text-gray-500 mt-0.5">Link this menu item to an inventory entry to track stock</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Link ingredients to auto-deduct stock on order</p>
                 </div>
                 <button
                   type="button"
                   role="switch"
                   aria-checked={formData.is_inventory_item}
                   onClick={() => {
-                    setFormData(prev => ({
-                      ...prev,
-                      is_inventory_item: !prev.is_inventory_item,
-                      inventory_item_id: !prev.is_inventory_item ? prev.inventory_item_id : ''
-                    }))
+                    setFormData(prev => ({ ...prev, is_inventory_item: !prev.is_inventory_item }))
+                    if (formData.is_inventory_item) setIngredients([])
                   }}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
-                    formData.is_inventory_item ? 'bg-orange-500' : 'bg-gray-200'
-                  }`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${formData.is_inventory_item ? 'bg-orange-500' : 'bg-gray-200'}`}
                 >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                      formData.is_inventory_item ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${formData.is_inventory_item ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
 
               {formData.is_inventory_item && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Linked Inventory Item *
-                  </label>
-                  <select
-                    name="inventory_item_id"
-                    value={formData.inventory_item_id}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm ${
-                      errors.inventory_item_id ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">— Select inventory item —</option>
-                    {inventoryItems.map(inv => (
-                      <option key={inv.id} value={inv.id}>
-                        {inv.item_code} — {inv.item_name} ({inv.available_quantity} {inv.uom})
-                      </option>
-                    ))}
-                  </select>
-                  {errors.inventory_item_id && (
-                    <p className="mt-1 text-sm text-red-600">{errors.inventory_item_id}</p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Ingredients / Recipe</span>
+                    <button
+                      type="button"
+                      onClick={addIngredient}
+                      className="text-xs text-orange-600 hover:text-orange-700 font-medium flex items-center gap-1"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add ingredient
+                    </button>
+                  </div>
+
+                  {ingredients.length === 0 && (
+                    <p className="text-xs text-amber-600">No ingredients added. Click "Add ingredient" to link inventory items.</p>
                   )}
+
+                  {ingredients.map((ing, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <select
+                        value={ing.inventory_item_id}
+                        onChange={e => updateIngredient(index, 'inventory_item_id', e.target.value)}
+                        className="flex-1 min-w-0 px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      >
+                        <option value="">— Select item —</option>
+                        {inventoryItems.map(inv => (
+                          <option key={inv.id} value={inv.id}>
+                            {inv.item_code} — {inv.item_name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <input
+                          type="number"
+                          value={ing.quantity}
+                          onChange={e => updateIngredient(index, 'quantity', e.target.value)}
+                          min="0.001"
+                          step="any"
+                          placeholder="Qty"
+                          className="w-16 px-2 py-1.5 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        />
+                        {ing.inventory_item_id && inventoryItems.find(i => String(i.id) === ing.inventory_item_id)?.uom && (
+                          <span className="text-xs text-gray-500 w-8">
+                            {inventoryItems.find(i => String(i.id) === ing.inventory_item_id)?.uom}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeIngredient(index)}
+                        className="text-gray-400 hover:text-red-500 shrink-0"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+
+                  {errors.ingredients && (
+                    <p className="text-sm text-red-600">{errors.ingredients}</p>
+                  )}
+
                   {inventoryItems.length === 0 && (
-                    <p className="mt-1 text-xs text-amber-600">No inventory items found. Add items in the Inventory section first.</p>
+                    <p className="text-xs text-amber-600">No inventory items found. Add items in the Inventory section first.</p>
                   )}
                 </div>
               )}
