@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { createOrder, getUserByEmail, supabase } from '../services/supabaseService'
+import { createOrder, getUserByEmail } from '../services/supabaseService'
 import { addOrderToGoogleSheets, syncOrdersFromGoogleSheets } from '../services/googleSheetsService'
 import notificationService from '../services/notificationService'
-import { inventoryService } from '../services/inventoryService'
 
 const OrderContext = createContext()
 
@@ -78,11 +77,14 @@ export const OrderProvider = ({ children }) => {
       
       // Only proceed with Supabase if we have a user ID
       if (supabaseUserId) {
-        // Prepare order items for Supabase
-        const orderItems = Object.values(order.items || {}).map(item => ({
+        // Prepare order items for Supabase. Carry menu_item_id (the cart key)
+        // through so the DB can validate/deduct recipe-ingredient stock
+        // atomically with order creation.
+        const orderItems = Object.entries(order.items || {}).map(([menuItemId, item]) => ({
           item_name: item.name,
           quantity: item.quantity,
-          price: item.price
+          price: item.price,
+          menu_item_id: parseInt(item.id ?? menuItemId, 10)
         }))
 
         // Prepare order data for Supabase
@@ -122,46 +124,12 @@ export const OrderProvider = ({ children }) => {
             console.log('OrderContext: Updated sessionStorage with DB custom_order_id:', dbCustomOrderId)
           }
 
-          // Deduct inventory via menu_item_ingredients (recipe-based, multi-ingredient)
-          try {
-            const menuItemIds = Object.keys(order.items || {}).map(id => parseInt(id, 10)).filter(Boolean)
-            if (menuItemIds.length > 0) {
-              const { data: ingredients, error: ingError } = await supabase
-                .from('menu_item_ingredients')
-                .select('menu_item_id, inventory_item_id, quantity')
-                .in('menu_item_id', menuItemIds)
-
-              if (ingError) {
-                console.error('OrderContext: Failed to query menu_item_ingredients:', ingError.message)
-              } else if (ingredients && ingredients.length > 0) {
-                const deductionMap = {}
-                for (const ing of ingredients) {
-                  const orderedQty = order.items[ing.menu_item_id]?.quantity || order.items[String(ing.menu_item_id)]?.quantity || 0
-                  if (orderedQty > 0) {
-                    deductionMap[ing.inventory_item_id] = (deductionMap[ing.inventory_item_id] || 0) + ing.quantity * orderedQty
-                  }
-                }
-                const deductions = Object.entries(deductionMap)
-                  .filter(([, qty]) => qty > 0)
-                  .map(([invId, qty]) => ({ inventory_item_id: parseInt(invId), quantity: qty }))
-
-                if (deductions.length > 0) {
-                  const deductResult = await inventoryService.deductInventoryForOrder(deductions, dbCustomOrderId, orderData.user_name)
-                  if (deductResult.success) {
-                    console.log('OrderContext: Inventory deducted for', deductions.length, 'ingredient(s)')
-                  } else {
-                    console.error('OrderContext: Inventory deduction returned error (non-fatal):', deductResult.error)
-                  }
-                } else {
-                  console.log('OrderContext: No inventory deductions needed')
-                }
-              } else {
-                console.log('OrderContext: No ingredients linked to ordered items')
-              }
-            }
-          } catch (inventoryError) {
-            console.error('OrderContext: Inventory deduction failed (non-fatal):', inventoryError)
-          }
+          // Inventory (recipe-based, multi-ingredient) is validated and deducted
+          // atomically inside create_order_with_items — see
+          // supabase_atomic_order_stock_check.sql. No separate client-side
+          // deduction step here anymore: doing it after order creation left a
+          // window where two concurrent orders could both pass a stale stock
+          // check and push available_quantity negative.
 
           // Remove from processing set since order is now in Supabase
           setSupabaseOrderIds(prev => {

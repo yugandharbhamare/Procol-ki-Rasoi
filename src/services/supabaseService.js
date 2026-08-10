@@ -173,21 +173,27 @@ export const createOrder = async (orderData) => {
       };
     }
 
-    // Prepare items array for the RPC call
+    // Prepare items array for the RPC call. menu_item_id is required so the
+    // RPC can look up recipe ingredients and validate/deduct stock atomically
+    // with the order insert (see supabase_atomic_order_stock_check.sql).
     const items = (orderData.items || []).map(item => ({
       item_name: item.name || item.item_name,
       quantity: item.quantity,
-      price: item.price
+      price: item.price,
+      menu_item_id: item.menu_item_id != null ? Number(item.menu_item_id) : null
     }));
 
-    // Create order + items atomically via RPC (single transaction)
+    // Create order + items + inventory deduction atomically via RPC (single
+    // transaction). If stock is insufficient, the RPC raises and this call
+    // rejects with that error — no order or partial deduction is left behind.
     const { data, error } = await supabase
       .rpc('create_order_with_items', {
         p_user_id: orderData.user_id,
         p_order_amount: orderData.order_amount,
         p_status: orderData.status || 'pending',
         p_notes: orderData.notes || null,
-        p_items: items
+        p_items: items,
+        p_created_by: orderData.user_name || null
       });
 
     if (error) throw error;

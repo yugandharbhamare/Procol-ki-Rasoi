@@ -3,7 +3,6 @@ import { XMarkIcon, MagnifyingGlassIcon, CheckIcon } from '@heroicons/react/24/o
 import { createOrder } from '../services/supabaseService';
 import { getAllUsers } from '../services/supabaseService';
 import { supabase } from '../services/supabaseService';
-import { inventoryService } from '../services/inventoryService';
 
 const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
   const [users, setUsers] = useState([]);
@@ -173,40 +172,18 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
         items: selectedItems.map(item => ({
           name: item.name,
           quantity: item.quantity,
-          price: item.price
+          price: item.price,
+          menu_item_id: item.id
         }))
       };
 
+      // Stock is validated and deducted atomically inside create_order_with_items
+      // (see supabase_atomic_order_stock_check.sql) — no separate deduction call
+      // needed, and an insufficient-stock order now fails outright instead of
+      // silently going negative.
       const result = await createOrder(orderData);
 
       if (result.success) {
-        // Deduct inventory via menu_item_ingredients (recipe-based, multi-ingredient)
-        try {
-          const deductionMap = {}
-          for (const item of selectedItems) {
-            const ingredients = item.menu_item_ingredients || []
-            for (const ing of ingredients) {
-              const key = ing.inventory_item_id
-              deductionMap[key] = (deductionMap[key] || 0) + ing.quantity * item.quantity
-            }
-          }
-          const deductions = Object.entries(deductionMap)
-            .filter(([, qty]) => qty > 0)
-            .map(([invId, qty]) => ({ inventory_item_id: parseInt(invId), quantity: qty }))
-
-          if (deductions.length > 0) {
-            const customOrderId = result.order?.custom_order_id || null
-            inventoryService.deductInventoryForOrder(deductions, customOrderId, selectedUser.name || 'Staff')
-              .then(r => {
-                if (!r.success) console.warn('ManualOrderModal: inventory deduction failed (non-fatal):', r.error)
-                else console.log('ManualOrderModal: inventory deducted for', deductions.length, 'ingredient(s)')
-              })
-              .catch(err => console.warn('ManualOrderModal: inventory deduction threw (non-fatal):', err))
-          }
-        } catch (inventoryError) {
-          console.warn('ManualOrderModal: inventory deduction setup failed (non-fatal):', inventoryError)
-        }
-
         onSuccess(selectedUser.name);
         handleClose();
       } else {
@@ -214,7 +191,9 @@ const ManualOrderModal = ({ isOpen, onClose, onSuccess }) => {
       }
     } catch (error) {
       console.error('Error creating manual order:', error);
-      alert('Failed to create order. Please try again.');
+      alert(error.message?.includes('Insufficient stock')
+        ? 'One or more items just went out of stock. Please refresh and adjust the order.'
+        : 'Failed to create order. Please try again.');
     } finally {
       setSubmitting(false);
     }

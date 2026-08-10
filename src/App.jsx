@@ -106,7 +106,15 @@ function MenuPageContent() {
     };
 
     try {
-      await addCompletedOrder(completedOrder);
+      const result = await addCompletedOrder(completedOrder);
+
+      // Order can fail here even after "payment" succeeded — e.g. the server
+      // rejects it because an item just went out of stock. Don't clear the
+      // cart or navigate away in that case; let the user see what happened
+      // and retry/adjust their order.
+      if (result && result.success === false) {
+        throw new Error(result.error || 'Failed to place order');
+      }
 
       // Store the order ID in sessionStorage to open receipt modal on order history page
       sessionStorage.setItem('showReceiptForOrder', completedOrder.id);
@@ -119,6 +127,10 @@ function MenuPageContent() {
       navigate('/orders');
     } catch (error) {
       console.error('Error adding order:', error);
+      alert(error.message?.includes('Insufficient stock')
+        ? 'Sorry, one or more items in your cart just went out of stock. Please update your cart and try again.'
+        : 'Something went wrong placing your order. Please try again.');
+      setShowPayment(false);
     }
   }
 
