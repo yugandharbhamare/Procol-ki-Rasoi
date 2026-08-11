@@ -13,7 +13,15 @@
 // itself — the trigger being bypassable here is intentional and paired with
 // the check below, not a hole in it.
 //
-// Deploy: supabase functions deploy staff-role --project-ref <ref>
+// Deploy: supabase functions deploy staff-role --project-ref <ref> --no-verify-jwt
+// The --no-verify-jwt flag is required, not optional: this function does its
+// OWN identity check via the Firebase ID token (see below), and the request
+// carries the Supabase anon key (not a Supabase user JWT) for gateway
+// routing. Without the flag, Supabase's platform-level JWT gate rejects the
+// browser's CORS preflight before this code ever runs, which the browser
+// reports as an opaque CORS error, not an auth error (hit this in prod on
+// 2026-08-11, fixed by redeploying with the flag).
+//
 // Secrets needed (supabase secrets set ...): none beyond the project's
 // default SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY, which Supabase injects
 // automatically for every Edge Function. FIREBASE_PROJECT_ID must be set
