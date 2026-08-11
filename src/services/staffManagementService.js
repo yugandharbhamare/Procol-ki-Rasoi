@@ -2,6 +2,29 @@ import { supabase } from './supabaseService';
 
 const USERS_TABLE = 'users';
 
+// is_admin/is_staff changes are blocked at the DB level for direct writes
+// (see supabase_fix_admin_escalation.sql) since the anon key has no way to
+// prove the caller is really an admin. This calls the `staff-role` Edge
+// Function instead, which verifies the caller's actual Firebase ID token
+// before making the change. See supabase/functions/staff-role/index.ts.
+const callStaffRoleFunction = async (body) => {
+  const { auth } = await import('../firebase/config');
+  const firebaseUser = auth.currentUser;
+  if (!firebaseUser) {
+    throw new Error('You must be signed in to do this.');
+  }
+  const idToken = await firebaseUser.getIdToken();
+
+  const { data, error } = await supabase.functions.invoke('staff-role', {
+    body,
+    headers: { 'x-firebase-id-token': idToken }
+  });
+
+  if (error) throw error;
+  if (!data?.success) throw new Error(data?.error || 'Request failed');
+  return data.user;
+};
+
 // Check if user is admin (from database)
 export const isAdmin = async (email) => {
   try {
@@ -249,19 +272,7 @@ export const getNonStaffUsers = async () => {
 // Promote a user to staff
 export const promoteUserToStaff = async (userId) => {
   try {
-    const { data, error } = await supabase
-      .from(USERS_TABLE)
-      .update({ is_staff: true })
-      .eq('id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error promoting user to staff:', error);
-      throw error;
-    }
-
-    return data;
+    return await callStaffRoleFunction({ action: 'promote', userId });
   } catch (error) {
     console.error('Error in promoteUserToStaff:', error);
     throw error;
@@ -271,85 +282,18 @@ export const promoteUserToStaff = async (userId) => {
 // Remove staff access from a user
 export const removeStaffAccess = async (userId) => {
   try {
-    const { data, error } = await supabase
-      .from(USERS_TABLE)
-      .update({ is_staff: false })
-      .eq('id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error removing staff access:', error);
-      throw error;
-    }
-
-    return data;
+    return await callStaffRoleFunction({ action: 'remove', userId });
   } catch (error) {
     console.error('Error in removeStaffAccess:', error);
     throw error;
   }
 };
 
-// Change user role (promote to admin or downgrade to staff)
+// Change user role (promote to admin or downgrade to staff). Last-admin
+// protection is enforced server-side inside the Edge Function.
 export const changeUserRole = async (userId, newRole) => {
   try {
-    // If trying to downgrade from admin to staff, check if this is the last admin
-    if (newRole === 'staff') {
-      // Get current user to check if they are admin
-      const { data: currentUser, error: userError } = await supabase
-        .from(USERS_TABLE)
-        .select('is_admin, emailid')
-        .eq('id', userId)
-        .single();
-
-      if (userError) {
-        console.error('Error fetching current user:', userError);
-        throw userError;
-      }
-
-      // If current user is admin, check if they are the last admin
-      if (currentUser.is_admin) {
-        // Count total admins (including hardcoded admin)
-        const { data: allUsers, error: countError } = await supabase
-          .from(USERS_TABLE)
-          .select('is_admin, emailid');
-
-        if (countError) {
-          console.error('Error counting admins:', countError);
-          throw countError;
-        }
-
-        // Count admins (including hardcoded admin)
-        const adminCount = (allUsers || []).filter(user => {
-          const isDbAdmin = user.is_admin === true;
-          const isHardcodedAdmin = user.emailid?.toLowerCase() === 'yugandhar.bhamare@gmail.com';
-          return isDbAdmin || isHardcodedAdmin;
-        }).length;
-
-        // If this is the only admin, prevent downgrade
-        if (adminCount <= 1) {
-          throw new Error('Cannot remove admin privileges from the last admin user. At least one admin must remain in the system.');
-        }
-      }
-    }
-
-    const updates = newRole === 'admin' 
-      ? { is_admin: true, is_staff: true }  // Admins are also staff
-      : { is_admin: false, is_staff: true }; // Staff members
-    
-    const { data, error } = await supabase
-      .from(USERS_TABLE)
-      .update(updates)
-      .eq('id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error changing user role:', error);
-      throw error;
-    }
-
-    return data;
+    return await callStaffRoleFunction({ action: 'setRole', userId, newRole });
   } catch (error) {
     console.error('Error in changeUserRole:', error);
     throw error;
