@@ -44,16 +44,23 @@ const JWKS = createRemoteJWKSet(
   new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com')
 )
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-firebase-id-token',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+// supabase-js attaches its own headers to every request (e.g. x-client-info)
+// on top of whatever this app sends — hardcoding an allow-list here drifts
+// out of sync with client-library internals we don't control. Echo back
+// whatever the browser's preflight actually asked for instead.
+function corsHeaders(req: Request) {
+  const requested = req.headers.get('Access-Control-Request-Headers')
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': requested || 'authorization, apikey, content-type, x-firebase-id-token, x-client-info',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
-function json(body: unknown, status = 200) {
+function json(req: Request, body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
   })
 }
 
@@ -93,65 +100,65 @@ async function verifyCallerIsAdmin(req: Request): Promise<{ ok: true; email: str
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
-  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders(req) })
+  if (req.method !== 'POST') return json(req, { error: 'Method not allowed' }, 405)
 
   const authResult = await verifyCallerIsAdmin(req)
-  if (!authResult.ok) return json({ error: authResult.error }, authResult.status)
+  if (!authResult.ok) return json(req, { error: authResult.error }, authResult.status)
 
   let body: any
   try {
     body = await req.json()
   } catch {
-    return json({ error: 'Invalid JSON body' }, 400)
+    return json(req, { error: 'Invalid JSON body' }, 400)
   }
 
   const { action, userId } = body ?? {}
-  if (!userId || typeof userId !== 'string') return json({ error: 'userId is required' }, 400)
+  if (!userId || typeof userId !== 'string') return json(req, { error: 'userId is required' }, 400)
 
   if (action === 'promote') {
     const { data, error } = await admin.from('users').update({ is_staff: true }).eq('id', userId).select().single()
-    if (error) return json({ error: error.message }, 400)
-    return json({ success: true, user: data })
+    if (error) return json(req, { error: error.message }, 400)
+    return json(req, { success: true, user: data })
   }
 
   if (action === 'remove') {
     const { data: target, error: targetErr } = await admin.from('users').select('is_admin').eq('id', userId).single()
-    if (targetErr) return json({ error: targetErr.message }, 400)
-    if (target?.is_admin) return json({ error: 'Cannot remove staff access from an admin. Change their role first.' }, 400)
+    if (targetErr) return json(req, { error: targetErr.message }, 400)
+    if (target?.is_admin) return json(req, { error: 'Cannot remove staff access from an admin. Change their role first.' }, 400)
 
     const { data, error } = await admin.from('users').update({ is_staff: false }).eq('id', userId).select().single()
-    if (error) return json({ error: error.message }, 400)
-    return json({ success: true, user: data })
+    if (error) return json(req, { error: error.message }, 400)
+    return json(req, { success: true, user: data })
   }
 
   if (action === 'setRole') {
     const newRole = body?.newRole
     if (newRole !== 'admin' && newRole !== 'staff') {
-      return json({ error: 'newRole must be "admin" or "staff"' }, 400)
+      return json(req, { error: 'newRole must be "admin" or "staff"' }, 400)
     }
 
     if (newRole === 'staff') {
       const { data: targetUser, error: targetErr } = await admin.from('users').select('is_admin').eq('id', userId).single()
-      if (targetErr) return json({ error: targetErr.message }, 400)
+      if (targetErr) return json(req, { error: targetErr.message }, 400)
 
       if (targetUser?.is_admin) {
         const { data: allUsers, error: countErr } = await admin.from('users').select('is_admin, emailid')
-        if (countErr) return json({ error: countErr.message }, 400)
+        if (countErr) return json(req, { error: countErr.message }, 400)
         const adminCount = (allUsers ?? []).filter(
           (u) => u.is_admin === true || u.emailid?.toLowerCase() === HARDCODED_ADMIN_EMAIL
         ).length
         if (adminCount <= 1) {
-          return json({ error: 'Cannot remove admin privileges from the last admin user.' }, 400)
+          return json(req, { error: 'Cannot remove admin privileges from the last admin user.' }, 400)
         }
       }
     }
 
     const updates = newRole === 'admin' ? { is_admin: true, is_staff: true } : { is_admin: false, is_staff: true }
     const { data, error } = await admin.from('users').update(updates).eq('id', userId).select().single()
-    if (error) return json({ error: error.message }, 400)
-    return json({ success: true, user: data })
+    if (error) return json(req, { error: error.message }, 400)
+    return json(req, { success: true, user: data })
   }
 
-  return json({ error: `Unknown action: ${action}` }, 400)
+  return json(req, { error: `Unknown action: ${action}` }, 400)
 })
