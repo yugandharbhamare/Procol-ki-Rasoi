@@ -93,4 +93,10 @@ tmp/
 temp/
 
 # Vercel
-.vercel 
+.vercel
+
+# Supabase CLI local link cache
+supabase/.temp/
+
+# Claude Code local session/tool config
+.claude/ 
