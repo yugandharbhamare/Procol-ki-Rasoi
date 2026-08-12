@@ -4,14 +4,33 @@ import { MinusIcon, PlusIcon } from '@heroicons/react/24/outline'
 const MenuItem = memo(({ item, addToCart, cartItem, updateQuantity }) => {
   const isInCart = cartItem && cartItem.quantity > 0
 
-  // Inventory stock logic
-  const isInventoryItem = item.is_inventory_item && item.inventory_item_id
-  const inventoryData = item.inventory // joined from supabase
-  const stockQty = isInventoryItem && inventoryData ? parseFloat(inventoryData.available_quantity) : null
+  // Inventory stock logic — recipe items (menu_item_ingredients) take priority
+  // over the legacy single-FK column (inventory_item_id).
+  const ingredients = item.menu_item_ingredients || []
+  const isRecipeItem = item.is_inventory_item && ingredients.length > 0
+  const isLegacyItem = item.is_inventory_item && !isRecipeItem && item.inventory_item_id && item.inventory
+  const isInventoryItem = isRecipeItem || isLegacyItem
+
+  let stockQty = null
+  let stockUnit = null
+  if (isRecipeItem) {
+    const servings = ingredients.map(ing => {
+      const available = parseFloat(ing.inventory?.available_quantity)
+      const needed = parseFloat(ing.quantity)
+      if (Number.isNaN(available) || !needed) return 0
+      return Math.floor(available / needed)
+    })
+    stockQty = servings.length > 0 ? Math.min(...servings) : null
+    stockUnit = 'servings'
+  } else if (isLegacyItem) {
+    stockQty = parseFloat(item.inventory.available_quantity)
+    stockUnit = item.inventory.uom
+  }
+
   const isOutOfStock = isInventoryItem && stockQty !== null && stockQty <= 0
 
-  const stockDisplay = isInventoryItem && inventoryData
-    ? `${stockQty % 1 === 0 ? parseInt(stockQty) : stockQty.toFixed(1)} ${inventoryData.uom}`
+  const stockDisplay = isInventoryItem && stockQty !== null
+    ? `${stockQty % 1 === 0 ? parseInt(stockQty) : stockQty.toFixed(1)} ${stockUnit}`
     : null
 
   return (

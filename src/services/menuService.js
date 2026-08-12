@@ -27,7 +27,7 @@ export const menuService = {
 
       const { data, error } = await supabase
         .from('menu_items')
-        .select('*, inventory:inventory_item_id(id, item_name, available_quantity, uom)')
+        .select('*, inventory:inventory_item_id(id, item_name, available_quantity, uom), menu_item_ingredients(inventory_item_id, quantity, inventory:inventory_item_id(id, item_name, available_quantity, uom))')
         .eq('is_available', true)
         .order('category', { ascending: true })
         .order('name', { ascending: true });
